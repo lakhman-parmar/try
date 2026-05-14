@@ -1,0 +1,486 @@
+# ============================================================================
+# Merged .gitignore for RapidDev Account Management (Frontend + Backend)
+# ============================================================================
+
+# ============================================================================
+# ENVIRONMENT & SECRETS
+# ============================================================================
+.env
+.env.local
+.env.*.local
+
+# ============================================================================
+# DEPENDENCIES & PACKAGE MANAGERS
+# ============================================================================
+# Node.js
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# NuGet packages
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Paket
+.paket/paket.exe
+paket-files/
+
+# ============================================================================
+# BUILD OUTPUT & ARTIFACTS
+# ============================================================================
+# Node/Angular builds
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# .NET Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+
+# Generated files
+Generated\ Files/
+Generated_Code/
+
+# Build output
+csx/
+*.build.csdef
+ecf/
+rcf/
+
+# Publish & deployment
+publish/
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+PublishScripts/
+
+# Azure Build Output
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# ============================================================================
+# IDE & EDITOR FILES
+# ============================================================================
+# Visual Studio
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# Visual Studio Code history
+.vshistory/
+
+# JetBrains IDEs
+.idea/
+*.sln.iml
+.cr/personal
+
+# Other IDEs
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# ============================================================================
+# PROJECT-SPECIFIC CACHE & TEMP
+# ============================================================================
+# Angular
+/.angular/cache
+
+# Build cache & temporary files
+.cache/
+*.Cache/
+!?*.[Cc]ache/
+*.[Cc]ache
+
+# Others
+ClientBin/
+~$*
+*~
+.localhistory/
+.local/
+
+# ============================================================================
+# TEST & COVERAGE
+# ============================================================================
+/coverage
+/libpeerconnection.log
+testem.log
+test-results/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Test files
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Code coverage
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Code analysis
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+OpenCover/
+
+# Screenshots/artifacts
+__screenshots__/
+
+# ============================================================================
+# .NET SPECIFIC
+# ============================================================================
+# .NET project lock files
+project.lock.json
+project.fragment.lock.json
+
+# Tye
+.tye/
+
+# NUnit specific files
+nunit-*.xml
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# StyleCop
+StyleCopReport.xml
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+!Directory.Build.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Benchmark results
+BenchmarkDotNet.Artifacts/
+
+# MSBuild files
+*.binlog
+
+# Windows Store app packages
+_Chutzpah*
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio Trace Files
+*.e2e
+
+# TFS 2012 Local Workspace
+$tf/
+
+# Guidance Automation Toolkit
+*.gpState
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TeamCity
+_TeamCity*
+
+# DotCover
+*.dotCover
+
+# AxoCover
+.axoCover/*
+!.axoCover/settings.json
+
+# Coverlet
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Visual C++ cache files
+*.aps
+*.ncb
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield output folder
+[Ee]xpress/
+
+# DocProject
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once directory
+publish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Microsoft Azure Web App publish settings
+PublishScripts/
+
+# Business Intelligence projects
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+*.rptproj.rsuser
+*- [Bb]ackup.rdl
+*- [Bb]ackup ([0-9]).rdl
+*- [Bb]ackup ([0-9][0-9]).rdl
+
+# Microsoft Fakes
+FakesAssemblies/
+
+# GhostDoc
+*.GhostDoc.xml
+
+# Node.js Tools for Visual Studio
+.ntvs_analysis.dat
+node_modules/
+
+# Visual Studio 6 files
+*.plg
+*.opt
+*.vbw
+*.vbp
+*.dsw
+*.dsp
+
+# Visual Studio LightSwitch
+**/*.HTMLClient/GeneratedArtifacts
+**/*.DesktopClient/GeneratedArtifacts
+**/*.DesktopClient/ModelManifest.xml
+**/*.Server/GeneratedArtifacts
+**/*.Server/ModelManifest.xml
+_Pvt_Extensions
+
+# FAKE - F# Make
+.fake/
+
+# CodeRush
+.cr/personal
+
+# Python Tools for Visual Studio
+__pycache__/
+*.pyc
+
+# Cake
+# tools/**
+# !tools/packages.config
+
+# Tabs Studio
+*.tss
+
+# Telerik's JustMock
+*.jmconfig
+
+# BizTalk build output
+*.btp.cs
+*.btm.cs
+*.odx.cs
+*.xsd.cs
+
+# Azure Stream Analytics local run output
+ASALocalRun/
+
+# NVidia Nsight GPU debugger
+*.nvuser
+
+# MFractor
+.mfractor/
+
+# Ionide
+.ionide/
+
+# Fody
+FodyWeavers.xsd
+
+# Mono auto generated files
+mono_crash.*
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Rider
+.idea/
+*.sln.iml
+
+# MSBuild files
+project.lock.json
+project.fragment.lock.json
+
+# ============================================================================
+# PLATFORM SPECIFIC - macOS
+# ============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network\ Trash\ Folder
+Temporary\ Items
+.apdisk
+
+# ============================================================================
+# PLATFORM SPECIFIC - Windows
+# ============================================================================
+# Thumbnail cache files
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# ============================================================================
+# TEXT EDITOR & VERSION CONTROL
+# ============================================================================
+# Vim temporary swap files
+*.swp
+
+# Visual Studio Mac
+Makefile.in
+*.usertasks
+config.make
+config.status
+aclocal.m4
+install-sh
+autom4te.cache/
+*.tar.gz
+tarballs/
+
+# ============================================================================
+# MISC & OS FILES
+# ============================================================================
+/connect.lock
+/typings
