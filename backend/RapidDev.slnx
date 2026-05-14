@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RapidDev.Application/RapidDev.Application.csproj" />
+    <Project Path="src/RapidDev.Domain/RapidDev.Domain.csproj" />
+    <Project Path="src/RapidDev.Infrastructure/RapidDev.Infrastructure.csproj" />
+    <Project Path="src/RapidDev.WebApi/RapidDev.WebApi.csproj" />
+  </Folder>
+</Solution>
