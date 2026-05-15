@@ -28,6 +28,9 @@ yarn-error.log
 # Paket
 .paket/paket.exe
 paket-files/
+frontend/dist
+
+*.lscache
 
 # ============================================================================
 # BUILD OUTPUT & ARTIFACTS
