@@ -1,8 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 import { InputComponent } from '../../../shared/components/input/input';
+import { CommonAuthService } from '../services/auth-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +17,8 @@ import { InputComponent } from '../../../shared/components/input/input';
 export class Login {
   // Services
   private fb = inject(FormBuilder);
+  private authService = inject(CommonAuthService);
+  private router = inject(Router);
 
   // Signals
   isLoading = signal(false);
@@ -40,12 +45,24 @@ export class Login {
 
     const formData = this.loginForm.getRawValue();
 
-    console.log('Login attempt with:', formData);
+    this.authService
+      .admin_login(formData.email, formData.password)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.authService.setToken(res.data.token);
+            this.router.navigate(['/admin/home']);
+            return;
+          }
 
-    // TODO: Replace with actual API call
-    setTimeout(() => {
-      this.isLoading.set(false);
-    }, 1500);
+          this.errorMessage.set(res.message || 'Invalid credentials');
+        },
+        error: (err) => {
+          const message = err?.error?.message || err?.message || 'Login failed. Please try again.';
+          this.errorMessage.set(message);
+        },
+      });
   }
 
   // Getters
