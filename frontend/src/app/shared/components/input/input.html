@@ -1,0 +1,32 @@
+<mat-form-field class="full-width" [appearance]="appearance" [subscriptSizing]="subscriptSizing">
+  <mat-label>{{ label }}</mat-label>
+
+  <input
+    matInput
+    [type]="type"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [value]="value"
+    [attr.minlength]="minlength"
+    [attr.maxlength]="maxlength"
+    [attr.min]="min"
+    [attr.max]="max"
+    [attr.step]="step"
+    [attr.pattern]="pattern"
+    autocomplete="new-password"
+    (input)="handleInputEvent($event)"
+    (blur)="onTouched(); markTouched()"
+  />
+
+  <span matSuffix *ngIf="iconPath || icon">
+    <button mat-icon-button type="button" (click)="handleIconClick()">
+      @if (iconPath) {
+        <img [src]="iconPath" width="22" height="22" style="cursor: pointer" alt="icon" />
+      } @else if (icon) {
+        <mat-icon>{{ icon }}</mat-icon>
+      }
+    </button>
+  </span>
+
+  <mat-error>{{ errorMessage }}</mat-error>
+</mat-form-field>

@@ -1,0 +1,224 @@
+@use '../../../../styles/tokens' as tokens;
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background-color: #fff;
+}
+
+.login-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* -----------------------------
+   Left Panel: Info/Brand
+----------------------------- */
+.login-panel--info {
+  flex: 0 0 60%;
+  background: linear-gradient(135deg, tokens.$brand-blue-600 0%, tokens.$brand-cyan-500 100%);
+  color: #ffffff;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.panel-content {
+  max-width: 600px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.panel-eyebrow {
+  display: inline-block;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: tokens.$brand-yellow-300;
+  margin-bottom: 1.5rem;
+}
+
+.login-panel--info h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.login-panel--info p {
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0;
+}
+
+.panel-footer p {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* -----------------------------
+   Right Panel: Form
+----------------------------- */
+.login-panel--form {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  font-size: 2rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login-subtitle {
+  color: #6b7280;
+  margin-bottom: 2.5rem;
+  font-size: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.875rem;
+  margin-top: 1rem;
+  background-color: tokens.$brand-blue-600;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+
+  &:hover:not(:disabled) {
+    background-color: tokens.$brand-blue-500;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.alert {
+  padding: 0.875rem;
+  margin-bottom: 1.5rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.text-center {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+
+  a {
+    color: tokens.$brand-blue-600;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Basic CSS Spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  display: inline-block;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -----------------------------
+   Responsive Breakpoints
+----------------------------- */
+@media (max-width: 992px) {
+  .login-shell {
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+  }
+  .login-panel--info {
+    display: none; /* Hide info panel on tablet/mobile */
+  }
+  .login-panel--form {
+    flex: none;
+    width: 100%;
+    max-width: 480px;
+    background-color: transparent;
+    padding: 2rem;
+  }
+  .login-card {
+    background-color: #ffffff;
+    padding: 3rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-panel--form {
+    padding: 0;
+  }
+  .login-card {
+    padding: 1.875rem 1.25rem;
+  }
+  .login-card h2 {
+    font-size: 1.5rem;
+  }
+  .login-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}

@@ -1,0 +1,68 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+
+  // // ── Use MDC tokens to set height cleanly ─────────────────
+  // --mdc-outlined-text-field-container-height: var(--input-height);
+
+  // // ── Input text ────────────────────────────────────────────
+  // ::ng-deep input.mat-mdc-input-element {
+  //   font-size: 14px !important;
+  //   color: #666666 !important;
+  // }
+
+  // ::ng-deep input.mat-mdc-input-element::placeholder {
+  //   font-size: 14px !important;
+  //   color: #aaaaaa !important;
+  // }
+
+  // // ── Label color at rest ───────────────────────────────────
+  // ::ng-deep .mdc-floating-label {
+  //   font-size: 14px !important;
+  //   color: #666666 !important;
+  // }
+
+  // // ── Label color when focused/floating ─────────────────────
+  // ::ng-deep .mdc-text-field--focused .mdc-floating-label--float-above {
+  //   color: #3f51b5 !important;
+  // }
+
+  // // ── Label red when invalid ────────────────────────────────
+  // ::ng-deep .mdc-text-field--invalid .mdc-floating-label {
+  //   color: #f44336 !important;
+  // }
+}
+
+// ── Remove native browser password icon ───────────────────
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+input[type='password'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type='number'] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    display: none !important;
+  }
+}
+
+.mat-mdc-form-field-hint-wrapper:empty {
+  display: none !important;
+}
