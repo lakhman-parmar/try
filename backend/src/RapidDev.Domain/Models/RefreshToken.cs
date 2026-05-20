@@ -8,6 +8,4 @@ public class RefreshToken
     public bool? IsRevoked { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? ExpiredAt { get; set; }
-
-    public Admin? Admin { get; set; }
 }
