@@ -40,8 +40,10 @@ frontend/dist
 /tmp
 /out-tsc
 /bazel-out
+frontend/dist/
 
 # .NET Build results
+*.lscache
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -487,3 +489,4 @@ tarballs/
 # ============================================================================
 /connect.lock
 /typings
+*.md
