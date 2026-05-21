@@ -1,0 +1,146 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <button class="back-btn" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div>
+      <h1 class="page-title">
+        <span class="material-symbols-outlined page-title-icon">request_quote</span>
+        Purchase Requisition
+      </h1>
+      <p class="page-subtitle">New Requisition</p>
+    </div>
+  </div>
+</div>
+
+@if (errorMsg()) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    {{ errorMsg() }}
+    <button class="error-close" (click)="errorMsg.set(null)">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+}
+
+<div class="form-card">
+  <div class="form-card-header">
+    <span class="material-symbols-outlined form-card-icon">edit_note</span>
+    <span>Requisition Builder</span>
+  </div>
+
+  <div class="form-section">
+    <div class="section-row">
+      <label class="form-label">Products</label>
+      <button class="btn-ghost-sm" (click)="addLineItem()">
+        <span class="material-symbols-outlined">add</span> Add Row
+      </button>
+    </div>
+
+    <div class="line-items-table">
+      <div class="li-header">
+        <span class="li-col-product">Product</span>
+        <span class="li-col-unit">Unit</span>
+        <span class="li-col-qty">Quantity</span>
+        <span class="li-col-action"></span>
+      </div>
+
+      @for (line of lineItems(); track trackByIndex($index); let i = $index) {
+        <div class="li-row">
+          <div class="li-col-product product-picker">
+            <button
+              class="product-select-btn"
+              [class.selected]="line.productId !== null"
+              (click)="openProductDropdown(i); $event.stopPropagation()"
+              type="button"
+            >
+              <span class="material-symbols-outlined product-icon">inventory_2</span>
+              <span class="product-select-label">{{ line.productName || 'Select product…' }}</span>
+              <span class="material-symbols-outlined chevron">expand_more</span>
+            </button>
+
+            @if (isDropdownOpen(i)) {
+              <div class="product-dropdown" (click)="$event.stopPropagation()">
+                <div class="product-search-wrap">
+                  <span class="material-symbols-outlined">search</span>
+                  <input
+                    class="product-search-input"
+                    type="text"
+                    placeholder="Search products…"
+                    [value]="productSearchTerm()"
+                    (input)="filterProducts($any($event.target).value)"
+                    (click)="$event.stopPropagation()"
+                    autofocus
+                  />
+                </div>
+                <div class="product-list">
+                  @if (filteredProducts().length === 0) {
+                    <div class="product-empty">No products found</div>
+                  }
+                  @for (product of filteredProducts(); track product.productId) {
+                    <button
+                      class="product-option"
+                      [class.active]="product.productId === line.productId"
+                      (click)="selectProduct(i, product)"
+                      type="button"
+                    >
+                      <span class="product-option-name">{{ product.name }}</span>
+                      <span class="product-option-unit">{{ product.unitShortName || '' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="li-col-unit">
+            <span class="unit-tag">{{ line.unitShortName || '—' }}</span>
+          </div>
+
+          <div class="li-col-qty">
+            <div class="qty-control">
+              <button class="qty-btn" (click)="updateQuantity(i, line.quantity - 1)" type="button">−</button>
+              <input
+                class="qty-input"
+                type="number"
+                min="1"
+                [value]="line.quantity"
+                (change)="updateQuantity(i, +$any($event.target).value)"
+              />
+              <button class="qty-btn" (click)="updateQuantity(i, line.quantity + 1)" type="button">+</button>
+            </div>
+          </div>
+
+          <div class="li-col-action">
+            @if (lineItems().length > 1) {
+              <button class="remove-btn" (click)="removeLineItem(i)" title="Remove row" type="button">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+      
+  <div class="form-section">
+    <label class="form-label">Remarks / Notes</label>
+    <textarea
+      class="form-textarea"
+      placeholder="Add any notes or context for this requisition…"
+      rows="3"
+      [(ngModel)]="formRemarks"
+    ></textarea>
+  </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-ghost" (click)="cancel()" [disabled]="saving()">Cancel</button>
+    <button class="btn-primary" (click)="submitRequisition()" [disabled]="saving()">
+      @if (saving()) {
+        <div class="btn-spinner"></div> Saving…
+      } @else {
+        <span class="material-symbols-outlined">send</span> Submit Requisition
+      }
+    </button>
+  </div>
+</div>

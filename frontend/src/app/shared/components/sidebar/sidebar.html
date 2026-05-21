@@ -1,14 +1,4 @@
-<aside class="sidebar" [class.collapsed]="collapsed()">
-  <!-- Logo -->
-  <div class="sidebar-logo">
-    <div class="logo-mark">
-      <span class="logo-text">R/D</span>
-    </div>
-    @if (!collapsed()) {
-      <span class="brand-name">RapidDevs</span>
-    }
-  </div>
-
+<aside class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
   <!-- Nav -->
   <nav class="sidebar-nav">
     @for (item of navItems; track item.key) {

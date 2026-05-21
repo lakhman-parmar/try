@@ -1,16 +1,22 @@
 <div class="app-shell">
-  <app-sidebar />
-  <div class="main-wrapper">
-    <header class="topbar">
-      <div class="topbar-left">
-        <!-- Breadcrumb or page title rendered by each feature via a service if needed -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger-btn" (click)="toggleSidebar()">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="logo-mark">
+        <span class="logo-text">R/D</span>
       </div>
-      <div class="topbar-right">
-        <div class="avatar" title="Account">
-          <span class="material-symbols-outlined">account_circle</span>
-        </div>
+      <span class="brand-name">RapidDevs</span>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar" title="Account">
+        <span class="material-symbols-outlined">account_circle</span>
       </div>
-    </header>
+    </div>
+  </header>
+  <div class="body-row">
+    <app-sidebar [mobileOpen]="sidebarOpen()" (mobileClose)="closeSidebar()" />
     <main class="content-area">
       <router-outlet />
     </main>
