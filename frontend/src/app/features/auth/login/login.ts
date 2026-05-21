@@ -52,7 +52,7 @@ export class Login {
         next: (res) => {
           if (res.isSuccess) {
             this.authService.setToken(res.data.token);
-            this.router.navigate(['/admin/home']);
+            this.router.navigate(['/admin']);
             return;
           }
 

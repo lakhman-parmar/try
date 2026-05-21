@@ -5,15 +5,16 @@ import { Dashboard } from './features/dashboard/components/dashboard';
 import { PurchaseRequisition } from './features/purchase/purchase-requisition/purchase-requisition';
 import { PurchaseOrder } from './features/purchase/purchase-order/purchase-order';
 import { PurchaseBill } from './features/purchase/purchase-bill/purchase-bill';
-import { AdminHome } from './features/admin/home/admin-home';
+import { guestGuard } from './core/guards/guest-guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     component: Login,
+    canActivate: [guestGuard],
   },
   {
-    path: '',
+    path: 'admin',
     component: Layout,
     children: [
       {
@@ -39,10 +40,7 @@ export const routes: Routes = [
       },
     ],
   },
-  {
-    path: 'admin/home',
-    component: AdminHome,
-  },
+
   {
     path: '**',
     redirectTo: '',

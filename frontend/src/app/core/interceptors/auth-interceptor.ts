@@ -25,7 +25,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => err);
         }
 
-        const isUserRequest = req.url.includes('/user') || req.url.includes('/User');
         const refreshCall = authService.refresh();
 
         return refreshCall.pipe(
@@ -39,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError((refreshErr) => {
-            const loginRoute = isUserRequest ? '/customer/sign-in' : 'admin/login';
+            const loginRoute = '';
             router.navigate([loginRoute]);
             return throwError(() => refreshErr);
           }),
