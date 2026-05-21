@@ -490,3 +490,4 @@ tarballs/
 /connect.lock
 /typings
 *.md
+backend/backend.sln
