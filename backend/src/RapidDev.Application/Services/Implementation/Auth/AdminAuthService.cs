@@ -1,16 +1,14 @@
-using System.Data;
-using Dapper;
-
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using RapidDev.Domain.Models;
 using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
+using RapidDev.Application.DTOs.Auth.Response;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.Services.Interfaces.Auth;
 using RapidDev.Application.Services.Interfaces.Common;
+using RapidDev.Application.Interfaces.Repositories;
 
 namespace RapidDev.Application.Services.Implementation.Auth;
 
@@ -20,6 +18,7 @@ public class AdminAuthService : IAdminAuthService
     public readonly IJwtService _jwtService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AdminAuthService> _logger;
+    private readonly IAdminRepository _adminRepository;
 
     private const string AdminRole = "Admin";
     private const int RefreshTokenDays = 30;
@@ -29,36 +28,21 @@ public class AdminAuthService : IAdminAuthService
         IPasswordHasher passwordHasher,
         IJwtService jwtService,
         IConfiguration configuration,
-        ILogger<AdminAuthService> logger)
+        ILogger<AdminAuthService> logger,
+        IAdminRepository adminRepository)
     {
         _passwordHasher = passwordHasher;
         _jwtService = jwtService;
         _configuration = configuration;
         _logger = logger;
+        _adminRepository = adminRepository;
     }
 
-    private SqlConnection CreateConnection()
-    {
-        var connectionString = _configuration.GetConnectionString("DefaultConnection")
-            ?? _configuration["ConnectionStrings:DefaultConnection"];
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException("DefaultConnection is not configured.");
-
-        return new SqlConnection(connectionString);
-    }
- 
     public async Task<ApiResponse<AuthResult>> LoginAsync(AdminLoginDto admin)
     {
-        await using var connection = CreateConnection();
-        await connection.OpenAsync();
-
         _logger.LogInformation("Admin login attempt for {Email}", admin.Email);
 
-        var adminUser = await connection.QuerySingleOrDefaultAsync<Admin>(
-            "dbo.Admin_GetByEmail",
-            new { admin.Email },
-            commandType: CommandType.StoredProcedure);
+        var adminUser = await _adminRepository.GetByEmailAsync(admin.Email);
 
         if (adminUser == null)
         {
@@ -85,17 +69,12 @@ public class AdminAuthService : IAdminAuthService
         var rawToken = await _passwordHasher.GenerateSecureToken();
         var tokenHash = await _passwordHasher.HashWithoutSalt(rawToken);
 
-        await connection.ExecuteAsync(
-            "dbo.Admin_RefreshToken_Create",
-            new
-            {
-                AdminId = adminUser.AdminId,
-                TokenHash = tokenHash,
-                IsRevoked = false,
-                CreatedAt = DateTime.UtcNow,
-                ExpiredAt = DateTime.UtcNow.AddDays(RefreshTokenDays)
-            },
-            commandType: CommandType.StoredProcedure);
+        await _adminRepository.CreateRefreshTokenAsync(
+            adminUser.AdminId,
+            tokenHash,
+            false,
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddDays(RefreshTokenDays));
 
         _logger.LogInformation("Admin login succeeded for {Email}", admin.Email);
 
@@ -115,13 +94,7 @@ public class AdminAuthService : IAdminAuthService
 
         var refreshTokenHash = await _passwordHasher.HashWithoutSalt(rawToken);
 
-        await using var connection = CreateConnection();
-        await connection.OpenAsync();
-
-        var affected = await connection.ExecuteAsync(
-            "dbo.Admin_RefreshToken_RevokeByHash",
-            new { TokenHash = refreshTokenHash },
-            commandType: CommandType.StoredProcedure);
+        var affected = await _adminRepository.RevokeRefreshTokenByHashAsync(refreshTokenHash);
 
         if (affected == 0)
         {
@@ -141,13 +114,7 @@ public class AdminAuthService : IAdminAuthService
 
         var refreshTokenHash = await _passwordHasher.HashWithoutSalt(refreshTokenString);
 
-        await using var connection = CreateConnection();
-        await connection.OpenAsync();
-
-        var storedToken = await connection.QuerySingleOrDefaultAsync<RefreshToken>(
-            "dbo.Admin_RefreshToken_GetByHash",
-            new { TokenHash = refreshTokenHash },
-            commandType: CommandType.StoredProcedure);
+        var storedToken = await _adminRepository.GetRefreshTokenByHashAsync(refreshTokenHash);
 
         if (storedToken == null)
         {
@@ -167,10 +134,7 @@ public class AdminAuthService : IAdminAuthService
             return ApiResponse<AuthResult>.Failure("Refresh token expired.");
         }
 
-        var adminUser = await connection.QuerySingleOrDefaultAsync<Admin>(
-            "dbo.Admin_GetById",
-            new { AdminId = storedToken.AdminId },
-            commandType: CommandType.StoredProcedure);
+        var adminUser = await _adminRepository.GetByIdAsync(storedToken.AdminId);
 
         if (adminUser == null)
         {
@@ -178,25 +142,17 @@ public class AdminAuthService : IAdminAuthService
             return ApiResponse<AuthResult>.Failure("Invalid session. Please login again.");
         }
 
-        await connection.ExecuteAsync(
-            "dbo.Admin_RefreshToken_Revoke",
-            new { RefreshTokenId = storedToken.RefreshTokenId },
-            commandType: CommandType.StoredProcedure);
+        await _adminRepository.RevokeRefreshTokenAsync(storedToken.RefreshTokenId);
 
         var newRawToken = await _passwordHasher.GenerateSecureToken();
         var newTokenHash = await _passwordHasher.HashWithoutSalt(newRawToken);
 
-        await connection.ExecuteAsync(
-            "dbo.Admin_RefreshToken_Create",
-            new
-            {
-                AdminId = adminUser.AdminId,
-                TokenHash = newTokenHash,
-                IsRevoked = false,
-                CreatedAt = DateTime.UtcNow,
-                ExpiredAt = DateTime.UtcNow.AddDays(RefreshTokenDays)
-            },
-            commandType: CommandType.StoredProcedure);
+        await _adminRepository.CreateRefreshTokenAsync(
+            adminUser.AdminId,
+            newTokenHash,
+            false,
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddDays(RefreshTokenDays));
 
         var accessToken = await _jwtService.GenerateToken(
             adminUser.AdminId,
@@ -211,6 +167,28 @@ public class AdminAuthService : IAdminAuthService
                 RefreshToken = newRawToken
             },
             "Token refreshed successfully.");
- }
- 
+    }
+
+    public async Task<ApiResponse<AdminProfileDto>> GetProfileAsync(int adminId)
+    {
+        _logger.LogInformation("Retrieving profile for admin ID {AdminId}", adminId);
+
+        var adminUser = await _adminRepository.GetByIdAsync(adminId);
+
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin profile retrieval failed: admin user not found for ID {AdminId}", adminId);
+            return ApiResponse<AdminProfileDto>.Failure("Admin user not found.");
+        }
+
+        var profileDto = new AdminProfileDto
+        {
+            AdminId = adminUser.AdminId,
+            Name = adminUser.Name,
+            Email = adminUser.Email,
+            CreatedAt = adminUser.CreatedAt
+        };
+
+        return ApiResponse<AdminProfileDto>.Success(profileDto, "Admin profile retrieved successfully.");
+    }
 }
