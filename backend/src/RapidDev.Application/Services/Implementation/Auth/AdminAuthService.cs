@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using RapidDev.Domain.Models;
 using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
+using RapidDev.Application.DTOs.Auth.Response;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.Services.Interfaces.Auth;
 using RapidDev.Application.Services.Interfaces.Common;
@@ -211,6 +212,34 @@ public class AdminAuthService : IAdminAuthService
                 RefreshToken = newRawToken
             },
             "Token refreshed successfully.");
- }
- 
+    }
+
+    public async Task<ApiResponse<AdminProfileDto>> GetProfileAsync(int adminId)
+    {
+        _logger.LogInformation("Retrieving profile for admin ID {AdminId}", adminId);
+
+        await using var connection = CreateConnection();
+        await connection.OpenAsync();
+
+        var adminUser = await connection.QuerySingleOrDefaultAsync<Admin>(
+            "dbo.Admin_GetById",
+            new { AdminId = adminId },
+            commandType: CommandType.StoredProcedure);
+
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin profile retrieval failed: admin user not found for ID {AdminId}", adminId);
+            return ApiResponse<AdminProfileDto>.Failure("Admin user not found.");
+        }
+
+        var profileDto = new AdminProfileDto
+        {
+            AdminId = adminUser.AdminId,
+            Name = adminUser.Name,
+            Email = adminUser.Email,
+            CreatedAt = adminUser.CreatedAt
+        };
+
+        return ApiResponse<AdminProfileDto>.Success(profileDto, "Admin profile retrieved successfully.");
+    }
 }

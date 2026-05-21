@@ -1,0 +1,66 @@
+<div class="page-header">
+  <h1 class="page-title">
+    <span class="material-symbols-outlined page-title-icon">person</span>
+    Profile Settings
+  </h1>
+  <p class="page-subtitle">Manage your personal account information</p>
+</div>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading profile details...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <span class="material-symbols-outlined error-icon">error</span>
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (profile(); as data) {
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          {{ data.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="profile-meta">
+          <h2>{{ data.name }}</h2>
+          <span class="badge badge-admin">Administrator</span>
+        </div>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-row">
+          <span class="material-symbols-outlined detail-icon">badge</span>
+          <div class="detail-content">
+            <span class="detail-label">Admin ID</span>
+            <span class="detail-value">#{{ data.adminId }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <span class="material-symbols-outlined detail-icon">mail</span>
+          <div class="detail-content">
+            <span class="detail-label">Email Address</span>
+            <span class="detail-value">{{ data.email }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <span class="material-symbols-outlined detail-icon">calendar_month</span>
+          <div class="detail-content">
+            <span class="detail-label">Member Since</span>
+            <span class="detail-value">{{ data.createdAt | date: 'longDate' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="logout-btn" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span>
+          Logout from Account
+        </button>
+      </div>
+    </div>
+  }
+</div>

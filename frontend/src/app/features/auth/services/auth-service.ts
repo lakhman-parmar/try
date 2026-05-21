@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { Router } from '@angular/router';
 import { ApiResponse } from '../../../shared/models/api-response.model';
 import { AuthData } from '../models/auth';
-import { AuthUser } from '../models/user';
+import { AuthUser, AdminProfile } from '../models/user';
 
 interface JwtPayload {
   'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': string;
@@ -94,6 +94,21 @@ export class CommonAuthService {
           return throwError(() => err);
         }),
       );
+  }
+
+  getAdminProfile(): Observable<ApiResponse<AdminProfile>> {
+    return this.http.get<ApiResponse<AdminProfile>>(`${this.apiUrl}/adminAuth/profile`).pipe(
+      tap((res) => {
+        if (res.isSuccess && res.data) {
+          this.user.set({
+            id: res.data.adminId,
+            name: res.data.name,
+            email: res.data.email,
+          });
+        }
+      }),
+      catchError((err) => throwError(() => err)),
+    );
   }
 
   //  After (correct - matches pattern of all other endpoints)

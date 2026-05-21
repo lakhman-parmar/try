@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
+using RapidDev.Application.DTOs.Auth.Response;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.Services.Interfaces.Auth;
 
@@ -98,5 +99,24 @@ public class AdminAuthController : ControllerBase
         });
 
         return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var adminIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(adminIdClaim) || !int.TryParse(adminIdClaim, out var adminId))
+        {
+            return Unauthorized(ApiResponse<string>.Failure("Unauthorized access. Invalid token."));
+        }
+
+        var result = await _adminAuthService.GetProfileAsync(adminId);
+        if (result.IsSuccess)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result);
     }
 }
