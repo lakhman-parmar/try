@@ -8,6 +8,8 @@ using RapidDev.Application.Services.Implementation.Purchase;
 using RapidDev.Application.Services.Interfaces.Auth;
 using RapidDev.Application.Services.Interfaces.Common;
 using RapidDev.Application.Services.Interfaces.Purchase;
+using RapidDev.Application.Interfaces.Repositories;
+using RapidDev.Infrastructure.Repositories.Implementation.Auth;
 using RapidDev.Infrastructure.Repositories.Implementation.Common;
 using RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
@@ -25,6 +27,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 builder.Services.AddScoped<IPurchaseRequisitionRepository, PurchaseRequisitionRepository>();
 builder.Services.AddScoped<IPurchaseRequisitionService, PurchaseRequisitionService>();
