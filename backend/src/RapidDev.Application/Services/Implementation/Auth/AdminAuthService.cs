@@ -9,10 +9,10 @@ using RapidDev.Domain.Models;
 using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
 using RapidDev.Application.DTOs.Common;
-using RapidDev.Application.Service.Interface.Auth;
-using RapidDev.Application.Service.Interface.Common;
+using RapidDev.Application.Services.Interfaces.Auth;
+using RapidDev.Application.Services.Interfaces.Common;
 
-namespace RapidDev.Application.Service.Implementation.Auth;
+namespace RapidDev.Application.Services.Implementation.Auth;
 
 public class AdminAuthService : IAdminAuthService
 {

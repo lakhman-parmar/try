@@ -3,9 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using RapidDev.Application.Service.Interface.Auth;
+using RapidDev.Application.Services.Interfaces.Auth;
 
-namespace RapidDev.Application.Service.Implementation.Auth;
+namespace RapidDev.Application.Services.Implementation.Auth;
 
 
 public class JwtService : IJwtService

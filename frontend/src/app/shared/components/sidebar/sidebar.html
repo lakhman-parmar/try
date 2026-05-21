@@ -1,0 +1,73 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <span class="logo-text">R/D</span>
+    </div>
+    @if (!collapsed()) {
+      <span class="brand-name">RapidDevs</span>
+    }
+  </div>
+
+  <!-- Nav -->
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.key) {
+      @if (item.children) {
+        <!-- Group with children -->
+        <div class="nav-group">
+          <button
+            class="nav-group-trigger"
+            [class.expanded]="isExpanded(item.key)"
+            (click)="toggleGroup(item.key)"
+            [title]="collapsed() ? item.label : ''"
+          >
+            <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+            @if (!collapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+              <span class="material-symbols-outlined expand-icon">
+                {{ isExpanded(item.key) ? 'expand_less' : 'expand_more' }}
+              </span>
+            }
+          </button>
+
+          @if (isExpanded(item.key) && !collapsed()) {
+            <div class="nav-children">
+              @for (child of item.children; track child.route) {
+                <a
+                  class="nav-child"
+                  [routerLink]="child.route"
+                  routerLinkActive="active"
+                  [title]="child.label"
+                >
+                  <span class="material-symbols-outlined nav-icon child-icon">{{ child.icon }}</span>
+                  <span class="nav-label">{{ child.label }}</span>
+                  <span class="active-dot"></span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Flat nav item -->
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [title]="collapsed() ? item.label : ''"
+        >
+          <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+          @if (!collapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+    }
+  </nav>
+
+  <!-- Collapse toggle -->
+  <button class="collapse-btn" (click)="toggleCollapse()" [title]="collapsed() ? 'Expand' : 'Collapse'">
+    <span class="material-symbols-outlined">
+      {{ collapsed() ? 'chevron_right' : 'chevron_left' }}
+    </span>
+  </button>
+</aside>

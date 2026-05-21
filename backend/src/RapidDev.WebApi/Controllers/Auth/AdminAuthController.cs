@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
 using RapidDev.Application.DTOs.Common;
-using RapidDev.Application.Service.Interface.Auth;
+using RapidDev.Application.Services.Interfaces.Auth;
 
 namespace RapidDev.WebApi.Controllers.Auth;
 

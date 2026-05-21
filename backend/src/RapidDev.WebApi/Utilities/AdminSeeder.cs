@@ -1,6 +1,6 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
-using RapidDev.Application.Service.Interface.Common;
+using RapidDev.Application.Services.Interfaces.Common;
 
 namespace RapidDev.WebApi.Utilities;
 

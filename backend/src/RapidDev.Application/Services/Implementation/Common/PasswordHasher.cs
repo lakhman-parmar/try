@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
-using RapidDev.Application.Service.Interface.Common;
+using RapidDev.Application.Services.Interfaces.Common;
 
-namespace RapidDev.Application.Service.Implementation.Common;
+namespace RapidDev.Application.Services.Implementation.Common;
 
 public class PasswordHasher : IPasswordHasher
 {
