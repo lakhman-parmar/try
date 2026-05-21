@@ -1,4 +1,4 @@
-namespace RapidDev.Application.Service.Interface.Common;
+namespace RapidDev.Application.Services.Interfaces.Common;
 
 public interface IPasswordHasher
 {

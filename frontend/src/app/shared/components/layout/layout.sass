@@ -1,0 +1,68 @@
+.app-shell
+  display: flex
+  height: 100vh
+  width: 100vw
+  overflow: hidden
+  background: #f8fafc
+
+.main-wrapper
+  flex: 1
+  display: flex
+  flex-direction: column
+  overflow: hidden
+  min-width: 0
+
+.topbar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 0 24px
+  height: 56px
+  background: #ffffff
+  border-bottom: 1px solid #dce4ed
+  flex-shrink: 0
+  z-index: 10
+
+.topbar-right
+  display: flex
+  align-items: center
+  gap: 8px
+
+.icon-btn
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 36px
+  height: 36px
+  border: none
+  background: transparent
+  border-radius: 8px
+  cursor: pointer
+  color: #64748b
+  transition: background 220ms ease
+
+  &:hover
+    background: #f0f4f8
+
+  .material-symbols-outlined
+    font-size: 22px
+
+.avatar
+  width: 34px
+  height: 34px
+  border-radius: 50%
+  background: #e2e8f0
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  color: #64748b
+
+  .material-symbols-outlined
+    font-size: 26px
+
+.content-area
+  flex: 1
+  overflow-y: auto
+  padding: 28px 32px
+  min-height: 0

@@ -2,7 +2,7 @@ using RapidDev.Application.DTOs.Auth;
 using RapidDev.Application.DTOs.Auth.Request;
 using RapidDev.Application.DTOs.Common;
 
-namespace RapidDev.Application.Service.Interface.Auth;
+namespace RapidDev.Application.Services.Interfaces.Auth;
 
 public interface IAdminAuthService
 {

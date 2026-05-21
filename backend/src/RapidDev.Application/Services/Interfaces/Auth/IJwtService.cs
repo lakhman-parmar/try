@@ -1,4 +1,4 @@
-namespace RapidDev.Application.Service.Interface.Auth;
+namespace RapidDev.Application.Services.Interfaces.Auth;
 
 public interface IJwtService
 {
