@@ -1,5 +1,5 @@
-import { Component, signal, computed } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, signal, input, output, HostListener } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 interface NavChild {
@@ -32,13 +32,15 @@ interface NavItem {
 })
 export class Sidebar {
   collapsed = signal(false);
+  mobileOpen = input(false);
+  mobileClose = output();
 
   expandedGroups = signal<Set<string>>(new Set(['purchase', 'sales']));
 
   navItems: NavItem[] = [
     {
       label: 'Dashboard',
-      route: '/dashboard',
+      route: '/admin/dashboard',
       icon: 'home',
       key: 'dashboard',
     },
@@ -47,9 +49,9 @@ export class Sidebar {
       icon: 'local_shipping',
       key: 'purchase',
       children: [
-        { label: 'Purchase Requisition', route: '/supplier/purchase-requisition', icon: 'request_quote' },
-        { label: 'Purchase Order', route: '/supplier/purchase-order', icon: 'shopping_cart' },
-        { label: 'Purchase Bill', route: '/supplier/purchase-bill', icon: 'receipt_long' },
+        { label: 'Purchase Requisition', route: '/admin/purchase/requisition', icon: 'request_quote' },
+        { label: 'Purchase Order', route: '/admin/purchase/order', icon: 'shopping_cart' },
+        { label: 'Purchase Bill', route: '/admin/purchase/bill', icon: 'receipt_long' },
       ],
     },
     {
@@ -57,18 +59,23 @@ export class Sidebar {
       icon: 'person',
       key: 'sales',
       children: [
-        { label: 'Estimation', route: '/customer/estimation', icon: 'calculate' },
-        { label: 'Sales Order', route: '/customer/sales-order', icon: 'assignment' },
-        { label: 'Sales Invoice', route: '/customer/sales-invoice', icon: 'description' },
+        { label: 'Estimation', route: '/admin/sales/estimation', icon: 'calculate' },
+        { label: 'Sales Order', route: '/admin/sales/order', icon: 'assignment' },
+        { label: 'Sales Invoice', route: '/admin/sales/invoice', icon: 'description' },
       ],
     },
     {
       label: 'Stock',
-      route: '/stock',
+      route: '/admin/stock',
       icon: 'inventory_2',
       key: 'stock',
     },
   ];
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.mobileOpen()) this.mobileClose.emit();
+  }
 
   toggleCollapse() {
     this.collapsed.update((v) => !v);
