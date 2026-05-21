@@ -8,6 +8,8 @@ import { PurchaseRequisitionUpdate } from './features/purchase/purchase-requisit
 import { PurchaseOrder } from './features/purchase/purchase-order/purchase-order';
 import { PurchaseBill } from './features/purchase/purchase-bill/purchase-bill';
 import { guestGuard } from './core/guards/guest-guard';
+import { authGuard } from './core/guards/auth-guard';
+import { UserProfile } from './features/user-profile/components/user-profile';
 
 export const routes: Routes = [
   {
@@ -18,6 +20,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Layout,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -38,6 +41,10 @@ export const routes: Routes = [
       {
         path: 'purchase/bill',
         component: PurchaseBill,
+      },
+      {
+        path: 'profile',
+        component: UserProfile,
       },
       {
         path: '',

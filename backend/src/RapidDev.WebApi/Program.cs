@@ -1,10 +1,15 @@
 using Dapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using RapidDev.Application.Services.Implementation.Auth;
 using RapidDev.Application.Services.Implementation.Common;
 using RapidDev.Application.Services.Implementation.Purchase;
 using RapidDev.Application.Services.Interfaces.Auth;
 using RapidDev.Application.Services.Interfaces.Common;
 using RapidDev.Application.Services.Interfaces.Purchase;
+using RapidDev.Application.Interfaces.Repositories;
+using RapidDev.Infrastructure.Repositories.Implementation.Auth;
 using RapidDev.Infrastructure.Repositories.Implementation.Common;
 using RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
@@ -22,11 +27,35 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 builder.Services.AddScoped<IPurchaseRequisitionRepository, PurchaseRequisitionRepository>();
 builder.Services.AddScoped<IPurchaseRequisitionService, PurchaseRequisitionService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+
+// JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"] 
+    ?? throw new InvalidOperationException("JWT Key is not configured.");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
 // CORS
 builder.Services.AddCors(options =>
 {

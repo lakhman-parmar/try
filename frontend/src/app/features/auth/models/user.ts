@@ -3,3 +3,10 @@ export interface AuthUser {
   name: string;
   email: string;
 }
+
+export interface AdminProfile {
+  adminId: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
