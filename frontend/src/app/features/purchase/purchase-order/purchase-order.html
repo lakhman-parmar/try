@@ -1,13 +1,265 @@
 <div class="page-header">
-  <h1 class="page-title">
-    <span class="material-symbols-outlined page-title-icon">shopping_cart</span>
-    Purchase Order
-  </h1>
-  <p class="page-subtitle">purchase</p>
-</div>
-<div class="page-body">
-  <div class="placeholder-card">
-    <span class="material-symbols-outlined placeholder-icon">shopping_cart</span>
-    <p>Purchase Order page — connect your components here.</p>
+  <div class="page-header-left">
+    <div>
+      <h1 class="page-title">
+        <span class="material-symbols-outlined page-title-icon">shopping_cart</span>
+        Purchase Order
+      </h1>
+      <p class="page-subtitle">Manage supplier purchase orders</p>
+    </div>
   </div>
+  <button class="btn-primary" (click)="openCreateForm()">
+    <span class="material-symbols-outlined">add</span>
+    New Order
+  </button>
+</div>
+
+@if (errorMsg()) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    {{ errorMsg() }}
+    <button class="error-close" (click)="errorMsg.set(null)">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+}
+
+<div class="filter-bar">
+  <div class="search-wrap">
+    <span class="material-symbols-outlined search-icon">search</span>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Search by PO number or remarks…"
+      [value]="searchTerm()"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+    @if (searchTerm()) {
+      <button class="clear-search" (click)="onSearchChange('')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    }
+  </div>
+
+  <div class="date-filters">
+    <div class="date-field">
+      <label class="date-label">From</label>
+      <input
+        class="date-input"
+        type="date"
+        [(ngModel)]="fromDate"
+        (change)="onDateChange()"
+      />
+    </div>
+    <div class="date-field">
+      <label class="date-label">To</label>
+      <input
+        class="date-input"
+        type="date"
+        [(ngModel)]="toDate"
+        (change)="onDateChange()"
+      />
+    </div>
+    @if (hasFilters) {
+      <button class="btn-ghost" (click)="clearFilters()">
+        <span class="material-symbols-outlined">filter_alt_off</span>
+        Clear
+      </button>
+    }
+  </div>
+</div>
+
+<div class="table-card">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Loading orders…</span>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-outlined empty-icon">shopping_cart</span>
+      <p class="empty-title">No purchase orders found</p>
+      <p class="empty-sub">
+        @if (hasFilters) { Try adjusting your search or date filters. }
+        @else { Create your first purchase order to get started. }
+      </p>
+      @if (!hasFilters) {
+        <button class="btn-primary" (click)="openCreateForm()">
+          <span class="material-symbols-outlined">add</span>New Order
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="po-table">
+        <thead>
+          <tr>
+            <th class="col-toggle"></th>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Remarks</th>
+            <th class="center">Items</th>
+            <th class="right">Sub Total</th>
+            <th>Date</th>
+            <th class="center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of items(); track order.purchaseOrderId) {
+
+            <!-- Main row -->
+            <tr class="table-row" [class.expanded]="isExpanded(order.purchaseOrderId)">
+              <td class="col-toggle">
+                <button
+                  class="toggle-btn"
+                  [class.open]="isExpanded(order.purchaseOrderId)"
+                  (click)="toggleExpand(order.purchaseOrderId, $event)"
+                  title="Show items"
+                >
+                  <span class="material-symbols-outlined">
+                    {{ isExpanded(order.purchaseOrderId) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+                  </span>
+                </button>
+              </td>
+              <td>
+                <div class="po-no">
+                  <span class="po-dot"></span>
+                  {{ order.poNumber }}
+                </div>
+              </td>
+              <td class="supplier-cell">{{ order.supplierName || '—' }}</td>
+              <td class="remarks-cell">{{ order.remarks || '—' }}</td>
+              <td class="center">
+                <span class="item-badge">{{ order.itemCount }}</span>
+              </td>
+              <td class="right amount-cell">{{ formatCurrency(order.subTotal) }}</td>
+              <td class="date-cell">{{ formatDate(order.createdAt) }}</td>
+              <td class="center">
+                <div class="action-btns">
+                  <button
+                    class="icon-action view"
+                    title="Edit"
+                    (click)="openDetail(order.purchaseOrderId)"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button
+                    class="icon-action delete"
+                    title="Delete"
+                    (click)="deleteOrder(order.purchaseOrderId, $event)"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Expanded detail row -->
+            @if (isExpanded(order.purchaseOrderId)) {
+              <tr class="expand-row">
+                <td colspan="8" class="expand-cell">
+
+                  @if (expandLoading()) {
+                    <div class="expand-loading">
+                      <div class="spinner-sm"></div>
+                      <span>Loading items…</span>
+                    </div>
+                  }
+
+                  @if (!expandLoading() && expandedDetail()) {
+                    <div class="expand-content">
+
+                      @if (expandedDetail()!.remarks) {
+                        <div class="expand-remarks">
+                          <span class="material-symbols-outlined">notes</span>
+                          {{ expandedDetail()!.remarks }}
+                        </div>
+                      }
+
+                      <table class="expand-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Unit</th>
+                            <th>Requisition</th>
+                            <th class="right">Qty</th>
+                            <th class="right">Unit Price</th>
+                            <th class="right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (item of expandedDetail()!.items; track item.purchaseOrderItemId; let i = $index) {
+                            <tr>
+                              <td class="row-num">{{ i + 1 }}</td>
+                              <td class="expand-product-name">{{ item.productName }}</td>
+                              <td><span class="unit-tag">{{ item.unitShortName || '—' }}</span></td>
+                              <td>
+                                @if (item.requisitionNo) {
+                                  <span class="req-ref-badge">
+                                    <span class="material-symbols-outlined">receipt_long</span>
+                                    {{ item.requisitionNo }}
+                                  </span>
+                                } @else {
+                                  <span class="direct-badge">Direct</span>
+                                }
+                              </td>
+                              <td class="right qty-value">{{ item.quantity }}</td>
+                              <td class="right">{{ formatCurrency(item.unitPrice) }}</td>
+                              <td class="right total-val">
+                                {{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '—' }}
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="6" class="total-label-cell">
+                              Sub Total
+                              @if (expandedDetail()!.taxPercentage) {
+                                <span class="tax-note">(+{{ expandedDetail()!.taxPercentage }}% tax)</span>
+                              }
+                            </td>
+                            <td class="right total-count">
+                              {{ formatCurrency(expandedSubTotal()) }}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+
+                    </div>
+                  }
+
+                </td>
+              </tr>
+            }
+
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination-info">
+          Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minOf(currentPage() * pageSize, totalCount()) }} of {{ totalCount() }}
+        </span>
+        <div class="page-controls">
+          <button class="page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          @for (p of pageNumbers(); track p) {
+            <button
+              class="page-btn"
+              [class.active]="p === currentPage()"
+              (click)="goToPage(p)"
+            >{{ p }}</button>
+          }
+          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    }
+  }
 </div>
