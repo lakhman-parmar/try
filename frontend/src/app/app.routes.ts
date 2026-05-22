@@ -49,6 +49,30 @@ export const routes: Routes = [
         component: PurchaseBill,
       },
       {
+        path: 'sales/estimation',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/sales/estimation/estimation').then((m) => m.Estimation),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./features/sales/estimation/components/estimation-form/estimation-form').then(
+                (m) => m.EstimationForm,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('./features/sales/estimation/components/estimation-form/estimation-form').then(
+                (m) => m.EstimationForm,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile',
         component: UserProfile,
       },

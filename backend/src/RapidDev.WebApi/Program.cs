@@ -5,13 +5,18 @@ using System.Text;
 using RapidDev.Application.Services.Implementation.Auth;
 using RapidDev.Application.Services.Implementation.Common;
 using RapidDev.Application.Services.Implementation.Purchase;
+using RapidDev.Application.Services.Implementation.Sales;
 using RapidDev.Application.Services.Interfaces.Auth;
 using RapidDev.Application.Services.Interfaces.Common;
 using RapidDev.Application.Services.Interfaces.Purchase;
+using RapidDev.Application.Services.Interfaces.Sales;
 using RapidDev.Application.Interfaces.Repositories;
+using RapidDev.Application.Interfaces.Repositories.Common;
+using RapidDev.Application.Interfaces.Repositories.Sales;
 using RapidDev.Infrastructure.Repositories.Implementation.Auth;
 using RapidDev.Infrastructure.Repositories.Implementation.Common;
 using RapidDev.Infrastructure.Repositories.Implementation.Purchase;
+using RapidDev.Infrastructure.Repositories.Implementation.Sales;
 using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
 using RapidDev.WebApi.Utilities;
 
@@ -33,9 +38,13 @@ builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IPurchaseRequisitionRepository, PurchaseRequisitionRepository>();
 builder.Services.AddScoped<IPurchaseRequisitionService, PurchaseRequisitionService>();
+builder.Services.AddScoped<IEstimationRepository, EstimationRepository>();
+builder.Services.AddScoped<IEstimationService, EstimationService>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] 

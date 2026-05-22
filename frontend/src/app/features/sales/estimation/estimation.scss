@@ -1,0 +1,391 @@
+:host {
+  display: block;
+}
+
+.estimation-page {
+  align-content: start;
+  background: #f6f8fb;
+  display: grid;
+  gap: 12px;
+  min-height: auto;
+  padding: 14px 24px 24px;
+}
+
+.page-header,
+.filter-card,
+.pagination {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.page-header {
+  margin: 0;
+  padding: 0;
+}
+
+.page-header h1 {
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-header p {
+  color: #64748b;
+  margin: 4px 0 0;
+}
+
+.filter-card {
+  align-items: flex-end;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  height: auto;
+  justify-content: flex-start;
+  margin: 0;
+  max-height: none;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.filter-field {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.search-field {
+  flex: 1 1 360px;
+  max-width: 460px;
+  position: relative;
+}
+
+.date-field {
+  min-width: 150px;
+  max-width: 170px;
+}
+
+.customer-field {
+  min-width: 220px;
+}
+
+.field-label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.field-control {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #0f172a;
+  font: inherit;
+  height: 42px;
+  max-height: 42px;
+  outline: none;
+  padding: 0 12px;
+  width: 100%;
+}
+
+.select-shell {
+  display: block;
+  position: relative;
+}
+
+.select-shell::after {
+  border-bottom: 2px solid #0f172a;
+  border-right: 2px solid #0f172a;
+  content: '';
+  height: 7px;
+  pointer-events: none;
+  position: absolute;
+  right: 13px;
+  top: 16px;
+  transform: rotate(45deg);
+  width: 7px;
+}
+
+.select-shell .field-control {
+  padding-right: 36px;
+}
+
+.field-control:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.14);
+}
+
+.icon-control {
+  padding-left: 40px;
+}
+
+.field-icon {
+  color: #64748b;
+  font-size: 20px;
+  height: 20px;
+  left: 13px;
+  line-height: 20px;
+  margin: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 34px;
+  width: 20px;
+}
+
+.compact-date {
+  height: 42px;
+  width: 100%;
+}
+
+.compact-autocomplete {
+  height: 42px;
+  width: 100%;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-text-field-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-flex {
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-infix {
+  min-height: 42px;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-text-field-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  height: 42px;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-form-field-flex {
+  height: 42px;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-form-field-infix {
+  min-height: 42px;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-icon-button {
+  height: 32px;
+  margin-right: -2px;
+  padding: 4px;
+  width: 32px;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-icon-button svg {
+  height: 20px;
+  width: 20px;
+}
+
+:host ::ng-deep .compact-date .mat-mdc-form-field-icon-suffix {
+  align-items: center;
+  display: flex;
+  height: 42px;
+  padding: 0 6px 0 0;
+}
+
+:host ::ng-deep .compact-date input.mat-mdc-input-element {
+  line-height: 24px;
+}
+
+.primary-action,
+.secondary-action,
+.page-button,
+.icon-action {
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: 6px;
+  justify-content: center;
+}
+
+.primary-action {
+  background: #0369a1;
+  color: #ffffff;
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.secondary-action {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0369a1;
+  min-height: 42px;
+  padding: 0 14px;
+  place-self: end;
+}
+
+.icon-action {
+  background: transparent;
+  color: #475569;
+  height: 36px;
+  width: 36px;
+}
+
+.icon-action:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.icon-action.danger:hover {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.icon-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.table-card,
+.message-card {
+  border-radius: 8px;
+}
+
+.table-card {
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.estimate-table th,
+.items-table th {
+  color: #334155;
+  font-weight: 700;
+}
+
+.estimate-table td,
+.estimate-table th,
+.items-table td,
+.items-table th {
+  border-color: #e2e8f0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.estimate-table,
+.items-table {
+  width: 100%;
+}
+
+.remarks-cell {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading-state,
+.empty-state {
+  align-items: center;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.loading-state.slim {
+  min-height: 80px;
+}
+
+.empty-state {
+  flex-direction: column;
+}
+
+.empty-icon {
+  color: #94a3b8;
+  font-size: 40px;
+  height: 40px;
+  width: 40px;
+}
+
+.error-card {
+  background: #fff1f2;
+  color: #be123c;
+  padding: 12px 16px;
+}
+
+.detail-panel {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 16px;
+}
+
+.pagination {
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  padding: 12px 16px;
+}
+
+.page-actions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.page-button {
+  background: transparent;
+  color: #475569;
+  min-width: 36px;
+  padding: 0 10px;
+}
+
+.active-page {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+@media (max-width: 720px) {
+  .estimation-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-field,
+  .search-field {
+    max-width: none;
+    width: 100%;
+  }
+
+  .filter-card {
+    flex-wrap: wrap;
+  }
+
+  .secondary-action {
+    place-self: stretch;
+  }
+}
