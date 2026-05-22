@@ -14,7 +14,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './purchase-requisition-create.html',
-  styleUrl: './purchase-requisition-create.sass',
+  styleUrl: './purchase-requisition-create.scss',
 })
 export class PurchaseRequisitionCreate implements OnInit {
   private readonly svc = inject(PurchaseRequisitionService);
@@ -75,9 +75,13 @@ export class PurchaseRequisitionCreate implements OnInit {
   }
 
   openProductDropdown(index: number): void {
-    this.dropdownOpenIndex.set(index);
-    this.productSearchTerm.set('');
-    this.filteredProducts.set(this.products());
+    if (this.dropdownOpenIndex() === index) {
+      this.closeProductDropdown();
+    } else {
+      this.dropdownOpenIndex.set(index);
+      this.productSearchTerm.set('');
+      this.filteredProducts.set(this.products());
+    }
   }
 
   closeProductDropdown(): void {
