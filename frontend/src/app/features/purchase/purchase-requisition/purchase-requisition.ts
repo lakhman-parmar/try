@@ -21,7 +21,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './purchase-requisition.html',
-  styleUrl: './purchase-requisition.sass',
+  styleUrl: './purchase-requisition.scss',
 })
 export class PurchaseRequisition implements OnInit {
   private readonly svc = inject(PurchaseRequisitionService);

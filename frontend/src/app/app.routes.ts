@@ -6,6 +6,8 @@ import { PurchaseRequisition } from './features/purchase/purchase-requisition/pu
 import { PurchaseRequisitionCreate } from './features/purchase/purchase-requisition/components/purchase-requisition-create/purchase-requisition-create';
 import { PurchaseRequisitionUpdate } from './features/purchase/purchase-requisition/components/purchase-requisition-update/purchase-requisition-update';
 import { PurchaseOrder } from './features/purchase/purchase-order/purchase-order';
+import { PurchaseOrderCreate } from './features/purchase/purchase-order/components/purchase-order-create/purchase-order-create';
+import { PurchaseOrderDetail } from './features/purchase/purchase-order/components/purchase-order-detail/purchase-order-detail';
 import { PurchaseBill } from './features/purchase/purchase-bill/purchase-bill';
 import { guestGuard } from './core/guards/guest-guard';
 import { authGuard } from './core/guards/auth-guard';
@@ -36,7 +38,11 @@ export const routes: Routes = [
       },
       {
         path: 'purchase/order',
-        component: PurchaseOrder,
+        children: [
+          { path: '', component: PurchaseOrder },
+          { path: 'create', component: PurchaseOrderCreate },
+          { path: ':id', component: PurchaseOrderDetail },
+        ],
       },
       {
         path: 'purchase/bill',
