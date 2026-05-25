@@ -1,8 +1,15 @@
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, finalize } from 'rxjs';
+import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { PurchaseRequisitionService } from './services/purchase-requisition.service';
 import {
   PagedResult,
@@ -13,7 +20,19 @@ import {
 @Component({
   selector: 'app-purchase-requisition',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    AsyncPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatTableModule,
+  ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './purchase-requisition.html',
   styleUrl: './purchase-requisition.scss',
 })
@@ -21,20 +40,24 @@ export class PurchaseRequisition implements OnInit {
   private readonly svc = inject(PurchaseRequisitionService);
   private readonly router = inject(Router);
 
+  displayedColumns = ['toggle', 'number', 'remarks', 'items', 'date', 'actions'];
+  detailColumns = ['detail'];
+  pageSize = 10;
+
   loading = signal(false);
   errorMsg = signal<string | null>(null);
 
   pagedResult = signal<PagedResult<PurchaseRequisitionListItemDto> | null>(null);
   searchTerm = signal('');
-  fromDate = signal('');
-  toDate = signal('');
+  fromDate = signal<Date | null>(null);
+  toDate = signal<Date | null>(null);
   currentPage = signal(1);
-  pageSize = 10;
 
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
   readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
   readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
+  hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
 
   // Expandable row state
   expandedId = signal<number | null>(null);
@@ -55,8 +78,8 @@ export class PurchaseRequisition implements OnInit {
           return this.svc
             .getAll({
               search: this.searchTerm(),
-              fromDate: this.fromDate() || undefined,
-              toDate: this.toDate() || undefined,
+              fromDate: this.toQueryDate(this.fromDate()),
+              toDate: this.toQueryDate(this.toDate()),
               pageNumber: this.currentPage(),
               pageSize: this.pageSize,
             })
@@ -76,8 +99,8 @@ export class PurchaseRequisition implements OnInit {
     this.svc
       .getAll({
         search: this.searchTerm(),
-        fromDate: this.fromDate() || undefined,
-        toDate: this.toDate() || undefined,
+        fromDate: this.toQueryDate(this.fromDate()),
+        toDate: this.toQueryDate(this.toDate()),
         pageNumber: this.currentPage(),
         pageSize: this.pageSize,
       })
@@ -123,15 +146,17 @@ export class PurchaseRequisition implements OnInit {
     this.searchSubject.next();
   }
 
-  onDateChange(): void {
+  applyFilters(): void {
     this.currentPage.set(1);
+    this.expandedId.set(null);
+    this.expandedDetail.set(null);
     this.loadList();
   }
 
   clearFilters(): void {
     this.searchTerm.set('');
-    this.fromDate.set('');
-    this.toDate.set('');
+    this.fromDate.set(null);
+    this.toDate.set(null);
     this.currentPage.set(1);
     this.loadList();
   }
@@ -182,7 +207,11 @@ export class PurchaseRequisition implements OnInit {
     });
   }
 
-  get hasFilters(): boolean {
-    return !!(this.searchTerm() || this.fromDate() || this.toDate());
+  private toQueryDate(date: Date | null): string | undefined {
+    if (!date) return undefined;
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

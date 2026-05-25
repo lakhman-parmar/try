@@ -1,118 +1,106 @@
-<div class="page-header">
-  <div class="page-header-left">
-    <button class="back-btn" (click)="cancel()">
+<div class="purchase-order-form-page">
+  <div class="page-header">
+    <button class="icon-action back-action" type="button" (click)="cancel()">
       <span class="material-symbols-outlined">arrow_back</span>
     </button>
     <div>
-      <h1 class="page-title">
-        <span class="material-symbols-outlined page-title-icon">shopping_cart</span>
-        Purchase Order
-      </h1>
-      <p class="page-subtitle">New Order</p>
+      <h1>New Purchase Order</h1>
+      <p>Confirm items, pricing, and details for the purchase order.</p>
     </div>
   </div>
-</div>
 
-@if (errorMsg()) {
-  <div class="error-banner">
-    <span class="material-symbols-outlined">error</span>
-    {{ errorMsg() }}
-    <button class="error-close" (click)="errorMsg.set(null)">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-  </div>
-}
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
 
-<div class="create-layout">
-
-  <!-- ── Left: Order Builder ─────────────────────────────────────────────── -->
-  <div class="form-col">
-    <div class="form-card">
-      <div class="form-card-header">
-        <span class="material-symbols-outlined form-card-icon">edit_note</span>
-        <span>Order Builder</span>
+  <mat-card class="form-card">
+    @if (loadingProducts() || loadingReqs()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading details...</span>
+      </div>
+    } @else {
+      <div class="header-fields">
+        <label class="form-field">
+          <span class="field-label">Tax %</span>
+          <input
+            class="field-control"
+            type="number"
+            min="0"
+            max="100"
+            placeholder="e.g. 18"
+            [ngModel]="formTaxPercentage() ?? ''"
+            (ngModelChange)="formTaxPercentage.set(+$event || null)"
+          />
+        </label>
       </div>
 
-      <!-- Order meta -->
-      <div class="form-section">
-        <div class="meta-grid">
-          <div class="meta-field">
-            <label class="form-label">Tax %</label>
-            <input
-              class="form-input"
-              type="number"
-              min="0"
-              max="100"
-              placeholder="e.g. 18"
-              [value]="formTaxPercentage() ?? ''"
-              (input)="formTaxPercentage.set(+$any($event.target).value || null)"
-            />
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
+
+      <div class="requisition-panel">
+        <div class="panel-header">
+          <div>
+            <h2>From Requisitions</h2>
+            <p>Select open purchase requisitions to pre-fill items.</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Requisition selector -->
-      <div class="form-section">
-        <div class="section-row">
-          <label class="form-label">From Requisitions</label>
-          <button class="btn-ghost-sm" (click)="toggleReqPanel()">
+          <button class="secondary-action" type="button" (click)="toggleReqPanel()">
             <span class="material-symbols-outlined">receipt_long</span>
             {{ showReqPanel() ? 'Close Panel' : 'Select Requisitions' }}
             @if (selectedReqIds().size > 0) {
-              <span class="req-count-badge">{{ selectedReqIds().size }}</span>
+              <span class="count-chip">{{ selectedReqIds().size }}</span>
             }
           </button>
         </div>
 
         @if (showReqPanel()) {
-          <div class="req-panel">
-            @if (loadingReqs()) {
-              <div class="req-panel-loading">
-                <div class="spinner-sm"></div>
-                <span>Loading requisitions…</span>
-              </div>
-            } @else if (requisitions().length === 0) {
-              <div class="req-panel-empty">
+          <div class="requisition-list">
+            @if (requisitions().length === 0) {
+              <div class="empty-requisitions">
                 <span class="material-symbols-outlined">inbox</span>
-                <p>No open requisitions available</p>
+                <span>No open requisitions available</span>
               </div>
             } @else {
-              <div class="req-list">
-                @for (req of requisitions(); track req.purchaseRequisitionId) {
-                  <div
-                    class="req-card"
-                    [class.selected]="isReqSelected(req.purchaseRequisitionId)"
-                    (click)="toggleRequisition(req)"
-                  >
-                    <div class="req-card-header">
-                      <div class="req-card-check">
-                        @if (isReqSelected(req.purchaseRequisitionId)) {
-                          <span class="material-symbols-outlined check-icon">check_circle</span>
-                        } @else {
-                          <span class="material-symbols-outlined uncheck-icon">radio_button_unchecked</span>
-                        }
-                      </div>
-                      <div class="req-card-info">
-                        <span class="req-card-no">{{ req.requisitionNo }}</span>
-                        @if (req.remarks) {
-                          <span class="req-card-remarks">{{ req.remarks }}</span>
-                        }
-                      </div>
-                      <span class="req-card-count">{{ req.items.length }} items</span>
+              @for (req of requisitions(); track req.purchaseRequisitionId) {
+                <div
+                  class="requisition-card"
+                  [class.selected]="isReqSelected(req.purchaseRequisitionId)"
+                  (click)="toggleRequisition(req)"
+                >
+                  <div class="requisition-card-header">
+                    <span class="material-symbols-outlined">
+                      {{
+                        isReqSelected(req.purchaseRequisitionId)
+                          ? 'check_circle'
+                          : 'radio_button_unchecked'
+                      }}
+                    </span>
+                    <div class="requisition-info">
+                      <strong>{{ req.requisitionNo }}</strong>
+                      <span>{{ req.remarks || 'No remarks' }}</span>
                     </div>
-                    <div class="req-items-preview">
-                      @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
-                        <span class="req-item-chip">{{ item.productName }}</span>
-                      }
-                      @if (req.items.length > 3) {
-                        <span class="req-item-chip more">+{{ req.items.length - 3 }} more</span>
-                      }
-                    </div>
+                    <span class="requisition-count">{{ req.items.length }} items</span>
                   </div>
-                }
-              </div>
-              <div class="req-panel-footer">
-                <button class="btn-primary btn-sm" (click)="applyRequisitions()">
+                  <div class="requisition-items">
+                    @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
+                      <span class="item-chip">{{ item.productName }}</span>
+                    }
+                    @if (req.items.length > 3) {
+                      <span class="item-chip more">+{{ req.items.length - 3 }} more</span>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="panel-footer">
+                <button class="primary-action" type="button" (click)="applyRequisitions()">
                   <span class="material-symbols-outlined">check</span>
                   Apply Selection
                 </button>
@@ -122,214 +110,173 @@
         }
       </div>
 
-      <!-- Line items -->
-      <div class="form-section">
-        <div class="section-row">
-          <label class="form-label">Products</label>
-          <button class="btn-ghost-sm" (click)="addDirectLineItem()">
-            <span class="material-symbols-outlined">add</span> Add Row
-          </button>
-        </div>
-
-        <div class="line-items-table">
-          <div class="li-header">
-            <span class="li-col-product">Product</span>
-            <span class="li-col-unit">Unit</span>
-            <span class="li-col-qty">Qty</span>
-            <span class="li-col-price">Unit Price</span>
-            <span class="li-col-source">Source</span>
-            <span class="li-col-action"></span>
-          </div>
-
-          @if (lineItems().length === 0) {
-            <div class="li-empty">
-              <span class="material-symbols-outlined">playlist_add</span>
-              Select requisitions above or add rows directly
-            </div>
-          }
-
-          @for (line of lineItems(); track trackByIndex($index); let i = $index) {
-            <div class="li-row" [class.from-req]="!!line.requisitionId">
-              <div class="li-col-product product-picker">
-                <button
-                  class="product-select-btn"
-                  [class.selected]="line.productId !== null"
-                  [disabled]="!!line.requisitionId"
-                  [title]="line.requisitionId ? 'Product from requisition — change quantity or remove' : 'Select product'"
-                  (click)="openProductDropdown(i, $event)"
-                  type="button"
-                >
-                  <span class="material-symbols-outlined product-icon">inventory_2</span>
-                  <span class="product-select-label">{{ line.productName || 'Select product…' }}</span>
-                  @if (!line.requisitionId) {
-                    <span class="material-symbols-outlined chevron">expand_more</span>
-                  }
-                </button>
-
-                @if (isDropdownOpen(i)) {
-                  <div class="product-dropdown" (click)="$event.stopPropagation()">
-                    <div class="product-search-wrap">
-                      <span class="material-symbols-outlined">search</span>
-                      <input
-                        class="product-search-input"
-                        type="text"
-                        placeholder="Search products…"
-                        [value]="productSearchTerm()"
-                        (input)="filterProducts($any($event.target).value)"
-                        (click)="$event.stopPropagation()"
-                        autofocus
-                      />
-                    </div>
-                    <div class="product-list">
-                      @if (filteredProducts().length === 0) {
-                        <div class="product-empty">No products found</div>
-                      }
-                      @for (product of filteredProducts(); track product.productId) {
-                        <button
-                          class="product-option"
-                          [class.active]="product.productId === line.productId"
-                          (click)="selectProduct(i, product)"
-                          type="button"
-                        >
-                          <span class="product-option-name">{{ product.name }}</span>
-                          <div class="product-option-meta">
-                            @if (product.unitShortName) {
-                              <span class="product-option-unit">{{ product.unitShortName }}</span>
-                            }
-                            @if (product.purchasePrice != null) {
-                              <span class="product-option-price">₹{{ product.purchasePrice }}</span>
-                            }
-                          </div>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-
-              <div class="li-col-unit">
-                <span class="unit-tag">{{ line.unitShortName || '—' }}</span>
-              </div>
-
-              <div class="li-col-qty">
-                <div class="qty-control">
-                  <button class="qty-btn" (click)="updateQuantity(i, line.quantity - 1)" type="button">−</button>
-                  <input
-                    class="qty-input"
-                    type="number"
-                    min="1"
-                    [value]="line.quantity"
-                    (change)="updateQuantity(i, +$any($event.target).value)"
-                  />
-                  <button class="qty-btn" (click)="updateQuantity(i, line.quantity + 1)" type="button">+</button>
-                </div>
-              </div>
-
-              <div class="li-col-price">
-                <span class="price-val">
-                  {{ line.unitPrice != null ? '₹' + line.unitPrice.toLocaleString('en-IN') : '—' }}
-                </span>
-              </div>
-
-              <div class="li-col-source">
-                @if (line.requisitionNo) {
-                  <span class="req-ref-badge">
-                    <span class="material-symbols-outlined">receipt_long</span>
-                    {{ line.requisitionNo }}
-                  </span>
-                } @else {
-                  <span class="direct-badge">Direct</span>
-                }
-              </div>
-
-              <div class="li-col-action">
-                <button class="remove-btn" (click)="removeLineItem(i)" title="Remove row" type="button">
-                  <span class="material-symbols-outlined">close</span>
-                </button>
-              </div>
-            </div>
-          }
-        </div>
+      <div class="line-header">
+        <h2>Items</h2>
+        <button class="secondary-action" type="button" (click)="addDirectLineItem()">
+          <span class="material-symbols-outlined">add</span>
+          Add Row
+        </button>
       </div>
 
-      <!-- Remarks -->
-      <div class="form-section">
-        <label class="form-label">Remarks / Notes</label>
-        <textarea
-          class="form-textarea"
-          placeholder="Add any notes for this purchase order…"
-          rows="3"
-          [(ngModel)]="formRemarks"
-        ></textarea>
+      <div class="table-wrap">
+        <table mat-table [dataSource]="lineItems()" class="line-table">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <label class="table-field product-field">
+                <mat-form-field appearance="outline" class="compact-autocomplete">
+                  <input
+                    matInput
+                    placeholder="Search product"
+                    [formControl]="productControls[i]"
+                    [matAutocomplete]="productAuto"
+                    (input)="onProductInput(i, $any($event.target).value)"
+                  />
+                  <mat-autocomplete
+                    #productAuto="matAutocomplete"
+                    [displayWith]="displayProduct"
+                    (optionSelected)="onProductSelected(i, $event.option.value)"
+                  >
+                    @for (product of filteredProductOptions[i] | async; track product.productId) {
+                      <mat-option [value]="product">{{ product.name }}</mat-option>
+                    }
+                  </mat-autocomplete>
+                </mat-form-field>
+              </label>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unit">
+            <th mat-header-cell *matHeaderCellDef>Unit</th>
+            <td mat-cell *matCellDef="let line">{{ productUnit(line.productId) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <div class="quantity-stepper">
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Decrease quantity"
+                  (click)="adjustQuantity(i, -1)"
+                  [disabled]="line.quantity <= 1"
+                >
+                  <span class="material-symbols-outlined">remove</span>
+                </button>
+                <input
+                  class="field-control quantity-input"
+                  type="number"
+                  min="1"
+                  [ngModel]="line.quantity"
+                  (ngModelChange)="updateQuantity(i, +$event)"
+                />
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Increase quantity"
+                  (click)="adjustQuantity(i, 1)"
+                >
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unitPrice">
+            <th mat-header-cell *matHeaderCellDef>Unit Price</th>
+            <td mat-cell *matCellDef="let line">{{ productPrice(line.productId) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="source">
+            <th mat-header-cell *matHeaderCellDef>Source</th>
+            <td mat-cell *matCellDef="let line">
+              @if (line.requisitionNo) {
+                <span class="source-chip">
+                  <span class="material-symbols-outlined">receipt_long</span>
+                  {{ line.requisitionNo }}
+                </span>
+              } @else {
+                <span class="source-chip direct">Direct</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <button
+                class="icon-action danger"
+                type="button"
+                title="Remove row"
+                (click)="removeLineItem(i)"
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByIndex"></tr>
+        </table>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Summary</h3>
+          <div class="summary-row">
+            <span>Items</span>
+            <span>{{ validLineCount() }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Sub Total</span>
+            <span>₹{{ subTotal() | number: '1.2-2' }}</span>
+          </div>
+          @if (formTaxPercentage()) {
+            <div class="summary-row">
+              <span>Tax ({{ formTaxPercentage() }}%)</span>
+              <span>₹{{ taxAmount() | number: '1.2-2' }}</span>
+            </div>
+          }
+          <div class="summary-row total">
+            <span>Grand Total</span>
+            <span>₹{{ grandTotal() | number: '1.2-2' }}</span>
+          </div>
+        </div>
+
+        @if (selectedReqIds().size > 0) {
+          <div class="summary-card linked-card">
+            <h3>Linked Requisitions</h3>
+            <div class="linked-list">
+              @for (req of requisitions(); track req.purchaseRequisitionId) {
+                @if (isReqSelected(req.purchaseRequisitionId)) {
+                  <div class="linked-item">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>{{ req.requisitionNo }}</span>
+                    <span class="muted">{{ req.items.length }} items</span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
       </div>
 
       <div class="form-actions">
-        <button class="btn-ghost" (click)="cancel()" [disabled]="saving()">Cancel</button>
-        <button class="btn-primary" (click)="submit()" [disabled]="saving()">
-          @if (saving()) {
-            <div class="btn-spinner"></div> Saving…
-          } @else {
-            <span class="material-symbols-outlined">send</span> Create Order
-          }
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Right: Summary ──────────────────────────────────────────────────── -->
-  <div class="summary-col">
-    <div class="summary-card">
-      <div class="summary-header">
-        <span class="material-symbols-outlined summary-icon">summarize</span>
-        Order Summary
-      </div>
-      <div class="summary-body">
-        <div class="summary-row">
-          <span class="summary-label">Items</span>
-          <span class="summary-val">{{ lineItems().length }}</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">From Requisitions</span>
-          <span class="summary-val">{{ selectedReqIds().size }}</span>
-        </div>
-        <div class="summary-divider"></div>
-        <div class="summary-row">
-          <span class="summary-label">Sub Total</span>
-          <span class="summary-val">₹{{ formatCurrency(subTotal()) }}</span>
-        </div>
-        @if (formTaxPercentage()) {
-          <div class="summary-row">
-            <span class="summary-label">Tax ({{ formTaxPercentage() }}%)</span>
-            <span class="summary-val">₹{{ formatCurrency(taxAmount()) }}</span>
-          </div>
-        }
-        <div class="summary-divider"></div>
-        <div class="summary-row total">
-          <span class="summary-label">Grand Total</span>
-          <span class="summary-val">₹{{ formatCurrency(grandTotal()) }}</span>
-        </div>
-      </div>
-    </div>
-
-    @if (selectedReqIds().size > 0) {
-      <div class="summary-card req-summary-card">
-        <div class="summary-header">
-          <span class="material-symbols-outlined summary-icon">receipt_long</span>
-          Linked Requisitions
-        </div>
-        <div class="linked-req-list">
-          @for (req of requisitions(); track req.purchaseRequisitionId) {
-            @if (isReqSelected(req.purchaseRequisitionId)) {
-              <div class="linked-req-item">
-                <span class="material-symbols-outlined linked-req-icon">check_circle</span>
-                <span class="linked-req-no">{{ req.requisitionNo }}</span>
-                <span class="linked-req-count">{{ req.items.length }} items</span>
-              </div>
+        <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
+        <div>
+          <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button class="primary-action" type="button" (click)="submit()" [disabled]="saving()">
+            @if (saving()) {
+              Saving...
+            } @else {
+              Save Order
             }
-          }
+          </button>
         </div>
       </div>
     }
-  </div>
-
+  </mat-card>
 </div>
