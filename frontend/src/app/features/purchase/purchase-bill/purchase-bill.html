@@ -74,8 +74,11 @@
       <span class="material-symbols-outlined empty-icon">receipt_long</span>
       <p class="empty-title">No purchase bills found</p>
       <p class="empty-sub">
-        @if (hasFilters) { Try adjusting your search or date filters. }
-        @else { Generate your first purchase bill to get started. }
+        @if (hasFilters) {
+          Try adjusting your search or date filters.
+        } @else {
+          Generate your first purchase bill to get started.
+        }
       </p>
       @if (!hasFilters) {
         <button class="btn-primary" (click)="openCreateForm()">
@@ -99,7 +102,6 @@
         </thead>
         <tbody>
           @for (bill of items(); track bill.purchaseBillId) {
-
             <!-- Main row -->
             <tr class="table-row" [class.expanded]="isExpanded(bill.purchaseBillId)">
               <td class="col-toggle">
@@ -110,7 +112,9 @@
                   title="Show items"
                 >
                   <span class="material-symbols-outlined">
-                    {{ isExpanded(bill.purchaseBillId) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+                    {{
+                      isExpanded(bill.purchaseBillId) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                    }}
                   </span>
                 </button>
               </td>
@@ -171,11 +175,17 @@
                           </tr>
                         </thead>
                         <tbody>
-                          @for (item of expandedDetail()!.items; track item.purchaseBillItemId; let i = $index) {
+                          @for (
+                            item of expandedDetail()!.items;
+                            track item.purchaseBillItemId;
+                            let i = $index
+                          ) {
                             <tr>
                               <td class="row-num">{{ i + 1 }}</td>
                               <td class="expand-product-name">{{ item.productName }}</td>
-                              <td><span class="unit-tag">{{ item.unitShortName || '—' }}</span></td>
+                              <td>
+                                <span class="unit-tag">{{ item.unitShortName || '—' }}</span>
+                              </td>
                               <td>
                                 @if (item.poNumber) {
                                   <span class="po-ref-badge">
@@ -199,7 +209,11 @@
                               <td class="right qty-value">{{ item.quantity }}</td>
                               <td class="right">{{ formatCurrency(item.unitPrice) }}</td>
                               <td class="right total-val">
-                                {{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '—' }}
+                                {{
+                                  item.unitPrice != null
+                                    ? formatCurrency(item.quantity * item.unitPrice)
+                                    : '—'
+                                }}
                               </td>
                             </tr>
                           }
@@ -209,7 +223,9 @@
                             <td colspan="7" class="total-label-cell">
                               Total
                               @if (expandedDetail()!.taxPercentage) {
-                                <span class="tax-note">(incl. {{ expandedDetail()!.taxPercentage }}% tax)</span>
+                                <span class="tax-note"
+                                  >(incl. {{ expandedDetail()!.taxPercentage }}% tax)</span
+                                >
                               }
                             </td>
                             <td class="right total-count">
@@ -231,16 +247,29 @@
     @if (totalPages() > 1) {
       <div class="pagination">
         <span class="pagination-info">
-          Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minOf(currentPage() * pageSize, totalCount()) }} of {{ totalCount() }}
+          Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{
+            minOf(currentPage() * pageSize, totalCount())
+          }}
+          of {{ totalCount() }}
         </span>
         <div class="page-controls">
-          <button class="page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
+          <button
+            class="page-btn"
+            [disabled]="currentPage() === 1"
+            (click)="goToPage(currentPage() - 1)"
+          >
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
           @for (p of pageNumbers(); track p) {
-            <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">{{ p }}</button>
+            <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">
+              {{ p }}
+            </button>
           }
-          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">
+          <button
+            class="page-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="goToPage(currentPage() + 1)"
+          >
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
@@ -248,4 +277,3 @@
     }
   }
 </div>
-

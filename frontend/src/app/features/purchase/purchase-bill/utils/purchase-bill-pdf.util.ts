@@ -70,18 +70,18 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...TEXT_LIGHT);
-  doc.text('SUPPLIER',    col1x, y + 6);
-  doc.text('BILL DATE',   col2x, y + 6);
+  doc.text('SUPPLIER', col1x, y + 6);
+  doc.text('BILL DATE', col2x, y + 6);
   doc.text('BILL NUMBER', col1x, y + 16);
-  doc.text('TAX RATE',    col2x, y + 16);
+  doc.text('TAX RATE', col2x, y + 16);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(...TEXT_DARK);
-  doc.text(bill.supplierName ?? '\u2014',                                        col1x, y + 11);
-  doc.text(formatDate(bill.createdAt),                                           col2x, y + 11);
-  doc.text(bill.billNumber,                                                      col1x, y + 21);
-  doc.text(bill.taxPercentage != null ? `${bill.taxPercentage}%` : '\u2014',    col2x, y + 21);
+  doc.text(bill.supplierName ?? '\u2014', col1x, y + 11);
+  doc.text(formatDate(bill.createdAt), col2x, y + 11);
+  doc.text(bill.billNumber, col1x, y + 21);
+  doc.text(bill.taxPercentage != null ? `${bill.taxPercentage}%` : '\u2014', col2x, y + 21);
 
   y += 28;
 
@@ -128,29 +128,30 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
       0: { halign: 'center', cellWidth: 8 },
       1: { cellWidth: 40 },
       2: { halign: 'center', cellWidth: 14 },
-      3: { halign: 'right',  cellWidth: 12 },
-      4: { halign: 'right',  cellWidth: 22 },
-      5: { halign: 'right',  cellWidth: 22 },
+      3: { halign: 'right', cellWidth: 12 },
+      4: { halign: 'right', cellWidth: 22 },
+      5: { halign: 'right', cellWidth: 22 },
       6: { cellWidth: 26 },
       7: { cellWidth: 26 },
     },
   });
 
   // ── Totals ──────────────────────────────────────────────────────────────────
-  const subTotal  = bill.items.reduce(
-    (sum, item) => sum + (item.unitPrice != null ? item.quantity * item.unitPrice : 0), 0,
+  const subTotal = bill.items.reduce(
+    (sum, item) => sum + (item.unitPrice != null ? item.quantity * item.unitPrice : 0),
+    0,
   );
-  const taxAmount  = bill.taxPercentage ? (subTotal * bill.taxPercentage) / 100 : 0;
+  const taxAmount = bill.taxPercentage ? (subTotal * bill.taxPercentage) / 100 : 0;
   const grandTotal = subTotal + taxAmount;
 
   y = (doc as any).lastAutoTable.finalY + 6;
 
-  const hasTax     = bill.taxPercentage != null;
-  const boxH       = hasTax ? 22 : 14;
+  const hasTax = bill.taxPercentage != null;
+  const boxH = hasTax ? 22 : 14;
   const totalsBoxW = 70;
   const totalsBoxX = pageW - margin - totalsBoxW;
-  const labelX     = totalsBoxX + 5;
-  const valX       = totalsBoxX + totalsBoxW - 5;
+  const labelX = totalsBoxX + 5;
+  const valX = totalsBoxX + totalsBoxW - 5;
 
   doc.setFillColor(...LIGHT_GREEN_BG);
   doc.roundedRect(totalsBoxX, y, totalsBoxW, boxH, 2, 2, 'F');
@@ -158,12 +159,12 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_DARK);
-  doc.text('Sub Total',              labelX, y + 7);
-  doc.text(formatCurrency(subTotal), valX,   y + 7, { align: 'right' });
+  doc.text('Sub Total', labelX, y + 7);
+  doc.text(formatCurrency(subTotal), valX, y + 7, { align: 'right' });
 
   if (hasTax) {
     doc.text(`Tax (${bill.taxPercentage}%)`, labelX, y + 13);
-    doc.text(formatCurrency(taxAmount),       valX,   y + 13, { align: 'right' });
+    doc.text(formatCurrency(taxAmount), valX, y + 13, { align: 'right' });
 
     doc.setDrawColor(...GREEN);
     doc.setLineWidth(0.4);
@@ -172,8 +173,8 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(...GREEN);
-    doc.text('Grand Total',              labelX, y + 21);
-    doc.text(formatCurrency(grandTotal), valX,   y + 21, { align: 'right' });
+    doc.text('Grand Total', labelX, y + 21);
+    doc.text(formatCurrency(grandTotal), valX, y + 21, { align: 'right' });
     y += 28;
   } else {
     doc.setDrawColor(...GREEN);
@@ -183,8 +184,8 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(...GREEN);
-    doc.text('Grand Total',              labelX, y + 14);
-    doc.text(formatCurrency(grandTotal), valX,   y + 14, { align: 'right' });
+    doc.text('Grand Total', labelX, y + 14);
+    doc.text(formatCurrency(grandTotal), valX, y + 14, { align: 'right' });
     y += 20;
   }
 

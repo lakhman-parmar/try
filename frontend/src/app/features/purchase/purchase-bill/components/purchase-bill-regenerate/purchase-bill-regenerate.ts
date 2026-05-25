@@ -4,10 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
 import { PurchaseBillService } from '../../services/purchase-bill.sevice';
-import {
-  PurchaseBillDetailDto,
-  RegeneratePurchaseBillDto,
-} from '../../models/purchase-bill.model';
+import { PurchaseBillDetailDto, RegeneratePurchaseBillDto } from '../../models/purchase-bill.model';
 import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
 
 @Component({
@@ -119,7 +116,9 @@ export class PurchaseBillRegenerate implements OnInit {
           }
         },
         error: (err) => {
-          this.errorMsg.set(err?.message ?? err?.error?.message ?? 'Failed to regenerate purchase bill.');
+          this.errorMsg.set(
+            err?.message ?? err?.error?.message ?? 'Failed to regenerate purchase bill.',
+          );
         },
       });
   }

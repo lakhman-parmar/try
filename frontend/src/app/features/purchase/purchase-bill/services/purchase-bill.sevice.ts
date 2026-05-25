@@ -35,9 +35,7 @@ export class PurchaseBillService {
   }
 
   getById(id: number): Observable<ApiResponse<PurchaseBillDetailDto>> {
-    return this.http.get<ApiResponse<PurchaseBillDetailDto>>(
-      `${this.apiUrl}/purchase-bills/${id}`,
-    );
+    return this.http.get<ApiResponse<PurchaseBillDetailDto>>(`${this.apiUrl}/purchase-bills/${id}`);
   }
 
   getOrdersForBill(): Observable<ApiResponse<PurchaseOrderForBillDto[]>> {

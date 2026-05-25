@@ -32,7 +32,6 @@
 
 @if (!loading() && sourceBill()) {
   <div class="create-layout">
-
     <!-- ── Left: Regenerate Form ─────────────────────────────────────────── -->
     <div class="form-col">
       <div class="form-card">
@@ -65,7 +64,9 @@
             @if (sourceBill()!.totalAmount != null) {
               <div class="source-info-row">
                 <span class="source-label">Original Total</span>
-                <span class="source-value original-total">₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span>
+                <span class="source-value original-total"
+                  >₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span
+                >
               </div>
             }
           </div>
@@ -115,7 +116,11 @@
                     <td class="right qty-value">{{ item.quantity }}</td>
                     <td class="right">{{ formatCurrency(item.unitPrice) }}</td>
                     <td class="right total-val">
-                      {{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '—' }}
+                      {{
+                        item.unitPrice != null
+                          ? formatCurrency(item.quantity * item.unitPrice)
+                          : '—'
+                      }}
                     </td>
                   </tr>
                 }
@@ -157,7 +162,8 @@
           <button class="btn-ghost" (click)="cancel()" [disabled]="saving()">Cancel</button>
           <button class="btn-primary" (click)="requestRegenerate()" [disabled]="saving()">
             @if (saving()) {
-              <div class="btn-spinner"></div> Saving…
+              <div class="btn-spinner"></div>
+              Saving…
             } @else {
               <span class="material-symbols-outlined">refresh</span> Regenerate Bill
             }
@@ -201,7 +207,6 @@
         </div>
       </div>
     </div>
-
   </div>
 }
 
@@ -217,8 +222,8 @@
       <h3 class="confirm-title">Regenerate Purchase Bill?</h3>
       <p class="confirm-body">
         A new bill will be cloned from
-        <strong>{{ sourceBill()?.billNumber }}</strong>.
-        Stock will be updated for the new bill. The original bill remains unchanged.
+        <strong>{{ sourceBill()?.billNumber }}</strong
+        >. Stock will be updated for the new bill. The original bill remains unchanged.
       </p>
       <div class="confirm-actions">
         <button class="btn-ghost-md" (click)="cancelConfirm()">Go Back</button>
