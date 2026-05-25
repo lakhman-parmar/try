@@ -1,0 +1,14 @@
+@use '../../../../purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create.scss';
+
+.stock-warning {
+  color: #be123c;
+  font-weight: 700;
+}
+
+.modal-overlay {
+  z-index: 10000;
+}
+
+.modal-dialog {
+  z-index: 10001;
+}

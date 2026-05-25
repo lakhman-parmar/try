@@ -47,7 +47,9 @@
           </div>
           <div class="info-item">
             <span class="info-label">Original Total</span>
-            <span class="info-value price-highlight">₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span>
+            <span class="info-value price-highlight"
+              >₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span
+            >
           </div>
         </div>
       </div>
@@ -60,9 +62,11 @@
         <table mat-table [dataSource]="sourceBill()!.items" class="line-table">
           <ng-container matColumnDef="product">
             <th mat-header-cell *matHeaderCellDef>Product</th>
-            <td mat-cell *matCellDef="let item" class="product-name-fixed">
-              <span class="material-symbols-outlined product-icon">inventory_2</span>
-              {{ item.productName }}
+            <td mat-cell *matCellDef="let item">
+              <div class="product-name-fixed">
+                <span class="material-symbols-outlined product-icon">inventory_2</span>
+                <span>{{ item.productName }}</span>
+              </div>
             </td>
           </ng-container>
 
@@ -180,7 +184,12 @@
           <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
             Cancel
           </button>
-          <button class="primary-action" type="button" (click)="requestRegenerate()" [disabled]="saving()">
+          <button
+            class="primary-action"
+            type="button"
+            (click)="requestRegenerate()"
+            [disabled]="saving()"
+          >
             @if (saving()) {
               Saving...
             } @else {
@@ -204,7 +213,8 @@
       <div class="modal-body">
         <p>
           A new purchase bill will be cloned from
-          <strong>{{ sourceBill()?.billNumber }}</strong>. Stock will be updated for the new bill. The original bill remains unchanged.
+          <strong>{{ sourceBill()?.billNumber }}</strong
+          >. Stock will be updated for the new bill. The original bill remains unchanged.
         </p>
       </div>
       <div class="modal-actions">

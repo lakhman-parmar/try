@@ -1,0 +1,194 @@
+<div class="purchase-bill-form-page">
+  <div class="page-header">
+    <button class="icon-action back-action" type="button" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div>
+      <h1>Regenerate Sales Invoice</h1>
+      <p>
+        @if (loading()) {
+          Loading...
+        } @else {
+          Regenerate from {{ sourceInvoice()?.invoiceNumber }}
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
+
+  <mat-card class="form-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading invoice details...</span>
+      </div>
+    } @else if (sourceInvoice()) {
+      <div class="source-info-panel">
+        <h2>Source Invoice Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Invoice Number</span
+            ><span class="info-value font-mono">{{ sourceInvoice()!.invoiceNumber }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Customer</span
+            ><span class="info-value">{{ sourceInvoice()!.customerName || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Original Items</span
+            ><span class="info-value">{{ sourceInvoice()!.items.length }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Created Date</span
+            ><span class="info-value">{{ formatDate(sourceInvoice()!.createdAt) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Original Total</span
+            ><span class="info-value price-highlight"
+              >₹{{ formatCurrency(sourceInvoice()!.totalAmount) }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="line-header"><h2>Items to be Cloned</h2></div>
+      <div class="table-wrap">
+        <table mat-table [dataSource]="sourceInvoice()!.items" class="line-table">
+          <ng-container matColumnDef="product"
+            ><th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let item" class="product-name-fixed">
+              <span class="material-symbols-outlined product-icon">inventory_2</span
+              >{{ item.productName }}
+            </td></ng-container
+          >
+          <ng-container matColumnDef="unit"
+            ><th mat-header-cell *matHeaderCellDef>Unit</th>
+            <td mat-cell *matCellDef="let item">{{ item.unitShortName || '-' }}</td></ng-container
+          >
+          <ng-container matColumnDef="so"
+            ><th mat-header-cell *matHeaderCellDef>Sales Order</th>
+            <td mat-cell *matCellDef="let item">
+              @if (item.salesOrderNumber) {
+                <span class="source-chip"
+                  ><span class="material-symbols-outlined">assignment</span
+                  >{{ item.salesOrderNumber }}</span
+                >
+              } @else {
+                <span class="source-chip direct">Direct</span>
+              }
+            </td></ng-container
+          >
+          <ng-container matColumnDef="quantity"
+            ><th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let item">{{ item.quantity }}</td></ng-container
+          >
+          <ng-container matColumnDef="unitPrice"
+            ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
+            <td mat-cell *matCellDef="let item">
+              ₹{{ formatCurrency(item.unitPrice) }}
+            </td></ng-container
+          >
+          <ng-container matColumnDef="total"
+            ><th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let item">
+              ₹{{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '-' }}
+            </td></ng-container
+          >
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <div class="override-fields">
+        <h2>Overrides</h2>
+        <div class="override-grid">
+          <label class="form-field"
+            ><span class="field-label">Tax % Override</span
+            ><input
+              class="field-control"
+              type="number"
+              min="0"
+              max="100"
+              placeholder="Leave blank to inherit"
+              [ngModel]="regenTaxPercentage() ?? ''"
+              (ngModelChange)="regenTaxPercentage.set(+$event || null)"
+          /></label>
+          <label class="form-field"
+            ><span class="field-label">Remarks / Notes</span
+            ><input
+              class="field-control"
+              type="text"
+              placeholder="Optional notes..."
+              [ngModel]="regenRemarks()"
+              (ngModelChange)="regenRemarks.set($event)"
+          /></label>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>New Invoice Summary</h3>
+          <div class="summary-row">
+            <span>Items</span><span>{{ sourceInvoice()!.items.length }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Sub Total</span><span>₹{{ subTotal() | number: '1.2-2' }}</span>
+          </div>
+          @if (regenTaxPercentage()) {
+            <div class="summary-row">
+              <span>Tax ({{ regenTaxPercentage() }}%)</span
+              ><span>₹{{ taxAmount() | number: '1.2-2' }}</span>
+            </div>
+          }
+          <div class="summary-row total">
+            <span>Grand Total</span><span>₹{{ grandTotal() | number: '1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <span>Ready to regenerate invoice</span>
+        <div>
+          <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button
+            class="primary-action"
+            type="button"
+            (click)="requestRegenerate()"
+            [disabled]="saving()"
+          >
+            {{ saving() ? 'Saving...' : 'Regenerate Invoice' }}
+          </button>
+        </div>
+      </div>
+    }
+  </mat-card>
+</div>
+
+@if (showConfirm()) {
+  <div class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="material-symbols-outlined header-icon">refresh</span>
+        <h2>Regenerate Sales Invoice?</h2>
+      </div>
+      <div class="modal-body">
+        <p>
+          A new sales invoice will be cloned from
+          <strong>{{ sourceInvoice()?.invoiceNumber }}</strong
+          >. Stock will be reduced for the new invoice.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-action" type="button" (click)="cancelConfirm()">Go Back</button>
+        <button class="primary-action" type="button" (click)="confirmRegenerate()">
+          Confirm & Regenerate
+        </button>
+      </div>
+    </div>
+  </div>
+}

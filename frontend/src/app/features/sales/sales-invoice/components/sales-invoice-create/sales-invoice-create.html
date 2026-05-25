@@ -1,0 +1,311 @@
+<div class="purchase-bill-form-page">
+  <div class="page-header">
+    <button class="icon-action back-action" type="button" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div>
+      <h1>New Sales Invoice</h1>
+      <p>Confirm items, pricing, stock, and invoice details.</p>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
+
+  <mat-card class="form-card">
+    @if (loadingProducts() || loadingOrders()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading details...</span>
+      </div>
+    } @else {
+      <div class="header-fields">
+        <label class="form-field">
+          <span class="field-label">Tax %</span>
+          <input
+            class="field-control"
+            type="number"
+            min="0"
+            max="100"
+            placeholder="e.g. 18"
+            [ngModel]="formTaxPercentage() ?? ''"
+            (ngModelChange)="formTaxPercentage.set(+$event || null)"
+          />
+        </label>
+      </div>
+
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
+
+      <div class="po-panel-container">
+        <div class="panel-header">
+          <div>
+            <h2>From Sales Orders</h2>
+            <p>Select sales orders to invoice against.</p>
+          </div>
+          <button class="secondary-action" type="button" (click)="toggleSoPanel()">
+            <span class="material-symbols-outlined">assignment</span>
+            {{ showSoPanel() ? 'Close Panel' : 'Select Sales Orders' }}
+            @if (selectedSoCount() > 0) {
+              <span class="count-chip">{{ selectedSoCount() }}</span>
+            }
+          </button>
+        </div>
+
+        @if (showSoPanel()) {
+          <div class="po-list-container">
+            @if (ordersForInvoice().length === 0) {
+              <div class="empty-pos">
+                <span class="material-symbols-outlined">inbox</span>
+                <span>No sales orders available for invoicing</span>
+              </div>
+            } @else {
+              @for (order of ordersForInvoice(); track order.salesOrderId) {
+                <div
+                  class="po-card"
+                  [class.selected]="isSoSelected(order.salesOrderId)"
+                  (click)="toggleSalesOrder(order)"
+                >
+                  <div class="po-card-header">
+                    <span class="material-symbols-outlined">{{
+                      isSoSelected(order.salesOrderId) ? 'check_circle' : 'radio_button_unchecked'
+                    }}</span>
+                    <div class="po-info">
+                      <strong>{{ order.salesOrderNumber }}</strong>
+                      <span>{{ order.customerName || 'No customer' }}</span>
+                    </div>
+                    <span class="po-count">{{ order.items.length }} items</span>
+                  </div>
+                </div>
+              }
+              <div class="panel-footer">
+                <button class="primary-action" type="button" (click)="applySoSelection()">
+                  <span class="material-symbols-outlined">check</span>
+                  Apply Selection
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="line-header">
+        <h2>Items</h2>
+        <button class="secondary-action" type="button" (click)="addDirectLineItem()">
+          <span class="material-symbols-outlined">add</span>
+          Add Row
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table mat-table [dataSource]="lineItems()" class="line-table">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              @if (line.salesOrderId) {
+                <span class="product-name-fixed">
+                  <span class="material-symbols-outlined product-icon">inventory_2</span>
+                  {{ line.productName }}
+                </span>
+              } @else {
+                <label class="table-field product-field">
+                  <mat-form-field appearance="outline" class="compact-autocomplete">
+                    <input
+                      matInput
+                      placeholder="Search product"
+                      [formControl]="productControls[i]"
+                      [matAutocomplete]="productAuto"
+                      (input)="onProductInput(i, $any($event.target).value)"
+                    />
+                    <mat-autocomplete
+                      #productAuto="matAutocomplete"
+                      [displayWith]="displayProduct"
+                      (optionSelected)="onProductSelected(i, $event.option.value)"
+                    >
+                      @for (product of filteredProductOptions[i] | async; track product.productId) {
+                        <mat-option [value]="product">{{ product.name }}</mat-option>
+                      }
+                    </mat-autocomplete>
+                  </mat-form-field>
+                </label>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unit"
+            ><th mat-header-cell *matHeaderCellDef>Unit</th>
+            <td mat-cell *matCellDef="let line">{{ productUnit(line.productId) }}</td></ng-container
+          >
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <div class="quantity-stepper">
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Decrease quantity"
+                  (click)="adjustQuantity(i, -1)"
+                  [disabled]="line.quantity <= 1"
+                >
+                  <span class="material-symbols-outlined">remove</span>
+                </button>
+                <input
+                  class="field-control quantity-input"
+                  type="number"
+                  min="1"
+                  [ngModel]="line.quantity"
+                  (ngModelChange)="updateQuantity(i, +$event)"
+                />
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Increase quantity"
+                  (click)="adjustQuantity(i, 1)"
+                >
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="unitPrice"
+            ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
+            <td mat-cell *matCellDef="let line">
+              {{ productPrice(line.productId) }}
+            </td></ng-container
+          >
+          <ng-container matColumnDef="stock"
+            ><th mat-header-cell *matHeaderCellDef>Stock</th>
+            <td mat-cell *matCellDef="let line" [class.stock-warning]="isOverStock(line)">
+              {{ stockLabel(line) }}
+            </td></ng-container
+          >
+          <ng-container matColumnDef="source">
+            <th mat-header-cell *matHeaderCellDef>Source</th>
+            <td mat-cell *matCellDef="let line">
+              @if (line.salesOrderNumber) {
+                <span class="source-chip"
+                  ><span class="material-symbols-outlined">assignment</span
+                  >{{ line.salesOrderNumber }}</span
+                >
+              } @else {
+                <span class="source-chip direct">Direct</span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <button
+                class="icon-action danger"
+                type="button"
+                title="Remove row"
+                (click)="removeLineItem(i)"
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Summary</h3>
+          <div class="summary-row">
+            <span>Items</span><span>{{ validLineCount() }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Sub Total</span><span>₹{{ subTotal() | number: '1.2-2' }}</span>
+          </div>
+          @if (formTaxPercentage()) {
+            <div class="summary-row">
+              <span>Tax ({{ formTaxPercentage() }}%)</span
+              ><span>₹{{ taxAmount() | number: '1.2-2' }}</span>
+            </div>
+          }
+          <div class="summary-row total">
+            <span>Grand Total</span><span>₹{{ grandTotal() | number: '1.2-2' }}</span>
+          </div>
+        </div>
+        @if (selectedSoCount() > 0) {
+          <div class="summary-card linked-card">
+            <h3>Linked Sales Orders</h3>
+            <div class="linked-list">
+              @for (order of uniqueSosInInvoice(); track order.id) {
+                <div class="linked-item">
+                  <span class="material-symbols-outlined">check_circle</span
+                  ><span>{{ order.number }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="form-actions">
+        <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
+        <div>
+          <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button
+            class="primary-action"
+            type="button"
+            (click)="requestGenerateInvoice()"
+            [disabled]="saving()"
+          >
+            {{ saving() ? 'Saving...' : 'Create Invoice' }}
+          </button>
+        </div>
+      </div>
+    }
+  </mat-card>
+</div>
+
+@if (showConfirmModal()) {
+  <div class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="material-symbols-outlined header-icon">description</span>
+        <h2>Create Sales Invoice?</h2>
+      </div>
+      <div class="modal-body">
+        <p>
+          This will create a new sales invoice for
+          <strong>{{ validLineCount() }} item(s)</strong> and reduce stock immediately.
+        </p>
+        <div class="summary-box">
+          <div class="summary-box-row">
+            <span>Sub Total</span><span>₹{{ subTotal() | number: '1.2-2' }}</span>
+          </div>
+          @if (formTaxPercentage()) {
+            <div class="summary-box-row">
+              <span>Tax ({{ formTaxPercentage() }}%)</span
+              ><span>₹{{ taxAmount() | number: '1.2-2' }}</span>
+            </div>
+          }
+          <div class="summary-box-row total">
+            <span>Grand Total</span><span>₹{{ grandTotal() | number: '1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-action" type="button" (click)="cancelConfirm()">Go Back</button>
+        <button class="primary-action" type="button" (click)="confirmGenerateInvoice()">
+          Confirm & Create
+        </button>
+      </div>
+    </div>
+  </div>
+}
