@@ -1,279 +1,263 @@
-<!-- ── Page Header ─────────────────────────────────────────────────────────── -->
-<div class="page-header">
-  <div class="page-header-left">
+<div class="purchase-bill-page">
+  <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <span class="material-symbols-outlined page-title-icon">receipt_long</span>
-        Purchase Bill
-      </h1>
-      <p class="page-subtitle">Manage supplier purchase bills</p>
+      <h1>Purchase Bill</h1>
+      <p>Manage supplier purchase bills.</p>
     </div>
-  </div>
-  <button class="btn-primary" (click)="openCreateForm()">
-    <span class="material-symbols-outlined">add</span>
-    New Bill
-  </button>
-</div>
-
-<!-- ── Error banner ────────────────────────────────────────────────────────── -->
-@if (errorMsg()) {
-  <div class="error-banner">
-    <span class="material-symbols-outlined">error</span>
-    {{ errorMsg() }}
-    <button class="error-close" (click)="errorMsg.set(null)">
-      <span class="material-symbols-outlined">close</span>
+    <button class="primary-action" type="button" (click)="openCreateForm()">
+      <span class="material-symbols-outlined">add</span>
+      New Bill
     </button>
   </div>
-}
 
-<!-- ── Filter bar ──────────────────────────────────────────────────────────── -->
-<div class="filter-bar">
-  <div class="search-wrap">
-    <span class="material-symbols-outlined search-icon">search</span>
-    <input
-      class="search-input"
-      type="text"
-      placeholder="Search by bill number or supplier…"
-      [value]="searchTerm()"
-      (input)="onSearchChange($any($event.target).value)"
-    />
-    @if (searchTerm()) {
-      <button class="clear-search" (click)="onSearchChange('')">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    }
-  </div>
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
 
-  <div class="date-filters">
-    <div class="date-field">
-      <label class="date-label">From</label>
-      <input class="date-input" type="date" [(ngModel)]="fromDate" (change)="onDateChange()" />
+  <mat-card class="filter-card">
+    <label class="filter-field search-field">
+      <span class="field-label">Search</span>
+      <span class="material-symbols-outlined field-icon">search</span>
+      <input
+        class="field-control icon-control"
+        placeholder="Bill number, supplier"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <div class="filter-field date-field">
+      <span class="field-label">From</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="fromPicker"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
     </div>
-    <div class="date-field">
-      <label class="date-label">To</label>
-      <input class="date-input" type="date" [(ngModel)]="toDate" (change)="onDateChange()" />
+
+    <div class="filter-field date-field">
+      <span class="field-label">To</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="toPicker"
+          [ngModel]="toDate()"
+          (ngModelChange)="toDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
     </div>
-    @if (hasFilters) {
-      <button class="btn-ghost" (click)="clearFilters()">
+
+    @if (hasFilters()) {
+      <button class="secondary-action" type="button" (click)="clearFilters()">
         <span class="material-symbols-outlined">filter_alt_off</span>
         Clear
       </button>
     }
-  </div>
-</div>
+  </mat-card>
 
-<!-- ── Table card ──────────────────────────────────────────────────────────── -->
-<div class="table-card">
-  @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <span>Loading bills…</span>
-    </div>
-  } @else if (items().length === 0) {
-    <div class="empty-state">
-      <span class="material-symbols-outlined empty-icon">receipt_long</span>
-      <p class="empty-title">No purchase bills found</p>
-      <p class="empty-sub">
-        @if (hasFilters) {
-          Try adjusting your search or date filters.
-        } @else {
-          Generate your first purchase bill to get started.
-        }
-      </p>
-      @if (!hasFilters) {
-        <button class="btn-primary" (click)="openCreateForm()">
-          <span class="material-symbols-outlined">add</span>New Bill
-        </button>
-      }
-    </div>
-  } @else {
-    <div class="table-wrap">
-      <table class="bill-table">
-        <thead>
-          <tr>
-            <th class="col-toggle"></th>
-            <th>Bill Number</th>
-            <th>Supplier</th>
-            <th class="center">Items</th>
-            <th class="right">Total Amount</th>
-            <th>Date</th>
-            <th class="center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (bill of items(); track bill.purchaseBillId) {
-            <!-- Main row -->
-            <tr class="table-row" [class.expanded]="isExpanded(bill.purchaseBillId)">
-              <td class="col-toggle">
-                <button
-                  class="toggle-btn"
-                  [class.open]="isExpanded(bill.purchaseBillId)"
-                  (click)="toggleExpand(bill.purchaseBillId, $event)"
-                  title="Show items"
-                >
-                  <span class="material-symbols-outlined">
-                    {{
-                      isExpanded(bill.purchaseBillId) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
-                    }}
-                  </span>
-                </button>
-              </td>
-              <td>
-                <div class="bill-no">
-                  <span class="bill-dot"></span>
-                  {{ bill.billNumber }}
-                </div>
-              </td>
-              <td class="supplier-cell">{{ bill.supplierName || '—' }}</td>
-              <td class="center">
-                <span class="item-badge">{{ bill.itemCount }}</span>
-              </td>
-              <td class="right amount-cell">{{ formatCurrency(bill.totalAmount) }}</td>
-              <td class="date-cell">{{ formatDate(bill.createdAt) }}</td>
-              <td class="center">
-                <div class="action-btns">
-                  <button
-                    class="icon-action regen"
-                    title="Regenerate new bill from this one"
-                    (click)="openRegeneratePage(bill.purchaseBillId)"
-                  >
-                    <span class="material-symbols-outlined">refresh</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Expanded detail row -->
-            @if (isExpanded(bill.purchaseBillId)) {
-              <tr class="expand-row">
-                <td colspan="7" class="expand-cell">
-                  @if (expandLoading()) {
-                    <div class="expand-loading">
-                      <div class="spinner-sm"></div>
-                      <span>Loading items…</span>
-                    </div>
-                  }
-                  @if (!expandLoading() && expandedDetail()) {
-                    <div class="expand-content">
-                      @if (expandedDetail()!.remarks) {
-                        <div class="expand-remarks">
-                          <span class="material-symbols-outlined">notes</span>
-                          {{ expandedDetail()!.remarks }}
-                        </div>
-                      }
-                      <table class="expand-table">
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Product</th>
-                            <th>Unit</th>
-                            <th>Purchase Order</th>
-                            <th>Requisition</th>
-                            <th class="right">Qty</th>
-                            <th class="right">Unit Price</th>
-                            <th class="right">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (
-                            item of expandedDetail()!.items;
-                            track item.purchaseBillItemId;
-                            let i = $index
-                          ) {
-                            <tr>
-                              <td class="row-num">{{ i + 1 }}</td>
-                              <td class="expand-product-name">{{ item.productName }}</td>
-                              <td>
-                                <span class="unit-tag">{{ item.unitShortName || '—' }}</span>
-                              </td>
-                              <td>
-                                @if (item.poNumber) {
-                                  <span class="po-ref-badge">
-                                    <span class="material-symbols-outlined">shopping_cart</span>
-                                    {{ item.poNumber }}
-                                  </span>
-                                } @else {
-                                  <span class="direct-badge">Direct</span>
-                                }
-                              </td>
-                              <td>
-                                @if (item.requisitionNo) {
-                                  <span class="req-ref-badge">
-                                    <span class="material-symbols-outlined">receipt_long</span>
-                                    {{ item.requisitionNo }}
-                                  </span>
-                                } @else {
-                                  <span class="na-text">—</span>
-                                }
-                              </td>
-                              <td class="right qty-value">{{ item.quantity }}</td>
-                              <td class="right">{{ formatCurrency(item.unitPrice) }}</td>
-                              <td class="right total-val">
-                                {{
-                                  item.unitPrice != null
-                                    ? formatCurrency(item.quantity * item.unitPrice)
-                                    : '—'
-                                }}
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colspan="7" class="total-label-cell">
-                              Total
-                              @if (expandedDetail()!.taxPercentage) {
-                                <span class="tax-note"
-                                  >(incl. {{ expandedDetail()!.taxPercentage }}% tax)</span
-                                >
-                              }
-                            </td>
-                            <td class="right total-count">
-                              {{ formatCurrency(expandedDetail()!.totalAmount) }}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  }
-                </td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
-    </div>
-
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <span class="pagination-info">
-          Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{
-            minOf(currentPage() * pageSize, totalCount())
-          }}
-          of {{ totalCount() }}
-        </span>
-        <div class="page-controls">
-          <button
-            class="page-btn"
-            [disabled]="currentPage() === 1"
-            (click)="goToPage(currentPage() - 1)"
-          >
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          @for (p of pageNumbers(); track p) {
-            <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">
-              {{ p }}
-            </button>
-          }
-          <button
-            class="page-btn"
-            [disabled]="currentPage() === totalPages()"
-            (click)="goToPage(currentPage() + 1)"
-          >
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
+  <mat-card class="table-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading purchase bills...</span>
       </div>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">receipt_long</span>
+        <strong>No purchase bills found</strong>
+        <span>Generate a purchase bill to get started.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="items()" class="bill-table" multiTemplateDataRows>
+          <ng-container matColumnDef="toggle">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <button class="icon-action" type="button" (click)="toggleExpand(row.purchaseBillId, $event)">
+                <span class="material-symbols-outlined">{{
+                  expandedId() === row.purchaseBillId ? 'expand_less' : 'expand_more'
+                }}</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef>Bill Number</th>
+            <td mat-cell *matCellDef="let row">{{ row.billNumber }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="supplier">
+            <th mat-header-cell *matHeaderCellDef>Supplier</th>
+            <td mat-cell *matCellDef="let row">{{ row.supplierName || '-' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="items">
+            <th mat-header-cell *matHeaderCellDef>Items</th>
+            <td mat-cell *matCellDef="let row">{{ row.itemCount }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="totalAmount">
+            <th mat-header-cell *matHeaderCellDef>Total Amount</th>
+            <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalAmount) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">{{ formatDate(row.createdAt) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                class="icon-action"
+                type="button"
+                title="Regenerate new bill from this one"
+                (click)="openRegeneratePage(row.purchaseBillId)"
+              >
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="detail">
+            <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+              @if (expandedId() === row.purchaseBillId) {
+                <div class="detail-panel">
+                  @if (expandLoading()) {
+                    <div class="loading-state slim">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading items...</span>
+                    </div>
+                  } @else if (expandedDetail()) {
+                    <table mat-table [dataSource]="expandedDetail()!.items" class="items-table">
+                      <ng-container matColumnDef="product">
+                        <th mat-header-cell *matHeaderCellDef>Product</th>
+                        <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+                      </ng-container>
+                      <ng-container matColumnDef="unit">
+                        <th mat-header-cell *matHeaderCellDef>Unit</th>
+                        <td mat-cell *matCellDef="let item">{{ item.unitShortName || '-' }}</td>
+                      </ng-container>
+                      <ng-container matColumnDef="po">
+                        <th mat-header-cell *matHeaderCellDef>Purchase Order</th>
+                        <td mat-cell *matCellDef="let item">
+                          @if (item.poNumber) {
+                            <span class="source-chip">
+                              <span class="material-symbols-outlined">shopping_cart</span>
+                              {{ item.poNumber }}
+                            </span>
+                          } @else {
+                            <span class="source-chip direct">Direct</span>
+                          }
+                        </td>
+                      </ng-container>
+                      <ng-container matColumnDef="requisition">
+                        <th mat-header-cell *matHeaderCellDef>Requisition</th>
+                        <td mat-cell *matCellDef="let item">
+                          @if (item.requisitionNo) {
+                            <span class="source-chip">
+                              <span class="material-symbols-outlined">receipt_long</span>
+                              {{ item.requisitionNo }}
+                            </span>
+                          } @else {
+                            <span class="na-text">-</span>
+                          }
+                        </td>
+                      </ng-container>
+                      <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef>Quantity</th>
+                        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                      </ng-container>
+                      <ng-container matColumnDef="unitPrice">
+                        <th mat-header-cell *matHeaderCellDef>Unit Price</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.unitPrice != null ? formatCurrency(item.unitPrice) : '-' }}
+                        </td>
+                      </ng-container>
+                      <ng-container matColumnDef="total">
+                        <th mat-header-cell *matHeaderCellDef>Total</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '-' }}
+                        </td>
+                      </ng-container>
+                      <tr
+                        mat-header-row
+                        *matHeaderRowDef="['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total']"
+                      ></tr>
+                      <tr
+                        mat-row
+                        *matRowDef="
+                          let row;
+                          columns: ['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total']
+                        "
+                      ></tr>
+                    </table>
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.expanded]="expandedId() === row.purchaseBillId"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: detailColumns"
+            class="detail-row"
+            [class.expanded]="expandedId() === row.purchaseBillId"
+          ></tr>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span
+            >Showing {{ (currentPage() - 1) * pageSize + 1 }}-{{
+              minOf(currentPage() * pageSize, totalCount())
+            }}
+            of {{ totalCount() }}</span
+          >
+          <div class="page-actions">
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === 1"
+              (click)="goToPage(currentPage() - 1)"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            @for (page of pageNumbers(); track page) {
+              <button
+                class="page-button"
+                [class.active-page]="page === currentPage()"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
     }
-  }
+  </mat-card>
 </div>

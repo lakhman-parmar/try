@@ -1,8 +1,14 @@
-import { Component, inject, OnInit, signal, HostListener, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Observable, finalize, forkJoin, map, startWith } from 'rxjs';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { PurchaseOrderService } from '../../services/purchase-order.service';
 import {
   PoLineItem,
@@ -14,7 +20,18 @@ import {
 @Component({
   selector: 'app-purchase-order-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    AsyncPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatTableModule,
+  ],
   templateUrl: './purchase-order-create.html',
   styleUrl: './purchase-order-create.scss',
 })
@@ -30,7 +47,6 @@ export class PurchaseOrderCreate implements OnInit {
   // ── Data ────────────────────────────────────────────────────────────────────
   requisitions = signal<RequisitionForPoDto[]>([]);
   products = signal<ProductDto[]>([]);
-  filteredProducts = signal<ProductDto[]>([]);
 
   // ── Form state ──────────────────────────────────────────────────────────────
   formRemarks = signal('');
@@ -43,9 +59,9 @@ export class PurchaseOrderCreate implements OnInit {
   // ── Line items ───────────────────────────────────────────────────────────────
   lineItems = signal<PoLineItem[]>([]);
 
-  // ── Product dropdown ─────────────────────────────────────────────────────────
-  productSearchTerm = signal('');
-  dropdownOpenIndex = signal<number | null>(null);
+  productControls: FormControl<ProductDto | string>[] = [];
+  filteredProductOptions: Observable<ProductDto[]>[] = [];
+  displayedColumns = ['product', 'unit', 'quantity', 'unitPrice', 'source', 'actions'];
 
   // ── Computed ─────────────────────────────────────────────────────────────────
   readonly subTotal = computed(() =>
@@ -62,35 +78,32 @@ export class PurchaseOrderCreate implements OnInit {
 
   readonly grandTotal = computed(() => this.subTotal() + this.taxAmount());
 
+  readonly validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+
   ngOnInit(): void {
-    this.loadRequisitions();
-    this.loadProducts();
-  }
-
-  private loadRequisitions(): void {
-    this.loadingReqs.set(true);
-    this.svc
-      .getRequisitionsForPo()
-      .pipe(finalize(() => this.loadingReqs.set(false)))
-      .subscribe({
-        next: (res) => {
-          if (res.isSuccess) this.requisitions.set(res.data);
-        },
-      });
-  }
-
-  private loadProducts(): void {
     this.loadingProducts.set(true);
-    this.svc
-      .getProducts()
-      .pipe(finalize(() => this.loadingProducts.set(false)))
+    this.loadingReqs.set(true);
+    forkJoin({
+      reqs: this.svc.getRequisitionsForPo(),
+      products: this.svc.getProducts(),
+    })
+      .pipe(finalize(() => {
+        this.loadingProducts.set(false);
+        this.loadingReqs.set(false);
+      }))
       .subscribe({
         next: (res) => {
-          if (res.isSuccess) {
-            this.products.set(res.data);
-            this.filteredProducts.set(res.data);
+          if (res.reqs.isSuccess) this.requisitions.set(res.reqs.data);
+          if (res.products.isSuccess) {
+            this.products.set(res.products.data);
+            if (this.lineItems().length === 0) {
+              this.addDirectLineItem();
+            } else {
+              this.resetProductControls(this.lineItems());
+            }
           }
         },
+        error: () => this.errorMsg.set('Failed to load requisition or product data.'),
       });
   }
 
@@ -125,6 +138,7 @@ export class PurchaseOrderCreate implements OnInit {
       this.lineItems.update((items) => [...items, ...newItems]);
     }
     this.selectedReqIds.set(ids);
+    this.resetProductControls(this.lineItems());
   }
 
   private reqItemToLineItem(ri: RequisitionItemForPoDto, req: RequisitionForPoDto): PoLineItem {
@@ -151,87 +165,110 @@ export class PurchaseOrderCreate implements OnInit {
       ...items,
       { productId: null, productName: '', unitShortName: '', quantity: 1 },
     ]);
+    this.addProductControl();
   }
 
   removeLineItem(index: number): void {
     const item = this.lineItems()[index];
-    // If removing a req item, check if entire req should be deselected
     if (item.requisitionId) {
       const remaining = this.lineItems().filter(
         (li, i) => i !== index && li.requisitionId === item.requisitionId,
       );
       if (remaining.length === 0) {
         const ids = new Set(this.selectedReqIds());
-        ids.delete(item.requisitionId!);
+        ids.delete(item.requisitionId);
         this.selectedReqIds.set(ids);
       }
     }
     this.lineItems.update((items) => items.filter((_, i) => i !== index));
+    this.productControls.splice(index, 1);
+    this.filteredProductOptions.splice(index, 1);
   }
 
-  updateQuantity(index: number, value: number): void {
-    this.lineItems.update((items) =>
-      items.map((item, i) =>
-        i === index ? { ...item, quantity: Math.max(1, value) } : item,
-      ),
-    );
-  }
-
-  // ── Product dropdown ─────────────────────────────────────────────────────────
-  openProductDropdown(index: number, event: Event): void {
-    event.stopPropagation();
-    if (this.dropdownOpenIndex() === index) {
-      this.closeProductDropdown();
-    } else {
-      this.dropdownOpenIndex.set(index);
-      this.productSearchTerm.set('');
-      this.filteredProducts.set(this.products());
-    }
-  }
-
-  closeProductDropdown(): void {
-    this.dropdownOpenIndex.set(null);
-    this.productSearchTerm.set('');
-  }
-
-  filterProducts(term: string): void {
-    this.productSearchTerm.set(term);
-    const lower = term.toLowerCase();
-    this.filteredProducts.set(
-      this.products().filter((p) => p.name.toLowerCase().includes(lower)),
-    );
-  }
-
-  selectProduct(index: number, product: ProductDto): void {
+  updateProduct(index: number, productId: number | null): void {
+    const product = this.productById(productId);
     this.lineItems.update((items) =>
       items.map((item, i) =>
         i === index
           ? {
               ...item,
-              productId: product.productId,
-              productName: product.name,
-              unitShortName: product.unitShortName ?? '',
-              unitPrice: product.purchasePrice ?? undefined,
+              productId,
+              productName: product?.name ?? '',
+              unitShortName: product?.unitShortName ?? '',
+              unitPrice: product?.purchasePrice ?? undefined,
             }
           : item,
       ),
     );
-    this.closeProductDropdown();
+    this.productControls[index]?.setValue(product ?? '');
   }
 
-  isDropdownOpen(index: number): boolean {
-    return this.dropdownOpenIndex() === index;
+  displayProduct(product: ProductDto | string | null): string {
+    return typeof product === 'string' ? product : (product?.name ?? '');
   }
 
-  @HostListener('document:click')
-  onDocumentClick(): void {
-    this.closeProductDropdown();
+  onProductSelected(index: number, product: ProductDto): void {
+    this.updateProduct(index, product.productId);
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.closeProductDropdown();
-    this.showReqPanel.set(false);
+  onProductInput(index: number, value: string): void {
+    if (value.trim()) return;
+    this.updateProduct(index, null);
+  }
+
+  updateQuantity(index: number, quantity: number): void {
+    this.lineItems.update((items) =>
+      items.map((item, i) =>
+        i === index ? { ...item, quantity: Math.max(1, quantity || 1) } : item,
+      ),
+    );
+  }
+
+  adjustQuantity(index: number, delta: number): void {
+    const currentQuantity = this.lineItems()[index]?.quantity ?? 1;
+    this.updateQuantity(index, currentQuantity + delta);
+  }
+
+  productUnit(productId: number | null): string {
+    if (!productId) return '-';
+    return this.products().find((product) => product.productId === productId)?.unitShortName ?? '-';
+  }
+
+  productPrice(productId: number | null): string {
+    if (!productId) return '-';
+    const val = this.products().find((product) => product.productId === productId)?.purchasePrice;
+    if (val == null) return '-';
+    return val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private resetProductControls(items: PoLineItem[]): void {
+    this.productControls = [];
+    this.filteredProductOptions = [];
+    for (const item of items) {
+      this.addProductControl(this.productById(item.productId) ?? '');
+    }
+  }
+
+  private addProductControl(initialValue: ProductDto | string = ''): void {
+    const control = new FormControl<ProductDto | string>(initialValue, { nonNullable: true });
+    this.productControls.push(control);
+    this.filteredProductOptions.push(
+      control.valueChanges.pipe(
+        startWith(initialValue),
+        map((value) => this.filterProducts(value)),
+      ),
+    );
+  }
+
+  private filterProducts(value: ProductDto | string | null): ProductDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.products().filter((product) => product.name.toLowerCase().includes(filterValue));
+  }
+
+  private productById(productId: number | null): ProductDto | undefined {
+    if (!productId) return undefined;
+    return this.products().find((product) => product.productId === productId);
   }
 
   // ── Submit ───────────────────────────────────────────────────────────────────
