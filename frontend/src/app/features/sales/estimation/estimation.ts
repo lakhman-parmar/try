@@ -44,7 +44,8 @@ export class Estimation implements OnInit {
   private readonly router = inject(Router);
 
   displayedColumns = ['toggle', 'number', 'customer', 'remarks', 'items', 'date', 'actions'];
-  pageSize = 20;
+  detailColumns = ['detail'];
+  pageSize = 10;
 
   loading = signal(false);
   detailLoading = signal(false);
