@@ -9,6 +9,8 @@ import { PurchaseOrder } from './features/purchase/purchase-order/purchase-order
 import { PurchaseOrderCreate } from './features/purchase/purchase-order/components/purchase-order-create/purchase-order-create';
 import { PurchaseOrderDetail } from './features/purchase/purchase-order/components/purchase-order-detail/purchase-order-detail';
 import { PurchaseBill } from './features/purchase/purchase-bill/purchase-bill';
+import { PurchaseBillCreate } from './features/purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create';
+import { PurchaseBillRegenerate } from './features/purchase/purchase-bill/components/purchase-bill-regenerate/purchase-bill-regenerate';
 import { guestGuard } from './core/guards/guest-guard';
 import { authGuard } from './core/guards/auth-guard';
 import { UserProfile } from './features/user-profile/components/user-profile';
@@ -46,7 +48,11 @@ export const routes: Routes = [
       },
       {
         path: 'purchase/bill',
-        component: PurchaseBill,
+        children: [
+          { path: '', component: PurchaseBill },
+          { path: 'create', component: PurchaseBillCreate },
+          { path: 'regenerate/:id', component: PurchaseBillRegenerate },
+        ],
       },
       {
         path: 'sales/estimation',

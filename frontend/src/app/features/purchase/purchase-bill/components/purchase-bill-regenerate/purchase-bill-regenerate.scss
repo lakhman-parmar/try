@@ -1,0 +1,564 @@
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+$blue-50: #eff6ff;
+$blue-100: #dbeafe;
+$blue-700: #1d4ed8;
+$blue-300: #93c5fd;
+$blue-200: #bfdbfe;
+$blue-400: #4BB8FA;
+
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+
+$border: #e2e8f0;
+$surface: #f8fafc;
+$white: #ffffff;
+
+$red-50: #fef2f2;
+$red-500: #ef4444;
+$red-600: #dc2626;
+
+$green-50: #f0fdf4;
+$green-600: #16a34a;
+$green-700: #15803d;
+
+$amber-50: #fffbeb;
+$amber-600: #d97706;
+
+// ── Loading State ───────────────────────────────────────────────────────────
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: $text-muted;
+  font-size: 0.875rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid $border;
+  border-top-color: $blue-500;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Page Header ─────────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid $border;
+  border-radius: 0.5rem;
+  background: $white;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: $surface;
+    border-color: $blue-500;
+    color: $blue-500;
+  }
+}
+
+.page-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: $text-primary;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.page-title-icon {
+  font-size: 1.5rem;
+  color: $blue-600;
+}
+
+.page-subtitle {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin: 0.125rem 0 0 0;
+}
+
+// ── Error Banner ────────────────────────────────────────────────────────────
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: $red-50;
+  border: 1px solid $red-500;
+  border-radius: 0.5rem;
+  color: $red-600;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+
+  .error-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $red-500;
+    display: flex;
+    align-items: center;
+    padding: 0.125rem;
+    border-radius: 0.25rem;
+
+    &:hover { background: rgba($red-500, 0.1); }
+  }
+}
+
+// ── Two-column layout ──────────────────────────────────────────────────────
+.create-layout {
+  display: grid;
+  grid-template-columns: 1fr 22rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+// ── Form Card ───────────────────────────────────────────────────────────────
+.form-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: $text-primary;
+  border-bottom: 1px solid $border;
+  background: $surface;
+}
+
+.form-card-icon {
+  font-size: 1.25rem;
+  color: $blue-600;
+}
+
+.form-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid $border;
+
+  &:last-of-type { border-bottom: none; }
+}
+
+.form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $text-secondary;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.form-label-inner {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $text-muted;
+  margin-bottom: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid $border;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: $text-primary;
+  background: $white;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+
+  &:focus { border-color: $blue-500; box-shadow: 0 0 0 2px rgba($blue-500, 0.1); }
+
+  &::placeholder { color: $text-muted; }
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+// ── Source Info Card ────────────────────────────────────────────────────────
+.source-info-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.source-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+
+  & + & { border-top: 1px solid $border; }
+}
+
+.source-label {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+}
+
+.source-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text-primary;
+}
+
+.bill-no-text {
+  font-weight: 600;
+  color: $blue-600;
+}
+
+.original-total {
+  font-weight: 600;
+  color: $text-primary;
+}
+
+// ── Items Table ─────────────────────────────────────────────────────────────
+.items-table-wrap {
+  overflow-x: auto;
+  border: 1px solid $border;
+  border-radius: 0.5rem;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  th {
+    background: $surface;
+    padding: 0.5rem 0.625rem;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid $border;
+    white-space: nowrap;
+
+    &.right { text-align: right; }
+  }
+
+  td {
+    padding: 0.5rem 0.625rem;
+    border-bottom: 1px solid $border;
+    color: $text-primary;
+
+    &.right { text-align: right; }
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.row-num {
+  color: $text-muted;
+  font-size: 0.75rem;
+  width: 2rem;
+}
+
+.product-cell {
+  font-weight: 500;
+}
+
+.qty-value {
+  font-weight: 500;
+}
+
+.total-val {
+  font-weight: 600;
+  color: $text-primary;
+}
+
+// Badges
+.po-ref-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  background: $blue-50;
+  border: 1px solid $blue-200;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $blue-700;
+  white-space: nowrap;
+
+  span { font-size: 0.875rem; }
+}
+
+.req-ref-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  background: $amber-50;
+  border: 1px solid #fcd34d;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $amber-600;
+  white-space: nowrap;
+
+  span { font-size: 0.875rem; }
+}
+
+.direct-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  background: $green-50;
+  border: 1px solid #86efac;
+  border-radius: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: $green-700;
+}
+
+.na-text {
+  color: $text-muted;
+}
+
+// ── Buttons ─────────────────────────────────────────────────────────────────
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: $blue-600;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: $blue-700; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  span { font-size: 1.125rem; }
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid $border;
+  border-radius: 0.5rem;
+  background: $white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: $surface;
+    border-color: $blue-400;
+    color: $blue-600;
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-ghost-md {
+  @extend .btn-ghost;
+  padding: 0.5rem 1rem;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid $border;
+  background: $surface;
+}
+
+.btn-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(white, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.5s linear infinite;
+}
+
+// ── Summary Column ──────────────────────────────────────────────────────────
+.summary-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: $text-primary;
+  border-bottom: 1px solid $border;
+  background: $surface;
+}
+
+.summary-icon { font-size: 1.25rem; color: $blue-600; }
+
+.summary-body {
+  padding: 0.75rem 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+}
+
+.summary-label {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+}
+
+.summary-val {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.summary-divider {
+  height: 1px;
+  background: $border;
+  margin: 0.5rem 0;
+}
+
+.summary-row.total .summary-label,
+.summary-row.total .summary-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.summary-row.total .summary-val { color: $blue-600; }
+
+// ── Confirmation Modal ──────────────────────────────────────────────────────
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.confirm-modal {
+  background: $white;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 28rem;
+  max-width: 90vw;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  animation: popIn 0.2s ease-out;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.confirm-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: $blue-50;
+  margin: 0 auto 1rem;
+
+  &.regen { background: $amber-50; }
+}
+
+.confirm-icon {
+  font-size: 1.75rem;
+  color: $blue-600;
+
+  .regen & { color: $amber-600; }
+}
+
+.confirm-title {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0 0 0.5rem;
+}
+
+.confirm-body {
+  text-align: center;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .create-layout {
+    grid-template-columns: 1fr;
+  }
+}
