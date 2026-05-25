@@ -1,7 +1,6 @@
 -- ============================================================
 -- Stored Procedure: usp_SalesInvoice_Update
--- Full replace of line items (soft-delete old, insert new).
--- Preserves sales order traceability on re-submitted items.
+-- Full replace of line items. Restores old stock and applies new stock.
 -- Returns rows_affected (0 = not found / already deleted).
 -- ============================================================
 USE [dbRapidDevs]
@@ -14,11 +13,9 @@ GO
 
 CREATE OR ALTER PROCEDURE [dbo].[usp_SalesInvoice_Update]
     @sales_invoice_id INT,
-    @sales_order_id   INT            = NULL,
-    @customer_id      INT            = NULL,
-    @tax_percentage   DECIMAL(5, 2)   = NULL,
-    @total_amount     DECIMAL(10, 2)  = NULL,
-    @remarks          NVARCHAR(1000)  = NULL,
+    @customer_id      INT           = NULL,
+    @tax_percentage   DECIMAL(5, 2) = NULL,
+    @remarks          NVARCHAR(1000) = NULL,
     @items            dbo.udt_sales_invoice_item READONLY
 AS
 BEGIN
@@ -26,34 +23,86 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- ── Update header ───────────────────────────────────────────────
-        UPDATE dbo.sales_invoice
-        SET    sales_order_id = @sales_order_id,
-               customer_id    = @customer_id,
-               tax_percentage = @tax_percentage,
-               total_amount   = @total_amount,
-               remarks        = @remarks,
-               modified_at    = GETDATE()
-        WHERE  sales_invoice_id = @sales_invoice_id
-          AND  is_deleted = 0;
-
-        DECLARE @rows_affected INT = @@ROWCOUNT;
-
-        IF @rows_affected = 0
+        IF NOT EXISTS (
+            SELECT 1 FROM dbo.sales_invoice
+            WHERE sales_invoice_id = @sales_invoice_id
+              AND is_deleted = 0
+        )
         BEGIN
             ROLLBACK TRANSACTION;
             SELECT 0 AS rows_affected;
             RETURN;
-        END;
+        END
 
-        -- ── Soft-delete existing line items ─────────────────────────────
-        UPDATE dbo.sales_invoice_item
-        SET    is_deleted  = 1,
+        UPDATE p
+        SET p.stock = p.stock + x.Quantity,
+            p.modified_at = GETDATE()
+        FROM dbo.product p
+        INNER JOIN (
+            SELECT product_id, SUM(quantity) AS Quantity
+            FROM dbo.sales_invoice_item
+            WHERE sales_invoice_id = @sales_invoice_id
+              AND is_deleted = 0
+            GROUP BY product_id
+        ) x ON x.product_id = p.product_id;
+
+        IF EXISTS (
+            SELECT 1
+            FROM @items i
+            INNER JOIN dbo.product p ON p.product_id = i.ProductId
+            GROUP BY i.ProductId, p.stock
+            HAVING ISNULL(p.stock, 0) < SUM(i.Quantity)
+        )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            THROW 50130, 'Insufficient stock for one or more invoice items.', 1;
+        END
+
+        DECLARE @resolved_customer_id INT = @customer_id;
+
+        IF @resolved_customer_id IS NULL
+        BEGIN
+            SELECT @resolved_customer_id = MIN(so.customer_id)
+            FROM @items i
+            INNER JOIN dbo.sales_order so
+                ON so.sales_order_id = i.SalesOrderId
+               AND so.is_deleted = 0;
+        END
+
+        DECLARE @header_sales_order_id INT = NULL;
+
+        IF (SELECT COUNT(DISTINCT SalesOrderId) FROM @items WHERE SalesOrderId IS NOT NULL) = 1
+        BEGIN
+            SELECT @header_sales_order_id = MIN(SalesOrderId)
+            FROM @items
+            WHERE SalesOrderId IS NOT NULL;
+        END
+
+        DECLARE @subtotal DECIMAL(18, 4);
+
+        SELECT @subtotal = SUM(i.Quantity * ISNULL(i.UnitPrice, p.selling_price))
+        FROM @items i
+        INNER JOIN dbo.product p ON p.product_id = i.ProductId;
+
+        DECLARE @total_amount DECIMAL(18, 4) =
+            @subtotal + ISNULL(@subtotal * @tax_percentage / 100, 0);
+
+        UPDATE dbo.sales_invoice
+        SET    sales_order_id = @header_sales_order_id,
+               customer_id = @resolved_customer_id,
+               tax_percentage = @tax_percentage,
+               remarks = @remarks,
+               total_amount = @total_amount,
                modified_at = GETDATE()
         WHERE  sales_invoice_id = @sales_invoice_id
           AND  is_deleted = 0;
 
-        -- ── Insert updated line items ───────────────────────────────────
+        UPDATE dbo.sales_invoice_item
+        SET    is_deleted = 1,
+               modified_at = GETDATE()
+        WHERE  sales_invoice_id = @sales_invoice_id
+          AND  is_deleted = 0;
+
         INSERT INTO dbo.sales_invoice_item
             (sales_invoice_id, product_id, sales_order_id, sales_order_item_id,
              quantity, unit_price, created_at, is_deleted)
@@ -69,9 +118,19 @@ BEGIN
         FROM @items i
         INNER JOIN dbo.product p ON p.product_id = i.ProductId;
 
+        UPDATE p
+        SET p.stock = p.stock - x.Quantity,
+            p.modified_at = GETDATE()
+        FROM dbo.product p
+        INNER JOIN (
+            SELECT ProductId, SUM(Quantity) AS Quantity
+            FROM @items
+            GROUP BY ProductId
+        ) x ON x.ProductId = p.product_id;
+
         COMMIT TRANSACTION;
 
-        SELECT @rows_affected AS rows_affected;
+        SELECT 1 AS rows_affected;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0

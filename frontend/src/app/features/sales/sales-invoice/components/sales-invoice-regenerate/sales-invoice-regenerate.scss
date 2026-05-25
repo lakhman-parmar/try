@@ -1,0 +1,9 @@
+@use '../../../../purchase/purchase-bill/components/purchase-bill-regenerate/purchase-bill-regenerate.scss';
+
+.modal-overlay {
+  z-index: 10000;
+}
+
+.modal-dialog {
+  z-index: 10001;
+}

@@ -22,7 +22,6 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    AsyncPipe,
     FormsModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -65,9 +64,7 @@ export class PurchaseOrder implements OnInit {
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
   readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() =>
-    Array.from({ length: this.totalPages() }, (_, i) => i + 1),
-  );
+  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
 
   // Expandable row state

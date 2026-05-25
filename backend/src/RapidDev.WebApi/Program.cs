@@ -18,6 +18,7 @@ using RapidDev.Infrastructure.Repositories.Implementation.Common;
 using RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 using RapidDev.Infrastructure.Repositories.Implementation.Sales;
 using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
+using RapidDev.WebApi.Middleware;
 using RapidDev.WebApi.Utilities;
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -44,6 +45,8 @@ builder.Services.AddScoped<IEstimationRepository, EstimationRepository>();
 builder.Services.AddScoped<IEstimationService, EstimationService>();
 builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
 builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
+builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -88,6 +91,8 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 await AdminSeeder.SeedAsync(app.Services);
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

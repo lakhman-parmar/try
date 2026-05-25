@@ -89,6 +89,30 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'sales/invoice',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/sales/sales-invoice/sales-invoice').then((m) => m.SalesInvoice),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./features/sales/sales-invoice/components/sales-invoice-create/sales-invoice-create').then(
+                (m) => m.SalesInvoiceCreate,
+              ),
+          },
+          {
+            path: 'regenerate/:id',
+            loadComponent: () =>
+              import('./features/sales/sales-invoice/components/sales-invoice-regenerate/sales-invoice-regenerate').then(
+                (m) => m.SalesInvoiceRegenerate,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile',
         component: UserProfile,
       },

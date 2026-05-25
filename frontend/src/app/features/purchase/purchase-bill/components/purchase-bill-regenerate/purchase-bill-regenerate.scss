@@ -198,11 +198,17 @@
 }
 
 .product-name-fixed {
+  display: inline-flex;
   align-items: center;
-  display: flex;
   font-weight: 600;
   color: #334155;
   gap: 8px;
+  vertical-align: middle;
+}
+
+.mat-column-product {
+  min-width: 220px;
+  max-width: 300px;
 }
 
 .product-icon {
@@ -307,82 +313,48 @@
 
 /* Modal Dialog */
 .modal-overlay {
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  z-index: 99999; // keeps modal above table/cards
+  pointer-events: auto;
 }
 
 .modal-dialog {
+  position: relative;
+
+  width: 100%;
+  max-width: 500px;
+
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  width: 100%;
-  max-width: 480px;
+
   padding: 24px;
-  display: grid;
-  gap: 20px;
-}
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
 
-.modal-header .header-icon {
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 8px;
-  border-radius: 10px;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.modal-body p {
-  color: #475569;
-  line-height: 1.5;
-  margin: 0;
+  z-index: 100000;
+  pointer-events: auto;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  margin-top: 24px;
 }
 
-@media (max-width: 760px) {
-  .purchase-bill-form-page {
-    padding: 16px;
-  }
+.modal-actions button {
+  pointer-events: auto;
+}
 
-  .override-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .form-actions div {
-    flex-direction: column;
-  }
-
-  .modal-dialog {
-    max-width: 90%;
-    padding: 16px;
-  }
+.purchase-bill-form-page {
+  position: relative;
+  z-index: 1;
 }
