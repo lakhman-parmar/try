@@ -1,237 +1,228 @@
-<div class="page-header">
-  <div class="page-header-left">
+<div class="purchase-requisition-page">
+  <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <span class="material-symbols-outlined page-title-icon">request_quote</span>
-        Purchase Requisition
-      </h1>
-      <p class="page-subtitle">Internal Product Request List</p>
+      <h1>Purchase Requisition</h1>
+      <p>Internal Product Request List</p>
     </div>
-  </div>
-  <button class="btn-primary" (click)="openCreateForm()">
-    <span class="material-symbols-outlined">add</span>
-    New Requisition
-  </button>
-</div>
-
-@if (errorMsg()) {
-  <div class="error-banner">
-    <span class="material-symbols-outlined">error</span>
-    {{ errorMsg() }}
-    <button class="error-close" (click)="errorMsg.set(null)">
-      <span class="material-symbols-outlined">close</span>
+    <button class="primary-action" type="button" (click)="openCreateForm()">
+      <span class="material-symbols-outlined">add</span>
+      New Requisition
     </button>
   </div>
-}
 
-<div class="filter-bar">
-  <div class="search-wrap">
-    <span class="material-symbols-outlined search-icon">search</span>
-    <input
-      class="search-input"
-      type="text"
-      placeholder="Search by requisition no. or remarks…"
-      [value]="searchTerm()"
-      (input)="onSearchChange($any($event.target).value)"
-    />
-    @if (searchTerm()) {
-      <button class="clear-search" (click)="onSearchChange('')">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    }
-  </div>
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
 
-  <div class="date-filters">
-    <div class="date-field">
-      <label class="date-label">From</label>
+  <mat-card class="filter-card">
+    <label class="filter-field search-field">
+      <span class="field-label">Search</span>
+      <span class="material-symbols-outlined field-icon">search</span>
       <input
-        class="date-input"
-        type="date"
-        [(ngModel)]="fromDate"
-        (change)="onDateChange()"
+        class="field-control icon-control"
+        placeholder="Requisition no., remarks"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
       />
+    </label>
+
+    <div class="filter-field date-field">
+      <span class="field-label">From</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="fromPicker"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
     </div>
-    <div class="date-field">
-      <label class="date-label">To</label>
-      <input
-        class="date-input"
-        type="date"
-        [(ngModel)]="toDate"
-        (change)="onDateChange()"
-      />
+
+    <div class="filter-field date-field">
+      <span class="field-label">To</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="toPicker"
+          [ngModel]="toDate()"
+          (ngModelChange)="toDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
     </div>
-    @if (hasFilters) {
-      <button class="btn-ghost" (click)="clearFilters()">
+
+    @if (hasFilters()) {
+      <button class="secondary-action" type="button" (click)="clearFilters()">
         <span class="material-symbols-outlined">filter_alt_off</span>
         Clear
       </button>
     }
-  </div>
-</div>
+  </mat-card>
 
-<div class="table-card">
-  @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <span>Loading requisitions…</span>
-    </div>
-  } @else if (items().length === 0) {
-    <div class="empty-state">
-      <span class="material-symbols-outlined empty-icon">inbox</span>
-      <p class="empty-title">No requisitions found</p>
-      <p class="empty-sub">
-        @if (hasFilters) { Try adjusting your search or date filters. }
-        @else { Create your first purchase requisition to get started. }
-      </p>
-      @if (!hasFilters) {
-        <button class="btn-primary" (click)="openCreateForm()">
-          <span class="material-symbols-outlined">add</span>New Requisition
-        </button>
-      }
-    </div>
-  } @else {
-    <div class="table-wrap">
-      <table class="pr-table">
-        <thead>
-          <tr>
-            <th class="col-toggle"></th>
-            <th>Requisition No.</th>
-            <th>Remarks</th>
-            <th class="center">Items</th>
-            <th>Date</th>
-            <th class="center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (req of items(); track req.purchaseRequisitionId) {
-
-            <!-- Main row -->
-            <tr class="table-row" [class.expanded]="isExpanded(req.purchaseRequisitionId)">
-              <td class="col-toggle">
-                <button
-                  class="toggle-btn"
-                  [class.open]="isExpanded(req.purchaseRequisitionId)"
-                  (click)="toggleExpand(req.purchaseRequisitionId, $event)"
-                  title="Show items"
-                >
-                  <span class="material-symbols-outlined">
-                    {{ isExpanded(req.purchaseRequisitionId) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
-                  </span>
-                </button>
-              </td>
-              <td>
-                <div class="req-no">
-                  <span class="req-dot"></span>
-                  {{ req.requisitionNo }}
-                </div>
-              </td>
-              <td class="remarks-cell">{{ req.remarks || '—' }}</td>
-              <td class="center">
-                <span class="item-badge">{{ req.itemCount }}</span>
-              </td>
-              <td class="date-cell">{{ formatDate(req.createdAt) }}</td>
-              <td class="center">
-                <div class="action-btns">
-                  <button
-                    class="icon-action view"
-                    title="Edit"
-                    (click)="openDetail(req.purchaseRequisitionId)"
-                  >
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button
-                    class="icon-action delete"
-                    title="Delete"
-                    (click)="deleteRequisition(req.purchaseRequisitionId, $event)"
-                  >
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Expanded detail row -->
-            @if (isExpanded(req.purchaseRequisitionId)) {
-              <tr class="expand-row">
-                <td colspan="6" class="expand-cell">
-
-                  @if (expandLoading()) {
-                    <div class="expand-loading">
-                      <div class="spinner-sm"></div>
-                      <span>Loading items…</span>
-                    </div>
-                  }
-
-                  @if (!expandLoading() && expandedDetail()) {
-                    <div class="expand-content">
-
-                      @if (expandedDetail()!.remarks) {
-                        <div class="expand-remarks">
-                          <span class="material-symbols-outlined">notes</span>
-                          {{ expandedDetail()!.remarks }}
-                        </div>
-                      }
-
-                      <table class="expand-table">
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Product Name</th>
-                            <th>Unit</th>
-                            <th class="right">Quantity</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (item of expandedDetail()!.items; track item.purchaseRequisitionItemId; let i = $index) {
-                            <tr>
-                              <td class="row-num">{{ i + 1 }}</td>
-                              <td class="expand-product-name">{{ item.productName }}</td>
-                              <td><span class="unit-tag">{{ item.unitShortName || '—' }}</span></td>
-                              <td class="right qty-value">{{ item.quantity }}</td>
-                            </tr>
-                          }
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colspan="3" class="total-label-cell">Total Products</td>
-                            <td class="right total-count">{{ expandedDetail()!.items.length }}</td>
-                          </tr>
-                        </tfoot>
-                      </table>
-
-                    </div>
-                  }
-
-                </td>
-              </tr>
-            }
-
-          }
-        </tbody>
-      </table>
-    </div>
-
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <span class="pagination-info">
-          Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minOf(currentPage() * pageSize, totalCount()) }} of {{ totalCount() }}
-        </span>
-        <div class="page-controls">
-          <button class="page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          @for (p of pageNumbers(); track p) {
-            <button
-              class="page-btn"
-              [class.active]="p === currentPage()"
-              (click)="goToPage(p)"
-            >{{ p }}</button>
-          }
-          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
+  <mat-card class="table-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading requisitions...</span>
       </div>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">inbox</span>
+        <strong>No requisitions found</strong>
+        <span>Create a purchase requisition to get started.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="items()" class="pr-table" multiTemplateDataRows>
+          <ng-container matColumnDef="toggle">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <button class="icon-action" type="button" (click)="toggleExpand(row.purchaseRequisitionId, $event)">
+                <span class="material-symbols-outlined">{{
+                  expandedId() === row.purchaseRequisitionId ? 'expand_less' : 'expand_more'
+                }}</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef>Requisition No.</th>
+            <td mat-cell *matCellDef="let row">{{ row.requisitionNo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="remarks">
+            <th mat-header-cell *matHeaderCellDef>Remarks</th>
+            <td mat-cell *matCellDef="let row" class="remarks-cell">{{ row.remarks || '-' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="items">
+            <th mat-header-cell *matHeaderCellDef>Items</th>
+            <td mat-cell *matCellDef="let row">{{ row.itemCount }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">{{ formatDate(row.createdAt) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                class="icon-action"
+                type="button"
+                title="Edit"
+                (click)="openDetail(row.purchaseRequisitionId)"
+              >
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button
+                class="icon-action danger"
+                type="button"
+                title="Delete"
+                (click)="deleteRequisition(row.purchaseRequisitionId, $event)"
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="detail">
+            <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+              @if (expandedId() === row.purchaseRequisitionId) {
+                <div class="detail-panel">
+                  @if (expandLoading()) {
+                    <div class="loading-state slim">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading items...</span>
+                    </div>
+                  } @else if (expandedDetail()) {
+                    <table mat-table [dataSource]="expandedDetail()!.items" class="items-table">
+                      <ng-container matColumnDef="product">
+                        <th mat-header-cell *matHeaderCellDef>Product</th>
+                        <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+                      </ng-container>
+                      <ng-container matColumnDef="unit">
+                        <th mat-header-cell *matHeaderCellDef>Unit</th>
+                        <td mat-cell *matCellDef="let item">{{ item.unitShortName || '-' }}</td>
+                      </ng-container>
+                      <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef>Quantity</th>
+                        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                      </ng-container>
+                      <tr
+                        mat-header-row
+                        *matHeaderRowDef="['product', 'unit', 'quantity']"
+                      ></tr>
+                      <tr
+                        mat-row
+                        *matRowDef="
+                          let row;
+                          columns: ['product', 'unit', 'quantity']
+                        "
+                      ></tr>
+                    </table>
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.expanded]="expandedId() === row.purchaseRequisitionId"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: detailColumns"
+            class="detail-row"
+            [class.expanded]="expandedId() === row.purchaseRequisitionId"
+          ></tr>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span
+            >Showing {{ (currentPage() - 1) * pageSize + 1 }}-{{
+              minOf(currentPage() * pageSize, totalCount())
+            }}
+            of {{ totalCount() }}</span
+          >
+          <div class="page-actions">
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === 1"
+              (click)="goToPage(currentPage() - 1)"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            @for (page of pageNumbers(); track page) {
+              <button
+                class="page-button"
+                [class.active-page]="page === currentPage()"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
     }
-  }
+  </mat-card>
 </div>

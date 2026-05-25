@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { PurchaseBillService } from '../../services/purchase-bill.sevice';
 import { PurchaseBillDetailDto, RegeneratePurchaseBillDto } from '../../models/purchase-bill.model';
 import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
@@ -10,7 +13,13 @@ import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
 @Component({
   selector: 'app-purchase-bill-regenerate',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatTableModule,
+  ],
   templateUrl: './purchase-bill-regenerate.html',
   styleUrl: './purchase-bill-regenerate.scss',
 })
@@ -29,6 +38,8 @@ export class PurchaseBillRegenerate implements OnInit {
   regenRemarks = signal('');
 
   showConfirm = signal(false);
+
+  displayedColumns = ['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total'];
 
   readonly subTotal = computed(() => {
     const bill = this.sourceBill();
@@ -101,7 +112,6 @@ export class PurchaseBillRegenerate implements OnInit {
           if (!regenRes.isSuccess) {
             throw new Error(regenRes.message ?? 'Failed to regenerate purchase bill.');
           }
-          // Stock updated in DB. Fetch the new bill detail for PDF.
           return this.svc.getById(regenRes.data.purchaseBillId);
         }),
         finalize(() => this.saving.set(false)),
@@ -127,13 +137,8 @@ export class PurchaseBillRegenerate implements OnInit {
     this.router.navigate(['/admin/purchase/bill']);
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.showConfirm.set(false);
-  }
-
   formatDate(dateStr?: string | null): string {
-    if (!dateStr) return '\u2014';
+    if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -142,7 +147,7 @@ export class PurchaseBillRegenerate implements OnInit {
   }
 
   formatCurrency(val?: number | null): string {
-    if (val == null) return '\u2014';
+    if (val == null) return '—';
     return val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
