@@ -1,0 +1,168 @@
+<div class="estimation-form-page">
+  <div class="page-header">
+    <button class="icon-action back-action" type="button" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div>
+      <h1>{{ title }}</h1>
+      <p>Build a customer estimate with selected products and quantities.</p>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
+
+  <mat-card class="form-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading form...</span>
+      </div>
+    } @else {
+      <div class="header-fields">
+        <label class="form-field">
+          <span class="field-label">Customer</span>
+          <mat-form-field appearance="outline" class="compact-autocomplete">
+            <input
+              matInput
+              placeholder="Search customer"
+              [formControl]="customerControl"
+              [matAutocomplete]="customerAuto"
+              (input)="onCustomerInput($any($event.target).value)"
+            />
+            <mat-autocomplete
+              #customerAuto="matAutocomplete"
+              [displayWith]="displayCustomer"
+              (optionSelected)="onCustomerSelected($event.option.value)"
+            >
+              @for (customer of filteredCustomers$ | async; track customer.customerId) {
+                <mat-option [value]="customer">{{ customer.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </label>
+
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            [ngModel]="remarks()"
+            (ngModelChange)="remarks.set($event)"
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="line-header">
+        <h2>Items</h2>
+        <button class="secondary-action" type="button" (click)="addLineItem()">
+          <span class="material-symbols-outlined">add</span>
+          Add Row
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table mat-table [dataSource]="lineItems()" class="line-table">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <label class="table-field product-field">
+                <mat-form-field appearance="outline" class="compact-autocomplete">
+                  <input
+                    matInput
+                    placeholder="Search product"
+                    [formControl]="productControls[i]"
+                    [matAutocomplete]="productAuto"
+                    (input)="onProductInput(i, $any($event.target).value)"
+                  />
+                  <mat-autocomplete
+                    #productAuto="matAutocomplete"
+                    [displayWith]="displayProduct"
+                    (optionSelected)="onProductSelected(i, $event.option.value)"
+                  >
+                    @for (product of filteredProductOptions[i] | async; track product.productId) {
+                      <mat-option [value]="product">{{ product.name }}</mat-option>
+                    }
+                  </mat-autocomplete>
+                </mat-form-field>
+              </label>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unit">
+            <th mat-header-cell *matHeaderCellDef>Unit</th>
+            <td mat-cell *matCellDef="let line">{{ productUnit(line.productId) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              <div class="quantity-stepper">
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Decrease quantity"
+                  (click)="adjustQuantity(i, -1)"
+                  [disabled]="line.quantity <= 1"
+                >
+                  <span class="material-symbols-outlined">remove</span>
+                </button>
+                <input
+                  class="field-control quantity-input"
+                  type="number"
+                  min="1"
+                  [ngModel]="line.quantity"
+                  (ngModelChange)="updateQuantity(i, +$event)"
+                />
+                <button
+                  class="quantity-btn"
+                  type="button"
+                  title="Increase quantity"
+                  (click)="adjustQuantity(i, 1)"
+                >
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let line; let i = index">
+              @if (lineItems().length > 1) {
+                <button
+                  class="icon-action danger"
+                  type="button"
+                  title="Remove row"
+                  (click)="removeLineItem(i)"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByIndex"></tr>
+        </table>
+      </div>
+
+      <div class="form-actions">
+        <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
+        <div>
+          <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button class="primary-action" type="button" (click)="save()" [disabled]="saving()">
+            @if (saving()) {
+              Saving...
+            } @else {
+              Save Estimation
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </mat-card>
+</div>
