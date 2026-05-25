@@ -1,24 +1,25 @@
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { debounceTime, Subject, finalize } from 'rxjs';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { debounceTime, finalize, Subject } from 'rxjs';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
-import { PurchaseRequisitionService } from './services/purchase-requisition.service';
+import { SalesInvoiceService } from './services/sales-invoice.service';
 import {
   PagedResult,
-  PurchaseRequisitionDetailDto,
-  PurchaseRequisitionListItemDto,
-} from './models/purchase-requisition.model';
+  SalesInvoiceDetailDto,
+  SalesInvoiceListItemDto,
+} from './models/sales-invoice.model';
+import { getApiErrorMessage } from './utils/error-message.util';
 
 @Component({
-  selector: 'app-purchase-requisition',
+  selector: 'app-sales-invoice',
   standalone: true,
   imports: [
     CommonModule,
@@ -30,27 +31,29 @@ import {
     MatInputModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    RouterLink,
   ],
   providers: [provideNativeDateAdapter()],
-  templateUrl: './purchase-requisition.html',
-  styleUrl: './purchase-requisition.scss',
+  templateUrl: './sales-invoice.html',
+  styleUrl: './sales-invoice.scss',
 })
-export class PurchaseRequisition implements OnInit {
-  private readonly svc = inject(PurchaseRequisitionService);
+export class SalesInvoice implements OnInit {
+  private readonly svc = inject(SalesInvoiceService);
   private readonly router = inject(Router);
 
-  displayedColumns = ['toggle', 'number', 'remarks', 'items', 'date', 'actions'];
+  displayedColumns = ['toggle', 'number', 'customer', 'items', 'totalAmount', 'date', 'actions'];
   detailColumns = ['detail'];
-  pageSize = 10;
-
+  pageSize = 20;
   loading = signal(false);
   errorMsg = signal<string | null>(null);
-
-  pagedResult = signal<PagedResult<PurchaseRequisitionListItemDto> | null>(null);
+  pagedResult = signal<PagedResult<SalesInvoiceListItemDto> | null>(null);
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
   currentPage = signal(1);
+  expandedId = signal<number | null>(null);
+  expandedDetail = signal<SalesInvoiceDetailDto | null>(null);
+  expandLoading = signal(false);
 
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
@@ -58,19 +61,11 @@ export class PurchaseRequisition implements OnInit {
   readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
 
-  // Expandable row state
-  expandedId = signal<number | null>(null);
-  expandedDetail = signal<PurchaseRequisitionDetailDto | null>(null);
-  expandLoading = signal(false);
-
   private searchSubject = new Subject<void>();
 
   ngOnInit(): void {
     this.loadList();
-
-    this.searchSubject.pipe(debounceTime(350)).subscribe(() => {
-      this.applyFilters();
-    });
+    this.searchSubject.pipe(debounceTime(350)).subscribe(() => this.applyFilters());
   }
 
   private loadList(): void {
@@ -88,11 +83,11 @@ export class PurchaseRequisition implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load requisitions.'),
+        error: (err) =>
+          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load sales invoices.')),
       });
   }
 
-  // ── Expand / collapse ──────────────────────────────────────────────────────
   toggleExpand(id: number, event: Event): void {
     event.stopPropagation();
     if (this.expandedId() === id) {
@@ -110,15 +105,11 @@ export class PurchaseRequisition implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load requisition details.'),
+        error: (err) =>
+          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoice details.')),
       });
   }
 
-  isExpanded(id: number): boolean {
-    return this.expandedId() === id;
-  }
-
-  // ── Search & filter ────────────────────────────────────────────────────────
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
     this.currentPage.set(1);
@@ -149,28 +140,7 @@ export class PurchaseRequisition implements OnInit {
   }
 
   openCreateForm(): void {
-    this.router.navigate(['/admin/purchase/requisition/create']);
-  }
-
-  openDetail(id: number): void {
-    this.router.navigate(['/admin/purchase/requisition', id]);
-  }
-
-  deleteRequisition(id: number, event: Event): void {
-    event.stopPropagation();
-    if (!confirm('Delete this requisition? This action cannot be undone.')) return;
-    this.svc.delete(id).subscribe({
-      next: (res) => {
-        if (res.isSuccess) {
-          if (this.expandedId() === id) {
-            this.expandedId.set(null);
-            this.expandedDetail.set(null);
-          }
-          this.loadList();
-        }
-      },
-      error: () => this.errorMsg.set('Failed to delete requisition.'),
-    });
+    this.router.navigate(['/admin/sales/invoice/create']);
   }
 
   minOf(a: number, b: number): number {
@@ -178,7 +148,7 @@ export class PurchaseRequisition implements OnInit {
   }
 
   formatDate(dateStr?: string | null): string {
-    if (!dateStr) return '—';
+    if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -186,11 +156,13 @@ export class PurchaseRequisition implements OnInit {
     });
   }
 
+  formatCurrency(val?: number | null): string {
+    if (val == null) return '-';
+    return val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   private toQueryDate(date: Date | null): string | undefined {
     if (!date) return undefined;
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
   }
 }

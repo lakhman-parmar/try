@@ -293,6 +293,7 @@ CREATE TABLE [sales_invoice] (
     sales_order_id   INT,
     customer_id      INT,
     tax_percentage   DECIMAL(10,2),
+    remarks          VARCHAR(1000),
     total_amount     DECIMAL(10,2),
     created_at       DATETIME2      DEFAULT GETDATE(),
     modified_at      DATETIME2,

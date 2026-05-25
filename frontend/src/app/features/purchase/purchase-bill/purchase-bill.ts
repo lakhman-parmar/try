@@ -22,7 +22,6 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    AsyncPipe,
     FormsModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -40,15 +39,7 @@ export class PurchaseBill implements OnInit {
   private readonly svc = inject(PurchaseBillService);
   private readonly router = inject(Router);
 
-  displayedColumns = [
-    'toggle',
-    'number',
-    'supplier',
-    'items',
-    'totalAmount',
-    'date',
-    'actions',
-  ];
+  displayedColumns = ['toggle', 'number', 'supplier', 'items', 'totalAmount', 'date', 'actions'];
   detailColumns = ['detail'];
   pageSize = 20;
 
@@ -64,9 +55,7 @@ export class PurchaseBill implements OnInit {
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
   readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() =>
-    Array.from({ length: this.totalPages() }, (_, i) => i + 1),
-  );
+  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
 
   // Expandable row state
