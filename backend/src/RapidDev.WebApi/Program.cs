@@ -42,6 +42,8 @@ builder.Services.AddScoped<IPurchaseBillRepository, PurchaseBillRepository>();
 builder.Services.AddScoped<IPurchaseBillService, PurchaseBillService>();
 builder.Services.AddScoped<IEstimationRepository, EstimationRepository>();
 builder.Services.AddScoped<IEstimationService, EstimationService>();
+builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();

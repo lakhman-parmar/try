@@ -24,7 +24,6 @@
 }
 
 <div class="create-layout">
-
   <!-- ── Left: Bill Builder ─────────────────────────────────────────────── -->
   <div class="form-col">
     <div class="form-card">
@@ -86,7 +85,11 @@
                   >
                     <div class="po-card-check">
                       <span class="material-symbols-outlined">
-                        {{ isPoSelected(po.purchaseOrderId) ? 'check_circle' : 'radio_button_unchecked' }}
+                        {{
+                          isPoSelected(po.purchaseOrderId)
+                            ? 'check_circle'
+                            : 'radio_button_unchecked'
+                        }}
                       </span>
                     </div>
                     <div class="po-card-info">
@@ -168,7 +171,9 @@
                     type="button"
                   >
                     <span class="material-symbols-outlined product-icon">inventory_2</span>
-                    <span class="product-select-label">{{ line.productName || 'Select product…' }}</span>
+                    <span class="product-select-label">{{
+                      line.productName || 'Select product…'
+                    }}</span>
                     <span class="material-symbols-outlined chevron">expand_more</span>
                   </button>
 
@@ -203,7 +208,9 @@
                                 <span class="product-option-unit">{{ product.unitShortName }}</span>
                               }
                               @if (product.purchasePrice != null) {
-                                <span class="product-option-price">₹{{ product.purchasePrice }}</span>
+                                <span class="product-option-price"
+                                  >₹{{ product.purchasePrice }}</span
+                                >
                               }
                             </div>
                           </button>
@@ -220,7 +227,13 @@
 
               <div class="li-col-qty">
                 <div class="qty-control">
-                  <button class="qty-btn" (click)="updateQuantity(i, line.quantity - 1)" type="button">−</button>
+                  <button
+                    class="qty-btn"
+                    (click)="updateQuantity(i, line.quantity - 1)"
+                    type="button"
+                  >
+                    −
+                  </button>
                   <input
                     class="qty-input"
                     type="number"
@@ -229,7 +242,13 @@
                     [value]="line.quantity"
                     (change)="updateQuantity(i, +$any($event.target).value)"
                   />
-                  <button class="qty-btn" (click)="updateQuantity(i, line.quantity + 1)" type="button">+</button>
+                  <button
+                    class="qty-btn"
+                    (click)="updateQuantity(i, line.quantity + 1)"
+                    type="button"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
 
@@ -254,7 +273,12 @@
               </div>
 
               <div class="li-col-action">
-                <button class="remove-btn" (click)="removeLineItem(i)" title="Remove row" type="button">
+                <button
+                  class="remove-btn"
+                  (click)="removeLineItem(i)"
+                  title="Remove row"
+                  type="button"
+                >
                   <span class="material-symbols-outlined">close</span>
                 </button>
               </div>
@@ -278,7 +302,8 @@
         <button class="btn-ghost" (click)="cancel()" [disabled]="saving()">Cancel</button>
         <button class="btn-primary" (click)="requestGenerateBill()" [disabled]="saving()">
           @if (saving()) {
-            <div class="btn-spinner"></div> Saving…
+            <div class="btn-spinner"></div>
+            Saving…
           } @else {
             <span class="material-symbols-outlined">auto_awesome</span> Create Bill
           }
@@ -341,7 +366,6 @@
       </div>
     }
   </div>
-
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════════
@@ -356,8 +380,8 @@
       <h3 class="confirm-title">Generate Purchase Bill?</h3>
       <p class="confirm-body">
         This will create a new purchase bill for
-        <strong>{{ lineItems().length }} item(s)</strong> and update stock immediately.
-        This action cannot be undone.
+        <strong>{{ lineItems().length }} item(s)</strong> and update stock immediately. This action
+        cannot be undone.
       </p>
       @if (formTaxPercentage()) {
         <div class="confirm-summary">
@@ -365,7 +389,8 @@
             <span>Sub Total</span><span>₹{{ formatCurrency(subTotal()) }}</span>
           </div>
           <div class="confirm-row">
-            <span>Tax ({{ formTaxPercentage() }}%)</span><span>₹{{ formatCurrency(taxAmount()) }}</span>
+            <span>Tax ({{ formTaxPercentage() }}%)</span
+            ><span>₹{{ formatCurrency(taxAmount()) }}</span>
           </div>
           <div class="confirm-row grand">
             <span>Grand Total</span><span>₹{{ formatCurrency(grandTotal()) }}</span>

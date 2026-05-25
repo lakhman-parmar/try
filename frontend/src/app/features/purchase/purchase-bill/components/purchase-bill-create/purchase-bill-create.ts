@@ -53,10 +53,7 @@ export class PurchaseBillCreate implements OnInit {
 
   // ── Computed totals ───────────────────────────────────────────────────────────
   readonly subTotal = computed(() =>
-    this.lineItems().reduce(
-      (sum, item) => sum + (item.unitPrice ?? 0) * item.quantity,
-      0,
-    ),
+    this.lineItems().reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
   );
 
   readonly taxAmount = computed(() => {
@@ -130,7 +127,10 @@ export class PurchaseBillCreate implements OnInit {
     this.selectedPoIds.set(ids);
   }
 
-  private poItemToLineItem(item: PurchaseOrderItemForBillDto, po: PurchaseOrderForBillDto): BillLineItem {
+  private poItemToLineItem(
+    item: PurchaseOrderItemForBillDto,
+    po: PurchaseOrderForBillDto,
+  ): BillLineItem {
     return {
       productId: item.productId,
       productName: item.productName,
@@ -182,9 +182,7 @@ export class PurchaseBillCreate implements OnInit {
 
   updateQuantity(index: number, value: number): void {
     this.lineItems.update((items) =>
-      items.map((item, i) =>
-        i === index ? { ...item, quantity: Math.max(0.01, value) } : item,
-      ),
+      items.map((item, i) => (i === index ? { ...item, quantity: Math.max(0.01, value) } : item)),
     );
   }
 
@@ -208,9 +206,7 @@ export class PurchaseBillCreate implements OnInit {
   filterProducts(term: string): void {
     this.productSearchTerm.set(term);
     const lower = term.toLowerCase();
-    this.filteredProducts.set(
-      this.products().filter((p) => p.name.toLowerCase().includes(lower)),
-    );
+    this.filteredProducts.set(this.products().filter((p) => p.name.toLowerCase().includes(lower)));
   }
 
   selectProduct(index: number, product: ProductDto): void {
@@ -296,7 +292,9 @@ export class PurchaseBillCreate implements OnInit {
           }
         },
         error: (err) => {
-          this.errorMsg.set(err?.message ?? err?.error?.message ?? 'Failed to generate purchase bill.');
+          this.errorMsg.set(
+            err?.message ?? err?.error?.message ?? 'Failed to generate purchase bill.',
+          );
         },
       });
   }

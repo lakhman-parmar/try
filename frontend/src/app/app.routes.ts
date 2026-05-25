@@ -9,6 +9,8 @@ import { PurchaseOrder } from './features/purchase/purchase-order/purchase-order
 import { PurchaseOrderCreate } from './features/purchase/purchase-order/components/purchase-order-create/purchase-order-create';
 import { PurchaseOrderDetail } from './features/purchase/purchase-order/components/purchase-order-detail/purchase-order-detail';
 import { PurchaseBill } from './features/purchase/purchase-bill/purchase-bill';
+import { SalesOrder } from './features/sales/sales-order/sales-order';
+import { SalesOrderForm } from './features/sales/sales-order/components/sales-order-form/sales-order-form';
 import { PurchaseBillCreate } from './features/purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create';
 import { PurchaseBillRegenerate } from './features/purchase/purchase-bill/components/purchase-bill-regenerate/purchase-bill-regenerate';
 import { guestGuard } from './core/guards/guest-guard';
@@ -76,6 +78,14 @@ export const routes: Routes = [
                 (m) => m.EstimationForm,
               ),
           },
+        ],
+      },
+      {
+        path: 'sales/order',
+        children: [
+          { path: '', component: SalesOrder },
+          { path: 'create', component: SalesOrderForm },
+          { path: ':id', component: SalesOrderForm },
         ],
       },
       {

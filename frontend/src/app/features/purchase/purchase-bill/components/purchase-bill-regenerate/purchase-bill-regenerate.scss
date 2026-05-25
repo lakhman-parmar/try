@@ -5,7 +5,7 @@ $blue-100: #dbeafe;
 $blue-700: #1d4ed8;
 $blue-300: #93c5fd;
 $blue-200: #bfdbfe;
-$blue-400: #4BB8FA;
+$blue-400: #4bb8fa;
 
 $text-primary: #1e293b;
 $text-secondary: #64748b;
@@ -46,7 +46,11 @@ $amber-600: #d97706;
   animation: spin 0.6s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 // ── Page Header ─────────────────────────────────────────────────────────────
 .page-header {
@@ -126,7 +130,9 @@ $amber-600: #d97706;
     padding: 0.125rem;
     border-radius: 0.25rem;
 
-    &:hover { background: rgba($red-500, 0.1); }
+    &:hover {
+      background: rgba($red-500, 0.1);
+    }
   }
 }
 
@@ -167,7 +173,9 @@ $amber-600: #d97706;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid $border;
 
-  &:last-of-type { border-bottom: none; }
+  &:last-of-type {
+    border-bottom: none;
+  }
 }
 
 .form-label {
@@ -200,9 +208,14 @@ $amber-600: #d97706;
   transition: border-color 0.15s;
   box-sizing: border-box;
 
-  &:focus { border-color: $blue-500; box-shadow: 0 0 0 2px rgba($blue-500, 0.1); }
+  &:focus {
+    border-color: $blue-500;
+    box-shadow: 0 0 0 2px rgba($blue-500, 0.1);
+  }
 
-  &::placeholder { color: $text-muted; }
+  &::placeholder {
+    color: $text-muted;
+  }
 }
 
 .meta-grid {
@@ -231,7 +244,9 @@ $amber-600: #d97706;
   align-items: center;
   padding: 0.375rem 0;
 
-  & + & { border-top: 1px solid $border; }
+  & + & {
+    border-top: 1px solid $border;
+  }
 }
 
 .source-label {
@@ -278,7 +293,9 @@ $amber-600: #d97706;
     border-bottom: 1px solid $border;
     white-space: nowrap;
 
-    &.right { text-align: right; }
+    &.right {
+      text-align: right;
+    }
   }
 
   td {
@@ -286,10 +303,14 @@ $amber-600: #d97706;
     border-bottom: 1px solid $border;
     color: $text-primary;
 
-    &.right { text-align: right; }
+    &.right {
+      text-align: right;
+    }
   }
 
-  tr:last-child td { border-bottom: none; }
+  tr:last-child td {
+    border-bottom: none;
+  }
 }
 
 .row-num {
@@ -325,7 +346,9 @@ $amber-600: #d97706;
   color: $blue-700;
   white-space: nowrap;
 
-  span { font-size: 0.875rem; }
+  span {
+    font-size: 0.875rem;
+  }
 }
 
 .req-ref-badge {
@@ -341,7 +364,9 @@ $amber-600: #d97706;
   color: $amber-600;
   white-space: nowrap;
 
-  span { font-size: 0.875rem; }
+  span {
+    font-size: 0.875rem;
+  }
 }
 
 .direct-badge {
@@ -375,10 +400,17 @@ $amber-600: #d97706;
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: $blue-700; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover {
+    background: $blue-700;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-  span { font-size: 1.125rem; }
+  span {
+    font-size: 1.125rem;
+  }
 }
 
 .btn-ghost {
@@ -401,7 +433,10 @@ $amber-600: #d97706;
     color: $blue-600;
   }
 
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .btn-ghost-md {
@@ -449,7 +484,10 @@ $amber-600: #d97706;
   background: $surface;
 }
 
-.summary-icon { font-size: 1.25rem; color: $blue-600; }
+.summary-icon {
+  font-size: 1.25rem;
+  color: $blue-600;
+}
 
 .summary-body {
   padding: 0.75rem 1rem;
@@ -486,7 +524,9 @@ $amber-600: #d97706;
   color: $text-primary;
 }
 
-.summary-row.total .summary-val { color: $blue-600; }
+.summary-row.total .summary-val {
+  color: $blue-600;
+}
 
 // ── Confirmation Modal ──────────────────────────────────────────────────────
 .modal-backdrop {
@@ -510,8 +550,14 @@ $amber-600: #d97706;
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .confirm-icon-wrap {
@@ -524,14 +570,18 @@ $amber-600: #d97706;
   background: $blue-50;
   margin: 0 auto 1rem;
 
-  &.regen { background: $amber-50; }
+  &.regen {
+    background: $amber-50;
+  }
 }
 
 .confirm-icon {
   font-size: 1.75rem;
   color: $blue-600;
 
-  .regen & { color: $amber-600; }
+  .regen & {
+    color: $amber-600;
+  }
 }
 
 .confirm-title {

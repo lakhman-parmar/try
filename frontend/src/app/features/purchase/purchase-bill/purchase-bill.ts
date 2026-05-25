@@ -1,10 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -40,9 +34,7 @@ export class PurchaseBill implements OnInit {
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
   readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() =>
-    Array.from({ length: this.totalPages() }, (_, i) => i + 1),
-  );
+  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
 
   // ── Expand row (detail inline) ────────────────────────────────────────────
   expandedId = signal<number | null>(null);
@@ -71,7 +63,9 @@ export class PurchaseBill implements OnInit {
         }),
       )
       .subscribe({
-        next: (res) => { if (res.isSuccess) this.pagedResult.set(res.data); },
+        next: (res) => {
+          if (res.isSuccess) this.pagedResult.set(res.data);
+        },
         error: () => this.errorMsg.set('Failed to load purchase bills.'),
       });
   }
@@ -88,7 +82,9 @@ export class PurchaseBill implements OnInit {
       })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (res) => { if (res.isSuccess) this.pagedResult.set(res.data); },
+        next: (res) => {
+          if (res.isSuccess) this.pagedResult.set(res.data);
+        },
         error: () => this.errorMsg.set('Failed to load purchase bills.'),
       });
   }
@@ -144,7 +140,9 @@ export class PurchaseBill implements OnInit {
       .getById(id)
       .pipe(finalize(() => this.expandLoading.set(false)))
       .subscribe({
-        next: (res) => { if (res.isSuccess) this.expandedDetail.set(res.data); },
+        next: (res) => {
+          if (res.isSuccess) this.expandedDetail.set(res.data);
+        },
         error: () => this.errorMsg.set('Failed to load bill details.'),
       });
   }
