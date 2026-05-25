@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, finalize } from 'rxjs';
+import { debounceTime, Subject, finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -69,29 +69,9 @@ export class PurchaseRequisition implements OnInit {
   ngOnInit(): void {
     this.loadList();
 
-    this.searchSubject
-      .pipe(
-        debounceTime(350),
-        distinctUntilChanged(),
-        switchMap(() => {
-          this.loading.set(true);
-          return this.svc
-            .getAll({
-              search: this.searchTerm(),
-              fromDate: this.toQueryDate(this.fromDate()),
-              toDate: this.toQueryDate(this.toDate()),
-              pageNumber: this.currentPage(),
-              pageSize: this.pageSize,
-            })
-            .pipe(finalize(() => this.loading.set(false)));
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          if (res.isSuccess) this.pagedResult.set(res.data);
-        },
-        error: () => this.errorMsg.set('Failed to load requisitions.'),
-      });
+    this.searchSubject.pipe(debounceTime(350)).subscribe(() => {
+      this.applyFilters();
+    });
   }
 
   private loadList(): void {
