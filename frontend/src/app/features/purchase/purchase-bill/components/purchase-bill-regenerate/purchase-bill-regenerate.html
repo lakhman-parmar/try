@@ -1,0 +1,237 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <button class="back-btn" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div>
+      <h1 class="page-title">
+        <span class="material-symbols-outlined page-title-icon">refresh</span>
+        Purchase Bill
+      </h1>
+      <p class="page-subtitle">Regenerate Bill</p>
+    </div>
+  </div>
+</div>
+
+@if (errorMsg()) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    {{ errorMsg() }}
+    <button class="error-close" (click)="errorMsg.set(null)">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+}
+
+@if (loading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <span>Loading bill details…</span>
+  </div>
+}
+
+@if (!loading() && sourceBill()) {
+  <div class="create-layout">
+    <!-- ── Left: Regenerate Form ─────────────────────────────────────────── -->
+    <div class="form-col">
+      <div class="form-card">
+        <div class="form-card-header">
+          <span class="material-symbols-outlined form-card-icon">refresh</span>
+          <span>Regenerate from {{ sourceBill()!.billNumber }}</span>
+        </div>
+
+        <!-- Source bill info -->
+        <div class="form-section">
+          <div class="source-info-card">
+            <div class="source-info-row">
+              <span class="source-label">Source Bill</span>
+              <span class="source-value bill-no-text">{{ sourceBill()!.billNumber }}</span>
+            </div>
+            @if (sourceBill()!.supplierName) {
+              <div class="source-info-row">
+                <span class="source-label">Supplier</span>
+                <span class="source-value">{{ sourceBill()!.supplierName }}</span>
+              </div>
+            }
+            <div class="source-info-row">
+              <span class="source-label">Original Items</span>
+              <span class="source-value">{{ sourceBill()!.items.length }}</span>
+            </div>
+            <div class="source-info-row">
+              <span class="source-label">Created</span>
+              <span class="source-value">{{ formatDate(sourceBill()!.createdAt) }}</span>
+            </div>
+            @if (sourceBill()!.totalAmount != null) {
+              <div class="source-info-row">
+                <span class="source-label">Original Total</span>
+                <span class="source-value original-total"
+                  >₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span
+                >
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Items to be cloned -->
+        <div class="form-section">
+          <label class="form-label">Items to be cloned</label>
+          <div class="items-table-wrap">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product</th>
+                  <th>Purchase Order</th>
+                  <th>Requisition</th>
+                  <th class="right">Qty</th>
+                  <th class="right">Unit Price</th>
+                  <th class="right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of sourceBill()!.items; track item.purchaseBillItemId; let i = $index) {
+                  <tr>
+                    <td class="row-num">{{ i + 1 }}</td>
+                    <td class="product-cell">{{ item.productName }}</td>
+                    <td>
+                      @if (item.poNumber) {
+                        <span class="po-ref-badge">
+                          <span class="material-symbols-outlined">shopping_cart</span>
+                          {{ item.poNumber }}
+                        </span>
+                      } @else {
+                        <span class="direct-badge">Direct</span>
+                      }
+                    </td>
+                    <td>
+                      @if (item.requisitionNo) {
+                        <span class="req-ref-badge">
+                          <span class="material-symbols-outlined">receipt_long</span>
+                          {{ item.requisitionNo }}
+                        </span>
+                      } @else {
+                        <span class="na-text">—</span>
+                      }
+                    </td>
+                    <td class="right qty-value">{{ item.quantity }}</td>
+                    <td class="right">{{ formatCurrency(item.unitPrice) }}</td>
+                    <td class="right total-val">
+                      {{
+                        item.unitPrice != null
+                          ? formatCurrency(item.quantity * item.unitPrice)
+                          : '—'
+                      }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Override fields -->
+        <div class="form-section">
+          <label class="form-label">Override (optional)</label>
+          <div class="meta-grid">
+            <div class="meta-field">
+              <label class="form-label-inner">Tax % override</label>
+              <input
+                class="form-input"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="Leave blank to inherit"
+                [value]="regenTaxPercentage() ?? ''"
+                (input)="regenTaxPercentage.set(+$any($event.target).value || null)"
+              />
+            </div>
+            <div class="meta-field">
+              <label class="form-label-inner">Remarks</label>
+              <input
+                class="form-input"
+                type="text"
+                placeholder="Optional note for this new bill…"
+                [value]="regenRemarks()"
+                (input)="regenRemarks.set($any($event.target).value)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-ghost" (click)="cancel()" [disabled]="saving()">Cancel</button>
+          <button class="btn-primary" (click)="requestRegenerate()" [disabled]="saving()">
+            @if (saving()) {
+              <div class="btn-spinner"></div>
+              Saving…
+            } @else {
+              <span class="material-symbols-outlined">refresh</span> Regenerate Bill
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right: Summary ────────────────────────────────────────────────── -->
+    <div class="summary-col">
+      <div class="summary-card">
+        <div class="summary-header">
+          <span class="material-symbols-outlined summary-icon">summarize</span>
+          Regenerated Bill Summary
+        </div>
+        <div class="summary-body">
+          <div class="summary-row">
+            <span class="summary-label">Items</span>
+            <span class="summary-val">{{ sourceBill()!.items.length }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Original Total</span>
+            <span class="summary-val">₹{{ formatCurrency(sourceBill()!.totalAmount) }}</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-row">
+            <span class="summary-label">Sub Total</span>
+            <span class="summary-val">₹{{ formatCurrency(subTotal()) }}</span>
+          </div>
+          @if (regenTaxPercentage()) {
+            <div class="summary-row">
+              <span class="summary-label">Tax ({{ regenTaxPercentage() }}%)</span>
+              <span class="summary-val">₹{{ formatCurrency(taxAmount()) }}</span>
+            </div>
+          }
+          <div class="summary-divider"></div>
+          <div class="summary-row total">
+            <span class="summary-label">Grand Total</span>
+            <span class="summary-val">₹{{ formatCurrency(grandTotal()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     CONFIRMATION MODAL
+     ════════════════════════════════════════════════════════════════════════════ -->
+@if (showConfirm()) {
+  <div class="modal-backdrop">
+    <div class="confirm-modal">
+      <div class="confirm-icon-wrap regen">
+        <span class="material-symbols-outlined confirm-icon">refresh</span>
+      </div>
+      <h3 class="confirm-title">Regenerate Purchase Bill?</h3>
+      <p class="confirm-body">
+        A new bill will be cloned from
+        <strong>{{ sourceBill()?.billNumber }}</strong
+        >. Stock will be updated for the new bill. The original bill remains unchanged.
+      </p>
+      <div class="confirm-actions">
+        <button class="btn-ghost-md" (click)="cancelConfirm()">Go Back</button>
+        <button class="btn-primary" (click)="confirmRegenerate()">
+          <span class="material-symbols-outlined">refresh</span>
+          Confirm &amp; Regenerate
+        </button>
+      </div>
+    </div>
+  </div>
+}
