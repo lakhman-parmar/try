@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, finalize, map, startWith } from 'rxjs';
+import { Observable, Subject, debounceTime, finalize, map, startWith } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -62,6 +62,7 @@ export class Estimation implements OnInit {
   toDate = signal<Date | null>(null);
   customerId = signal<number | null>(null);
   currentPage = signal(1);
+  private searchSubject = new Subject<void>();
 
   items = computed(() => this.pagedResult()?.items ?? []);
   totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
@@ -78,6 +79,10 @@ export class Estimation implements OnInit {
     );
     this.loadCustomers();
     this.loadList();
+
+    this.searchSubject.pipe(debounceTime(50)).subscribe(() => {
+      this.applyFilters();
+    });
   }
 
   loadList(): void {
@@ -109,6 +114,12 @@ export class Estimation implements OnInit {
         this.customerControl.setValue(this.customerControl.value ?? '');
       },
     });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.currentPage.set(1);
+    this.searchSubject.next();
   }
 
   applyFilters(): void {

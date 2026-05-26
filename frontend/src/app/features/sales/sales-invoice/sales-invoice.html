@@ -121,6 +121,14 @@
               >
                 <span class="material-symbols-outlined">refresh</span>
               </a>
+              <button
+                class="icon-action"
+                type="button"
+                title="Print invoice"
+                (click)="printInvoice(row.salesInvoiceId, $event)"
+              >
+                <span class="material-symbols-outlined">print</span>
+              </button>
             </td>
           </ng-container>
           <ng-container matColumnDef="detail">

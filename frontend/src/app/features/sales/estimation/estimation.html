@@ -22,7 +22,7 @@
         class="field-control icon-control"
         placeholder="Estimate no., customer, remarks"
         [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event); applyFilters()"
+        (ngModelChange)="onSearchChange($event)"
       />
     </label>
 

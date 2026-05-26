@@ -17,6 +17,7 @@ import {
   SalesInvoiceListItemDto,
 } from './models/sales-invoice.model';
 import { getApiErrorMessage } from './utils/error-message.util';
+import { downloadSalesInvoicePdf } from './utils/sales-invoice-pdf.util';
 
 @Component({
   selector: 'app-sales-invoice',
@@ -141,6 +142,21 @@ export class SalesInvoice implements OnInit {
 
   openCreateForm(): void {
     this.router.navigate(['/admin/sales/invoice/create']);
+  }
+
+  printInvoice(id: number, event: Event): void {
+    event.stopPropagation();
+    this.svc.getById(id).subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          downloadSalesInvoicePdf(res.data);
+        } else {
+          this.errorMsg.set(res.message ?? 'Failed to load invoice for print.');
+        }
+      },
+      error: (err) =>
+        this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoice for print.')),
+    });
   }
 
   minOf(a: number, b: number): number {
