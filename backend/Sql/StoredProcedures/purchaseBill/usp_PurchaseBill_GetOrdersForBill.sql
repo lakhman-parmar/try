@@ -3,7 +3,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Result set 1: PO headers ────────────────────────────────────────
+    -- Result set 1: PO headers
     SELECT DISTINCT
         po.purchase_order_id,
         po.po_number,
@@ -23,7 +23,7 @@ BEGIN
       )
     ORDER BY po.created_at DESC;
 
-    -- ── Result set 2: PO items ──────────────────────────────────────────
+    -- Result set 2: PO items
     SELECT
         poi.purchase_order_item_id,
         poi.purchase_order_id,

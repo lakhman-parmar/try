@@ -1,7 +1,4 @@
 namespace RapidDev.Application.DTOs.Purchase;
-
-// ── Filter / Pagination ──────────────────────────────────────────────────────
-
 public class PurchaseOrderFilterDto
 {
     public string? Search { get; set; }
@@ -11,8 +8,6 @@ public class PurchaseOrderFilterDto
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 20;
 }
-
-// ── List (paginated) ─────────────────────────────────────────────────────────
 
 public class PurchaseOrderListItemDto
 {
@@ -26,8 +21,6 @@ public class PurchaseOrderListItemDto
     public decimal? SubTotal { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
-
-// ── Detail (single PO with items) ───────────────────────────────────────────
 
 public class PurchaseOrderDetailDto
 {
@@ -51,14 +44,10 @@ public class PurchaseOrderItemDetailDto
     public string? UnitShortName { get; set; }
     public decimal Quantity { get; set; }
     public decimal? UnitPrice { get; set; }
-
-    // Requisition traceability — null when item was added directly
     public int? RequisitionId { get; set; }
     public string? RequisitionNo { get; set; }
     public int? RequisitionItemId { get; set; }
 }
-
-// ── Requisitions available to pull into a new PO ────────────────────────────
 
 public class RequisitionForPoDto
 {
@@ -78,16 +67,10 @@ public class RequisitionItemForPoDto
     public string ProductName { get; set; } = null!;
     public string? UnitShortName { get; set; }
     public decimal Quantity { get; set; }
-    // UnitPrice omitted — always sourced from product.purchase_price in the SP
 }
-
-// ── Create ───────────────────────────────────────────────────────────────────
 
 public class CreatePurchaseOrderDto
 {
-    // SupplierId is intentionally omitted — it is resolved automatically
-    // in the stored procedure from the supplier_product mapping of the
-    // selected items. All items must belong to the same supplier.
     public decimal? TaxPercentage { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseOrderItemDto> Items { get; set; }
@@ -97,22 +80,15 @@ public class CreatePurchaseOrderDto
 public class CreatePurchaseOrderItemDto
 {
     public int ProductId { get; set; }
-
-    /// <summary>Null when item is not sourced from a requisition.</summary>
     public int? RequisitionId { get; set; }
-
-    /// <summary>Null when item is not sourced from a requisition.</summary>
     public int? RequisitionItemId { get; set; }
-
     public decimal Quantity { get; set; }
-    // UnitPrice intentionally omitted — always read from product.purchase_price in the SP
 }
 
 // ── Update ───────────────────────────────────────────────────────────────────
 
 public class UpdatePurchaseOrderDto
 {
-    // SupplierId is intentionally omitted — resolved automatically from items.
     public decimal? TaxPercentage { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseOrderItemDto> Items { get; set; }

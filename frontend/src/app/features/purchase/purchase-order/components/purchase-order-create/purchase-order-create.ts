@@ -44,26 +44,26 @@ export class PurchaseOrderCreate implements OnInit {
   loadingProducts = signal(false);
   errorMsg = signal<string | null>(null);
 
-  // ── Data ────────────────────────────────────────────────────────────────────
+  // Data
   requisitions = signal<RequisitionForPoDto[]>([]);
   products = signal<ProductDto[]>([]);
 
-  // ── Form state ──────────────────────────────────────────────────────────────
+  // Form state
   formRemarks = signal('');
   formTaxPercentage = signal<number | null>(null);
 
-  // ── Requisition selection panel ──────────────────────────────────────────────
+  // Requisition selection panel
   showReqPanel = signal(false);
   selectedReqIds = signal<Set<number>>(new Set());
 
-  // ── Line items ───────────────────────────────────────────────────────────────
+  // Line items
   lineItems = signal<PoLineItem[]>([]);
 
   productControls: FormControl<ProductDto | string>[] = [];
   filteredProductOptions: Observable<ProductDto[]>[] = [];
   displayedColumns = ['product', 'unit', 'quantity', 'unitPrice', 'source', 'actions'];
 
-  // ── Computed ─────────────────────────────────────────────────────────────────
+  // Computed
   readonly subTotal = computed(() =>
     this.lineItems().reduce(
       (sum, item) => sum + (item.unitPrice ?? 0) * item.quantity,
@@ -107,7 +107,7 @@ export class PurchaseOrderCreate implements OnInit {
       });
   }
 
-  // ── Requisition panel ────────────────────────────────────────────────────────
+  // Requisition panel
   toggleReqPanel(): void {
     this.showReqPanel.update((v) => !v);
   }
@@ -120,13 +120,11 @@ export class PurchaseOrderCreate implements OnInit {
     const ids = new Set(this.selectedReqIds());
     if (ids.has(req.purchaseRequisitionId)) {
       ids.delete(req.purchaseRequisitionId);
-      // Remove items sourced from this requisition
       this.lineItems.update((items) =>
         items.filter((i) => i.requisitionId !== req.purchaseRequisitionId),
       );
     } else {
       ids.add(req.purchaseRequisitionId);
-      // Add items from requisition that aren't already in the list
       const existingProductIds = new Set(
         this.lineItems()
           .filter((i) => i.requisitionId === req.purchaseRequisitionId)
@@ -159,7 +157,7 @@ export class PurchaseOrderCreate implements OnInit {
     this.showReqPanel.set(false);
   }
 
-  // ── Direct line items ────────────────────────────────────────────────────────
+  // Direct line items
   addDirectLineItem(): void {
     this.lineItems.update((items) => [
       ...items,
@@ -229,6 +227,25 @@ export class PurchaseOrderCreate implements OnInit {
     this.updateQuantity(index, currentQuantity + delta);
   }
 
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
+  }
+
   productUnit(productId: number | null): string {
     if (!productId) return '-';
     return this.products().find((product) => product.productId === productId)?.unitShortName ?? '-';
@@ -271,7 +288,7 @@ export class PurchaseOrderCreate implements OnInit {
     return this.products().find((product) => product.productId === productId);
   }
 
-  // ── Submit ───────────────────────────────────────────────────────────────────
+  // Submit
   submit(): void {
     const validItems = this.lineItems().filter((item) => item.productId !== null);
     if (validItems.length === 0) {

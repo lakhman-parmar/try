@@ -11,6 +11,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { PurchaseBillService } from './services/purchase-bill.sevice';
+import { downloadPurchaseBillPdf } from './utils/purchase-bill-pdf.util';
 import {
   PagedResult,
   PurchaseBillDetailDto,
@@ -152,6 +153,21 @@ export class PurchaseBill implements OnInit {
 
   openRegeneratePage(id: number): void {
     this.router.navigate(['/admin/purchase/bill/regenerate', id]);
+  }
+
+  printBill(id: number): void {
+    this.svc.getById(id).subscribe({
+      next: async (res) => {
+        if (res.isSuccess) {
+          await downloadPurchaseBillPdf(res.data);
+        } else {
+          this.errorMsg.set(res.message ?? 'Failed to load bill for printing.');
+        }
+      },
+      error: (err) => {
+        this.errorMsg.set(err?.message ?? 'Failed to load bill for printing.');
+      },
+    });
   }
 
   minOf(a: number, b: number): number {

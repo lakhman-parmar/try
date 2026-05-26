@@ -3,19 +3,14 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using RapidDev.Application.DTOs.Common;
-using RapidDev.Infrastructure.Repositories.Interfaces.Common;
+using RapidDev.Application.Interfaces.Repositories.Common;
 
 namespace RapidDev.Infrastructure.Repositories.Implementation.Common;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(IConfiguration configuration) : IProductRepository
 {
-    private readonly string _connectionString;
-
-    public ProductRepository(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")
+    private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string not found.");
-    }
 
     private IDbConnection CreateConnection()
     {
@@ -24,11 +19,11 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<ProductDto>> GetAllAsync()
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
         const string sp = "sp_GetAllProducts";
 
-        var products = await conn.QueryAsync<ProductDto>(
+        IEnumerable<ProductDto> products = await conn.QueryAsync<ProductDto>(
             sp,
             commandType: CommandType.StoredProcedure
         );

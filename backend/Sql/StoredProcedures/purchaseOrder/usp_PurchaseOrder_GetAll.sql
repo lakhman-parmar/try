@@ -22,7 +22,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Total count for pagination ──────────────────────────────────────
+    -- Total count for pagination
     SELECT @TotalCount = COUNT(DISTINCT po.purchase_order_id)
     FROM   dbo.purchase_order po
     LEFT  JOIN dbo.supplier s ON s.supplier_id = po.supplier_id
@@ -35,7 +35,7 @@ BEGIN
       AND  (@FromDate IS NULL OR po.created_at >= @FromDate)
       AND  (@ToDate   IS NULL OR po.created_at <= @ToDate);
 
-    -- ── Paged result set ────────────────────────────────────────────────
+    -- Paged result set
     SELECT
         po.purchase_order_id,
         po.po_number,

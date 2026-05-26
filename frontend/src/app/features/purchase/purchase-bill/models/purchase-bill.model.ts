@@ -1,4 +1,3 @@
-// ── Filter / Pagination ───────────────────────────────────────────────────────
 export interface PurchaseBillFilterDto {
   search?: string;
   fromDate?: string;
@@ -8,7 +7,6 @@ export interface PurchaseBillFilterDto {
   pageSize: number;
 }
 
-// ── List ──────────────────────────────────────────────────────────────────────
 export interface PurchaseBillListItemDto {
   purchaseBillId: number;
   billNumber: string;
@@ -20,7 +18,6 @@ export interface PurchaseBillListItemDto {
   createdAt?: string;
 }
 
-// ── Detail ────────────────────────────────────────────────────────────────────
 export interface PurchaseBillDetailDto {
   purchaseBillId: number;
   billNumber: string;
@@ -41,17 +38,14 @@ export interface PurchaseBillItemDetailDto {
   unitShortName?: string;
   quantity: number;
   unitPrice?: number;
-  // PO traceability
   purchaseOrderId?: number;
   poNumber?: string;
   purchaseOrderItemId?: number;
-  // Requisition traceability
   requisitionId?: number;
   requisitionNo?: string;
   requisitionItemId?: number;
 }
 
-// ── Orders available for billing ──────────────────────────────────────────────
 export interface PurchaseOrderForBillDto {
   purchaseOrderId: number;
   poNumber: string;
@@ -71,13 +65,11 @@ export interface PurchaseOrderItemForBillDto {
   unitShortName?: string;
   quantity: number;
   unitPrice?: number;
-  // Requisition traceability
   requisitionId?: number;
   requisitionNo?: string;
   requisitionItemId?: number;
 }
 
-// ── Create ────────────────────────────────────────────────────────────────────
 export interface CreatePurchaseBillDto {
   taxPercentage?: number;
   remarks?: string;
@@ -91,13 +83,11 @@ export interface CreatePurchaseBillItemDto {
   quantity: number;
 }
 
-// ── Regenerate ────────────────────────────────────────────────────────────────
 export interface RegeneratePurchaseBillDto {
   taxPercentage?: number;
   remarks?: string;
 }
 
-// ── Shared ────────────────────────────────────────────────────────────────────
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
@@ -106,18 +96,15 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
-// ── Local UI model for line items in bill builder ─────────────────────────────
 export interface BillLineItem {
   productId: number | null;
   productName: string;
   unitShortName: string;
   quantity: number;
   unitPrice?: number;
-  // PO traceability — set when sourced from a PO
   purchaseOrderId?: number;
   poNumber?: string;
   purchaseOrderItemId?: number;
-  // Requisition traceability — set when PO item carried it
   requisitionId?: number;
   requisitionNo?: string;
   requisitionItemId?: number;

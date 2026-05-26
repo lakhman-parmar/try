@@ -18,7 +18,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Result set 1: Header ────────────────────────────────────────────
+    -- Result set 1: Header
     SELECT
         po.purchase_order_id,
         po.po_number,
@@ -33,7 +33,7 @@ BEGIN
     WHERE  po.purchase_order_id = @purchase_order_id
       AND  po.is_deleted = 0;
 
-    -- ── Result set 2: Line items ────────────────────────────────────────
+    -- Result set 2: Line items
     SELECT
         poi.purchase_order_item_id,
         poi.product_id,

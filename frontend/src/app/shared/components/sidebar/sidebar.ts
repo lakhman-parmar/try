@@ -28,7 +28,7 @@ interface NavItem {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.sass',
+  styleUrl: './sidebar.scss',
 })
 export class Sidebar {
   collapsed = signal(false);

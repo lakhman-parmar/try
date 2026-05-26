@@ -12,8 +12,8 @@ BEGIN
     CREATE TYPE [dbo].[udt_purchase_order_item] AS TABLE
     (
         [ProductId]         INT             NOT NULL,
-        [RequisitionId]     INT             NULL,   -- NULL when item is added directly (not from a requisition)
-        [RequisitionItemId] INT             NULL,   -- NULL when item is added directly
+        [RequisitionId]     INT             NULL,
+        [RequisitionItemId] INT             NULL,
         [Quantity]          DECIMAL(18, 4)  NOT NULL,
         [UnitPrice]         DECIMAL(18, 4)  NULL
     );

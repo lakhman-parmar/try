@@ -1,4 +1,3 @@
-// ── Filter / Pagination ───────────────────────────────────────────────────────
 export interface PurchaseOrderFilterDto {
   search?: string;
   fromDate?: string;
@@ -8,7 +7,6 @@ export interface PurchaseOrderFilterDto {
   pageSize: number;
 }
 
-// ── List ─────────────────────────────────────────────────────────────────────
 export interface PurchaseOrderListItemDto {
   purchaseOrderId: number;
   poNumber: string;
@@ -21,7 +19,6 @@ export interface PurchaseOrderListItemDto {
   createdAt?: string;
 }
 
-// ── Detail ────────────────────────────────────────────────────────────────────
 export interface PurchaseOrderDetailDto {
   purchaseOrderId: number;
   poNumber: string;
@@ -41,13 +38,11 @@ export interface PurchaseOrderItemDetailDto {
   unitShortName?: string;
   quantity: number;
   unitPrice?: number;
-  // Requisition traceability
   requisitionId?: number;
   requisitionNo?: string;
   requisitionItemId?: number;
 }
 
-// ── Requisitions for PO ───────────────────────────────────────────────────────
 export interface RequisitionForPoDto {
   purchaseRequisitionId: number;
   requisitionNo: string;
@@ -65,7 +60,6 @@ export interface RequisitionItemForPoDto {
   quantity: number;
 }
 
-// ── Create / Update ───────────────────────────────────────────────────────────
 export interface CreatePurchaseOrderDto {
   supplierId?: number;
   taxPercentage?: number;
@@ -87,7 +81,6 @@ export interface UpdatePurchaseOrderDto {
   items: CreatePurchaseOrderItemDto[];
 }
 
-// ── Shared ────────────────────────────────────────────────────────────────────
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
@@ -96,14 +89,12 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
-// ── Local UI model for line items in builder ──────────────────────────────────
 export interface PoLineItem {
   productId: number | null;
   productName: string;
   unitShortName: string;
   quantity: number;
   unitPrice?: number;
-  // Requisition traceability
   requisitionId?: number;
   requisitionNo?: string;
   requisitionItemId?: number;
