@@ -17,9 +17,13 @@ using RapidDev.Infrastructure.Repositories.Implementation.Auth;
 using RapidDev.Infrastructure.Repositories.Implementation.Common;
 using RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 using RapidDev.Infrastructure.Repositories.Implementation.Sales;
-using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
+using RapidDev.Application.Interfaces.Repositories.Purchase;
 using RapidDev.WebApi.Middleware;
 using RapidDev.WebApi.Utilities;
+using RapidDev.Application.Interfaces.Repositories.Stock;
+using RapidDev.Infrastructure.Repositories.Implementation.Stock;
+using RapidDev.Application.Services.Interfaces.Stock;
+using RapidDev.Application.Services.Implementation.Stock;
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
@@ -52,6 +56,8 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IStockService, StockService>();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] 

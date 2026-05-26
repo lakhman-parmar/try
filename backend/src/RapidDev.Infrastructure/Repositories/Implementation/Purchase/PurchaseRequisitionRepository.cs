@@ -3,7 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using RapidDev.Application.DTOs.Purchase;
-using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
+using RapidDev.Application.Interfaces.Repositories.Purchase;
 
 namespace RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 
@@ -21,13 +21,11 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
 
     private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
-    // ── List with filter + pagination ──────────────────────────────────────
-
     public async Task<PagedResult<PurchaseRequisitionListItemDto>> GetAllAsync(PurchaseRequisitionFilterDto filter)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@Search", filter.Search);
         parameters.Add("@FromDate", filter.FromDate);
         parameters.Add("@ToDate", filter.ToDate);
@@ -35,7 +33,7 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
         parameters.Add("@PageSize", filter.PageSize);
         parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        var items = await conn.QueryAsync<PurchaseRequisitionListItemDto>(
+        IEnumerable<PurchaseRequisitionListItemDto> items = await conn.QueryAsync<PurchaseRequisitionListItemDto>(
             "usp_PurchaseRequisition_GetAll",
             parameters,
             commandType: CommandType.StoredProcedure);
@@ -49,40 +47,36 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
         };
     }
 
-    // ── Detail (header + items) ────────────────────────────────────────────
-
     public async Task<PurchaseRequisitionDetailDto?> GetByIdAsync(int id)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@purchase_requisition_id", id);
 
-        using var multi = await conn.QueryMultipleAsync(
+        using SqlMapper.GridReader multi = await conn.QueryMultipleAsync(
             "usp_PurchaseRequisition_GetById",
             parameters,
             commandType: CommandType.StoredProcedure);
 
-        var header = await multi.ReadFirstOrDefaultAsync<PurchaseRequisitionDetailDto>();
+        PurchaseRequisitionDetailDto? header = await multi.ReadFirstOrDefaultAsync<PurchaseRequisitionDetailDto>();
         if (header is null) return null;
 
         header.Items = await multi.ReadAsync<PurchaseRequisitionItemDetailDto>();
         return header;
     }
 
-    // ── Create ─────────────────────────────────────────────────────────────
-
     public async Task<int> CreateAsync(CreatePurchaseRequisitionDto dto)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var itemsTable = BuildItemsTvp(dto.Items);
+        DataTable itemsTable = BuildItemsTvp(dto.Items);
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@remarks", dto.Remarks);
         parameters.Add("@items", itemsTable.AsTableValuedParameter("dbo.udt_purchase_requisition_item"));
 
-        var newId = await conn.QuerySingleAsync<int>(
+        int newId = await conn.QuerySingleAsync<int>(
             "usp_PurchaseRequisition_Create",
             parameters,
             commandType: CommandType.StoredProcedure);
@@ -90,20 +84,18 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
         return newId;
     }
 
-    // ── Update ─────────────────────────────────────────────────────────────
-
     public async Task<bool> UpdateAsync(int id, UpdatePurchaseRequisitionDto dto)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var itemsTable = BuildItemsTvp(dto.Items);
+        DataTable itemsTable = BuildItemsTvp(dto.Items);
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@purchase_requisition_id", id);
         parameters.Add("@remarks", dto.Remarks);
         parameters.Add("@items", itemsTable.AsTableValuedParameter("dbo.udt_purchase_requisition_item"));
 
-        var rowsAffected = await conn.QuerySingleAsync<int>(
+        int rowsAffected = await conn.QuerySingleAsync<int>(
             "usp_PurchaseRequisition_Update",
             parameters,
             commandType: CommandType.StoredProcedure);
@@ -113,27 +105,26 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@purchase_requisition_id", id);
 
-        var rowsAffected = await conn.QuerySingleAsync<int>(
+        int rowsAffected = await conn.QuerySingleAsync<int>(
             "usp_PurchaseRequisition_Delete",
             parameters,
             commandType: CommandType.StoredProcedure);
 
         return rowsAffected > 0;
     }
-    // ── Helper ─────────────────────────────────────────────────────────────
 
     private static DataTable BuildItemsTvp(IEnumerable<CreatePurchaseRequisitionItemDto> items)
     {
-        var table = new DataTable();
+        DataTable table = new DataTable();
         table.Columns.Add("ProductId", typeof(int));
         table.Columns.Add("Quantity", typeof(decimal));
 
-        foreach (var item in items)
+        foreach (CreatePurchaseRequisitionItemDto item in items)
             table.Rows.Add(item.ProductId, item.Quantity);
 
         return table;

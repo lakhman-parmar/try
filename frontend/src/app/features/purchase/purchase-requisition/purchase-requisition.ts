@@ -92,7 +92,7 @@ export class PurchaseRequisition implements OnInit {
       });
   }
 
-  // ── Expand / collapse ──────────────────────────────────────────────────────
+  // Expand / collapse
   toggleExpand(id: number, event: Event): void {
     event.stopPropagation();
     if (this.expandedId() === id) {
@@ -118,7 +118,7 @@ export class PurchaseRequisition implements OnInit {
     return this.expandedId() === id;
   }
 
-  // ── Search & filter ────────────────────────────────────────────────────────
+  // Search & filter
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
     this.currentPage.set(1);

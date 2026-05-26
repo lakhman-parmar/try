@@ -1,0 +1,340 @@
+:host {
+  display: block;
+}
+
+.stock-page {
+  align-content: start;
+  background: #f6f8fb;
+  display: grid;
+  gap: 12px;
+  min-height: auto;
+  padding: 14px 24px 24px;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+
+.page-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+}
+
+.page-header h1 {
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-header p {
+  color: #64748b;
+  margin: 4px 0 0;
+}
+
+// ── Filter card ───────────────────────────────────────────────────────────────
+
+.filter-card {
+  align-items: flex-end;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 16px;
+  height: auto;
+  justify-content: flex-start;
+  margin: 0;
+  max-height: none;
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.filter-field {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.search-field {
+  flex: 1 1 360px;
+  max-width: 460px;
+  position: relative;
+}
+
+.field-label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.field-control {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #0f172a;
+  font: inherit;
+  height: 42px;
+  max-height: 42px;
+  outline: none;
+  padding: 0 12px;
+  width: 100%;
+
+  &:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.14);
+  }
+}
+
+.icon-control {
+  padding-left: 40px;
+}
+
+.field-icon {
+  color: #64748b;
+  font-size: 20px;
+  height: 20px;
+  left: 13px;
+  line-height: 20px;
+  margin: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 34px;
+  width: 20px;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+
+.secondary-action,
+.page-button,
+.icon-action {
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: 6px;
+  justify-content: center;
+}
+
+.secondary-action {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0369a1;
+  min-height: 42px;
+  padding: 0 14px;
+  place-self: end;
+}
+
+.icon-action {
+  background: transparent;
+  color: #475569;
+  height: 36px;
+  width: 36px;
+
+  &:hover {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+// ── Cards ────────────────────────────────────────────────────────────────────
+
+.table-card,
+.message-card {
+  border-radius: 8px;
+}
+
+.table-card {
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.error-card {
+  background: #fff1f2;
+  color: #be123c;
+  padding: 12px 16px;
+}
+
+// ── Table ────────────────────────────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.stock-table {
+  width: 100%;
+
+  th {
+    color: #334155;
+    font-weight: 700;
+  }
+
+  td,
+  th {
+    border-color: #e2e8f0;
+  }
+}
+
+.stock-row {
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #f0f9ff;
+  }
+}
+
+// ── Product cell ─────────────────────────────────────────────────────────────
+
+.product-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.product-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.product-desc {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+// ── Stock badge ───────────────────────────────────────────────────────────────
+
+.stock-badge {
+  align-items: baseline;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 4px;
+  padding: 3px 10px;
+
+  &.status-ok {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &.status-low {
+    background: #fef9c3;
+    color: #a16207;
+  }
+
+  &.status-out {
+    background: #ffe4e6;
+    color: #be123c;
+  }
+}
+
+.unit {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+// ── Price cell ────────────────────────────────────────────────────────────────
+
+.price-cell {
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.na-text {
+  color: #94a3b8;
+}
+
+// ── States ───────────────────────────────────────────────────────────────────
+
+.loading-state,
+.empty-state {
+  align-items: center;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.empty-state {
+  flex-direction: column;
+}
+
+.empty-icon {
+  color: #94a3b8;
+  font-size: 40px;
+  height: 40px;
+  width: 40px;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+.pagination {
+  align-items: center;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.page-actions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.page-button {
+  background: transparent;
+  color: #475569;
+  min-width: 36px;
+  padding: 0 10px;
+
+  &.active-page {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+
+@media (max-width: 720px) {
+  .stock-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-field,
+  .search-field {
+    max-width: none;
+    width: 100%;
+  }
+
+  .filter-card {
+    flex-wrap: wrap;
+  }
+
+  .secondary-action {
+    place-self: stretch;
+  }
+}

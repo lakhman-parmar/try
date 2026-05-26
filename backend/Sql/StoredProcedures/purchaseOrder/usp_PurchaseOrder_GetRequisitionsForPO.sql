@@ -16,7 +16,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Result set 1: Requisition headers ───────────────────────────────
+    -- Result set 1: Requisition headers
     SELECT DISTINCT
         pr.purchase_requisition_id,
         pr.requisition_no,
@@ -29,7 +29,7 @@ BEGIN
     WHERE  pr.is_deleted = 0
     ORDER BY pr.created_at DESC;
 
-    -- ── Result set 2: All items of those requisitions ───────────────────
+    -- Result set 2: All items of those requisitions
     SELECT
         pri.purchase_requisition_item_id,
         pri.requisition_id,

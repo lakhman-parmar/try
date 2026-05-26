@@ -24,7 +24,7 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- ── Resolve supplier from items ─────────────────────────────────
+        -- Resolve supplier from items
         -- Each product must have exactly one active supplier via supplier_product.
         -- All products in this PO must resolve to the same supplier.
 
@@ -66,7 +66,7 @@ BEGIN
             THROW 50002, 'Items in a purchase order must all belong to the same supplier. The selected items are linked to multiple suppliers.', 1;
         END
 
-        -- ── Auto-generate PO number  (PO-YYYYMMDD-0001) ────────────────
+        -- Auto-generate PO number  (PO-YYYYMMDD-0001)
         DECLARE @date_part  NVARCHAR(8)  = CONVERT(NVARCHAR(8), GETDATE(), 112);
         DECLARE @seq_prefix NVARCHAR(20) = 'PO-' + @date_part + '-';
         DECLARE @next_seq   INT;
@@ -80,7 +80,7 @@ BEGIN
 
         DECLARE @po_number NVARCHAR(50) = @seq_prefix + RIGHT('0000' + CAST(@next_seq AS NVARCHAR), 4);
 
-        -- ── Insert header (supplier resolved automatically) ─────────────
+        -- Insert header (supplier resolved automatically)
         INSERT INTO dbo.purchase_order
             (po_number, supplier_id, tax_percentage, remarks, created_at, is_deleted)
         VALUES
@@ -88,15 +88,15 @@ BEGIN
 
         SET @new_id = SCOPE_IDENTITY();
 
-        -- ── Insert line items ────────────────────────────────────────────
+        -- Insert line items
         INSERT INTO dbo.purchase_order_item
             (purchase_order_id, product_id, requisition_id, requisition_item_id,
              quantity, unit_price, created_at, is_deleted)
         SELECT
             @new_id,
             i.ProductId,
-            i.RequisitionId,       -- NULL = direct item
-            i.RequisitionItemId,   -- NULL = direct item
+            i.RequisitionId,
+            i.RequisitionItemId,
             i.Quantity,
             ISNULL(i.UnitPrice, p.purchase_price),
             GETDATE(),

@@ -26,7 +26,7 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- ── Resolve supplier from items ─────────────────────────────────
+        -- Resolve supplier from items
         DECLARE @resolved_supplier_id INT;
 
         -- Validate: every product must have a supplier
@@ -64,7 +64,7 @@ BEGIN
             ON sp.product_id = i.ProductId
            AND sp.is_deleted = 0;
 
-        -- ── Update header ───────────────────────────────────────────────
+        -- Update header
         UPDATE dbo.purchase_order
         SET    supplier_id    = @resolved_supplier_id,
                tax_percentage = @tax_percentage,
@@ -82,14 +82,14 @@ BEGIN
             RETURN;
         END;
 
-        -- ── Soft-delete existing line items ─────────────────────────────
+        -- Soft-delete existing line items
         UPDATE dbo.purchase_order_item
         SET    is_deleted  = 1,
                modified_at = GETDATE()
         WHERE  purchase_order_id = @purchase_order_id
           AND  is_deleted = 0;
 
-        -- ── Insert updated line items ────────────────────────────────────
+        -- Insert updated line items
         INSERT INTO dbo.purchase_order_item
             (purchase_order_id, product_id, requisition_id, requisition_item_id,
              quantity, unit_price, created_at, is_deleted)

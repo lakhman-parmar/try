@@ -3,27 +3,22 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using RapidDev.Application.DTOs.Purchase;
-using RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
+using RapidDev.Application.Interfaces.Repositories.Purchase;
 
 namespace RapidDev.Infrastructure.Repositories.Implementation.Purchase;
 
-public class PurchaseBillRepository : IPurchaseBillRepository
+public class PurchaseBillRepository(IConfiguration configuration) : IPurchaseBillRepository
 {
-    private readonly string _connectionString;
-
-    public PurchaseBillRepository(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")
+    private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-    }
 
     private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
     public async Task<PagedResult<PurchaseBillListItemDto>> GetAllAsync(PurchaseBillFilterDto filter)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@Search",      filter.Search);
         parameters.Add("@FromDate",    filter.FromDate);
         parameters.Add("@ToDate",      filter.ToDate);
@@ -32,7 +27,7 @@ public class PurchaseBillRepository : IPurchaseBillRepository
         parameters.Add("@PageSize",    filter.PageSize);
         parameters.Add("@TotalCount",  dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        var items = await conn.QueryAsync<PurchaseBillListItemDto>(
+        IEnumerable<PurchaseBillListItemDto> items = await conn.QueryAsync<PurchaseBillListItemDto>(
             "usp_PurchaseBill_GetAll",
             parameters,
             commandType: CommandType.StoredProcedure);
@@ -48,17 +43,17 @@ public class PurchaseBillRepository : IPurchaseBillRepository
 
     public async Task<PurchaseBillDetailDto?> GetByIdAsync(int id)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@purchase_bill_id", id);
 
-        using var multi = await conn.QueryMultipleAsync(
+        using SqlMapper.GridReader multi = await conn.QueryMultipleAsync(
             "usp_PurchaseBill_GetById",
             parameters,
             commandType: CommandType.StoredProcedure);
 
-        var header = await multi.ReadFirstOrDefaultAsync<PurchaseBillDetailDto>();
+        PurchaseBillDetailDto? header = await multi.ReadFirstOrDefaultAsync<PurchaseBillDetailDto>();
         if (header is null) return null;
 
         header.Items = await multi.ReadAsync<PurchaseBillItemDetailDto>();
@@ -67,22 +62,22 @@ public class PurchaseBillRepository : IPurchaseBillRepository
 
     public async Task<IEnumerable<PurchaseOrderForBillDto>> GetOrdersForBillAsync()
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        using var multi = await conn.QueryMultipleAsync(
+        using SqlMapper.GridReader multi = await conn.QueryMultipleAsync(
             "usp_PurchaseBill_GetOrdersForBill",
             commandType: CommandType.StoredProcedure);
 
-        var headers = (await multi.ReadAsync<PurchaseOrderForBillDto>()).ToList();
-        var allItems = (await multi.ReadAsync<PurchaseOrderItemForBillDto>()).ToList();
+        List<PurchaseOrderForBillDto> headers = (await multi.ReadAsync<PurchaseOrderForBillDto>()).ToList();
+        List<PurchaseOrderItemForBillDto> allItems = (await multi.ReadAsync<PurchaseOrderItemForBillDto>()).ToList();
 
-        var itemsByOrder = allItems
+        Dictionary<int, IEnumerable<PurchaseOrderItemForBillDto>> itemsByOrder = allItems
             .GroupBy(i => i.PurchaseOrderId)
             .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-        foreach (var header in headers)
+        foreach (PurchaseOrderForBillDto header in headers)
         {
-            if (itemsByOrder.TryGetValue(header.PurchaseOrderId, out var items))
+            if (itemsByOrder.TryGetValue(header.PurchaseOrderId, out IEnumerable<PurchaseOrderItemForBillDto>? items))
                 header.Items = items;
         }
 
@@ -91,11 +86,11 @@ public class PurchaseBillRepository : IPurchaseBillRepository
 
     public async Task<int> CreateAsync(CreatePurchaseBillDto dto)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var itemsTable = BuildItemsTvp(dto.Items);
+        DataTable itemsTable = BuildItemsTvp(dto.Items);
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@tax_percentage", dto.TaxPercentage);
         parameters.Add("@remarks",        dto.Remarks);
         parameters.Add("@items",          itemsTable.AsTableValuedParameter("dbo.udt_purchase_bill_item"));
@@ -108,9 +103,9 @@ public class PurchaseBillRepository : IPurchaseBillRepository
 
     public async Task<int> RegenerateAsync(int sourceBillId, RegeneratePurchaseBillDto dto)
     {
-        using var conn = CreateConnection();
+        using IDbConnection conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
+        DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@source_bill_id", sourceBillId);
         parameters.Add("@tax_percentage", dto.TaxPercentage);
         parameters.Add("@remarks",        dto.Remarks);
@@ -123,16 +118,16 @@ public class PurchaseBillRepository : IPurchaseBillRepository
 
     private static DataTable BuildItemsTvp(IEnumerable<CreatePurchaseBillItemDto> items)
     {
-        var table = new DataTable();
+        DataTable table = new DataTable();
         table.Columns.Add("ProductId",            typeof(int));
         table.Columns.Add("PurchaseOrderId",      typeof(int));
         table.Columns.Add("PurchaseOrderItemId",  typeof(int));
         table.Columns.Add("Quantity",             typeof(decimal));
         table.Columns.Add("UnitPrice",            typeof(decimal));
 
-        foreach (var item in items)
+        foreach (CreatePurchaseBillItemDto item in items)
         {
-            var row = table.NewRow();
+            DataRow row = table.NewRow();
             row["ProductId"]           = item.ProductId;
             row["PurchaseOrderId"]     = item.PurchaseOrderId.HasValue
                                              ? (object)item.PurchaseOrderId.Value : DBNull.Value;

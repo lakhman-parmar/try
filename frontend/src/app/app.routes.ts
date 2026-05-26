@@ -16,6 +16,7 @@ import { PurchaseBillRegenerate } from './features/purchase/purchase-bill/compon
 import { guestGuard } from './core/guards/guest-guard';
 import { authGuard } from './core/guards/auth-guard';
 import { UserProfile } from './features/user-profile/components/user-profile';
+import { Stock } from './features/stock/stock';
 
 export const routes: Routes = [
   {
@@ -120,6 +121,10 @@ export const routes: Routes = [
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
+      },
+      {
+        path: 'stock',
+        component: Stock,
       },
     ],
   },

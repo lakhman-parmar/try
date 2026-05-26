@@ -18,7 +18,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Result set 1: Header ────────────────────────────────────────────
+    -- Result set 1: Header
     SELECT
         pb.purchase_bill_id,
         pb.bill_number,

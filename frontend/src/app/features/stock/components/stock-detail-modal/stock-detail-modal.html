@@ -1,0 +1,114 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined modal-title-icon">inventory_2</span>
+        <div>
+          <h2 class="modal-title">{{ productName() || 'Stock Detail' }}</h2>
+          @if (detail()) {
+            <span class="modal-subtitle">Product ID: {{ detail()!.productId }}</span>
+          }
+        </div>
+      </div>
+      <button class="icon-action" type="button" title="Close" (click)="close.emit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      @if (loading()) {
+        <div class="loading-state">
+          <mat-spinner diameter="32"></mat-spinner>
+          <span>Loading stock detail...</span>
+        </div>
+      } @else if (errorMsg()) {
+        <div class="error-banner">{{ errorMsg() }}</div>
+      } @else if (detail()) {
+        <!-- Summary cards -->
+        <div class="summary-grid">
+          <div class="summary-card stock-card">
+            <span class="summary-label">Current Stock</span>
+            <span class="summary-value stock-value">
+              {{ formatQty(detail()!.stock) }}
+              @if (detail()!.unitShortName) {
+                <span class="unit-label">{{ detail()!.unitShortName }}</span>
+              }
+            </span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">Purchase Price</span>
+            <span class="summary-value">₹ {{ formatCurrency(detail()!.purchasePrice) }}</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">Selling Price</span>
+            <span class="summary-value">₹ {{ formatCurrency(detail()!.sellingPrice) }}</span>
+          </div>
+        </div>
+
+        @if (detail()!.description) {
+          <p class="product-description">{{ detail()!.description }}</p>
+        }
+
+        <!-- Movement history -->
+        <div class="movements-section">
+          <h3 class="section-title">
+            <span class="material-symbols-outlined">swap_vert</span>
+            Stock Movements
+          </h3>
+
+          @if (detail()!.movements.length === 0) {
+            <div class="empty-movements">
+              <span class="material-symbols-outlined">history</span>
+              <span>No movements recorded yet.</span>
+            </div>
+          } @else {
+            <div class="table-wrap">
+              <table mat-table [dataSource]="detail()!.movements" class="movements-table">
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Date</th>
+                  <td mat-cell *matCellDef="let row">{{ formatDate(row.createdAt) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Type</th>
+                  <td mat-cell *matCellDef="let row">
+                    <span class="type-chip" [class.purchase]="row.recordType === 1" [class.sales]="row.recordType === 0">
+                      <span class="material-symbols-outlined">
+                        {{ row.recordType === 1 ? 'arrow_downward' : 'arrow_upward' }}
+                      </span>
+                      {{ recordTypeLabel(row.recordType) }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="quantity">
+                  <th mat-header-cell *matHeaderCellDef>Qty Change</th>
+                  <td mat-cell *matCellDef="let row">
+                    <span [class.positive]="(row.quantityChange ?? 0) > 0" [class.negative]="(row.quantityChange ?? 0) < 0">
+                      {{ (row.quantityChange ?? 0) > 0 ? '+' : '' }}{{ formatQty(row.quantityChange) }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="price">
+                  <th mat-header-cell *matHeaderCellDef>Price</th>
+                  <td mat-cell *matCellDef="let row">
+                    {{ row.price != null ? '₹ ' + formatCurrency(row.price) : '—' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="reason">
+                  <th mat-header-cell *matHeaderCellDef>Reason</th>
+                  <td mat-cell *matCellDef="let row">{{ row.reason || '—' }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="movementColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: movementColumns"></tr>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

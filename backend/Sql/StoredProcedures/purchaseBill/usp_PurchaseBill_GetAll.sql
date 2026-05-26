@@ -22,7 +22,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ── Total count for pagination ──────────────────────────────────────
+    -- Total count for pagination
     SELECT @TotalCount = COUNT(DISTINCT pb.purchase_bill_id)
     FROM   dbo.purchase_bill pb
     LEFT  JOIN dbo.supplier s ON s.supplier_id = pb.supplier_id
@@ -34,7 +34,7 @@ BEGIN
       AND  (@FromDate IS NULL OR pb.created_at >= @FromDate)
       AND  (@ToDate   IS NULL OR pb.created_at <= @ToDate);
 
-    -- ── Paged result set ────────────────────────────────────────────────
+    -- Paged result set
     SELECT
         pb.purchase_bill_id,
         pb.bill_number,

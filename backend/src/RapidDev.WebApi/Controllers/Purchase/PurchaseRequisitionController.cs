@@ -7,20 +7,13 @@ namespace RapidDev.WebApi.Controllers.Purchase;
 
 [ApiController]
 [Route("api/purchase-requisitions")]
-public class PurchaseRequisitionController : ControllerBase
+public class PurchaseRequisitionController(IPurchaseRequisitionService _service) : ControllerBase
 {
-    private readonly IPurchaseRequisitionService _service;
-
-    public PurchaseRequisitionController(IPurchaseRequisitionService service)
-    {
-        _service = service;
-    }
-
     // GET /api/purchase-requisitions?search=&fromDate=&toDate=&pageNumber=1&pageSize=20
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] PurchaseRequisitionFilterDto filter)
     {
-        var result = await _service.GetAllAsync(filter);
+        PagedResult<PurchaseRequisitionListItemDto> result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<PurchaseRequisitionListItemDto>>.Success(result));
     }
 
@@ -28,7 +21,7 @@ public class PurchaseRequisitionController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var requisition = await _service.GetByIdAsync(id);
+        PurchaseRequisitionDetailDto? requisition = await _service.GetByIdAsync(id);
         if (requisition is null) return NotFound(ApiResponse<string>.Failure("Purchase requisition not found."));
         return Ok(ApiResponse<PurchaseRequisitionDetailDto>.Success(requisition));
     }
@@ -40,7 +33,7 @@ public class PurchaseRequisitionController : ControllerBase
         if (dto.Items == null || !dto.Items.Any())
             return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
 
-        var newId = await _service.CreateAsync(dto);
+        int newId = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = newId },
             ApiResponse<object>.Success(new { PurchaseRequisitionId = newId }));
     }
@@ -52,7 +45,7 @@ public class PurchaseRequisitionController : ControllerBase
         if (dto.Items == null || !dto.Items.Any())
             return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
 
-        var updated = await _service.UpdateAsync(id, dto);
+        bool updated = await _service.UpdateAsync(id, dto);
         if (!updated) return NotFound(ApiResponse<string>.Failure("Purchase requisition not found."));
         return Ok(ApiResponse<string>.Success("Purchase requisition updated successfully."));
     }
@@ -61,7 +54,7 @@ public class PurchaseRequisitionController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        bool deleted = await _service.DeleteAsync(id);
         if (!deleted) return NotFound(ApiResponse<string>.Failure("Purchase requisition not found."));
         return Ok(ApiResponse<string>.Success("Purchase requisition deleted successfully."));
     }

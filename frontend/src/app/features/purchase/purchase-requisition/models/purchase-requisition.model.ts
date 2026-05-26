@@ -64,7 +64,6 @@ export interface PurchaseRequisitionFilterDto {
     unitShortName?: string;
   }
   
-  // Local UI model for line items in the builder
   export interface RequisitionLineItem {
     productId: number | null;
     productName: string;

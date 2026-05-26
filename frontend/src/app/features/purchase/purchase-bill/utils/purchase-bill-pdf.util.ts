@@ -22,7 +22,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
   const margin = 14;
   const contentW = pageW - margin * 2;
 
-  // ── Colour palette ──────────────────────────────────────────────────────────
+  // Colour palette
   const GREEN: [number, number, number] = [45, 106, 79];
   const LIGHT_GREEN_BG: [number, number, number] = [245, 249, 247];
   const TEXT_DARK: [number, number, number] = [26, 26, 46];
@@ -32,7 +32,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
 
   let y = 14;
 
-  // ── Header ──────────────────────────────────────────────────────────────────
+  // Header
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(...GREEN);
@@ -60,7 +60,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
   doc.line(margin, y, pageW - margin, y);
   y += 8;
 
-  // ── Meta grid ───────────────────────────────────────────────────────────────
+  // Meta grid
   doc.setFillColor(...LIGHT_GREEN_BG);
   doc.roundedRect(margin, y, contentW, 22, 2, 2, 'F');
 
@@ -85,7 +85,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
 
   y += 28;
 
-  // ── Line items table ────────────────────────────────────────────────────────
+  // Line items table
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(...GREEN);
@@ -136,7 +136,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
     },
   });
 
-  // ── Totals ──────────────────────────────────────────────────────────────────
+  // Totals
   const subTotal = bill.items.reduce(
     (sum, item) => sum + (item.unitPrice != null ? item.quantity * item.unitPrice : 0),
     0,
@@ -189,7 +189,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
     y += 20;
   }
 
-  // ── Remarks ──────────────────────────────────────────────────────────────────
+  // Remarks
   if (bill.remarks) {
     y += 4;
     doc.setFont('helvetica', 'bold');
@@ -210,7 +210,7 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
     y += 18;
   }
 
-  // ── Footer ───────────────────────────────────────────────────────────────────
+  // Footer
   const footerY = doc.internal.pageSize.getHeight() - 14;
 
   doc.setDrawColor(224, 236, 229);
@@ -234,6 +234,6 @@ export function downloadPurchaseBillPdf(bill: PurchaseBillDetailDto): void {
   doc.setTextColor(...TEXT_LIGHT);
   doc.text('Authorised Signatory', sigX + 20, footerY, { align: 'center' });
 
-  // ── Save ─────────────────────────────────────────────────────────────────────
+  // Save
   doc.save(`${bill.billNumber}.pdf`);
 }

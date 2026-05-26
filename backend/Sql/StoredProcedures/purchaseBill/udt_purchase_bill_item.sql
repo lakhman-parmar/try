@@ -12,10 +12,10 @@ BEGIN
     CREATE TYPE [dbo].[udt_purchase_bill_item] AS TABLE
     (
         [ProductId]          INT             NOT NULL,
-        [PurchaseOrderId]    INT             NULL,   -- NULL when item is added directly (not from a PO)
-        [PurchaseOrderItemId]INT             NULL,   -- NULL when item is added directly
+        [PurchaseOrderId]    INT             NULL,
+        [PurchaseOrderItemId]INT             NULL,
         [Quantity]           DECIMAL(18, 4)  NOT NULL,
-        [UnitPrice]          DECIMAL(18, 4)  NULL    -- NULL = resolved from product.purchase_price
+        [UnitPrice]          DECIMAL(18, 4)  NULL
     );
 END
 GO

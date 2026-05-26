@@ -7,7 +7,7 @@ import { Sidebar } from '../sidebar/sidebar';
   standalone: true,
   imports: [RouterLink, RouterOutlet, Sidebar],
   templateUrl: './layout.html',
-  styleUrl: './layout.sass',
+  styleUrl: './layout.scss',
 })
 export class Layout {
   sidebarOpen = signal(false);

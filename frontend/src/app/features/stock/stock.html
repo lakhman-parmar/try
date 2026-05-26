@@ -1,0 +1,163 @@
+<div class="stock-page">
+  <div class="page-header">
+    <div>
+      <h1>Stock</h1>
+      <p>Current inventory levels across all products.</p>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
+
+  <mat-card class="filter-card">
+    <label class="filter-field search-field">
+      <span class="field-label">Search</span>
+      <span class="material-symbols-outlined field-icon">search</span>
+      <input
+        class="field-control icon-control"
+        placeholder="Product name"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    @if (hasFilters()) {
+      <button class="secondary-action" type="button" (click)="clearFilters()">
+        <span class="material-symbols-outlined">filter_alt_off</span>
+        Clear
+      </button>
+    }
+  </mat-card>
+
+  <mat-card class="table-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading stock...</span>
+      </div>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">inventory_2</span>
+        <strong>No products found</strong>
+        <span>Stock will appear here once products are created.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="items()" class="stock-table">
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Product</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="product-cell">
+                <span class="product-name">{{ row.name }}</span>
+                @if (row.description) {
+                  <span class="product-desc">{{ row.description }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef>Stock</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="stock-badge" [class]="'status-' + stockStatus(row.stock)">
+                {{ formatQty(row.stock) }}
+                @if (row.unitShortName) {
+                  <span class="unit">{{ row.unitShortName }}</span>
+                }
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="purchasePrice">
+            <th mat-header-cell *matHeaderCellDef>Purchase Price</th>
+            <td mat-cell *matCellDef="let row">
+              @if (row.purchasePrice != null) {
+                <span class="price-cell">₹ {{ formatCurrency(row.purchasePrice) }}</span>
+              } @else {
+                <span class="na-text">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="sellingPrice">
+            <th mat-header-cell *matHeaderCellDef>Selling Price</th>
+            <td mat-cell *matCellDef="let row">
+              @if (row.sellingPrice != null) {
+                <span class="price-cell">₹ {{ formatCurrency(row.sellingPrice) }}</span>
+              } @else {
+                <span class="na-text">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                class="icon-action"
+                type="button"
+                title="View stock detail"
+                (click)="openDetail(row)"
+              >
+                <span class="material-symbols-outlined">open_in_new</span>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="stock-row"
+            (click)="openDetail(row)"
+          ></tr>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span>
+            Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minOf(currentPage() * pageSize, totalCount()) }}
+            of {{ totalCount() }}
+          </span>
+          <div class="page-actions">
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === 1"
+              (click)="goToPage(currentPage() - 1)"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            @for (page of pageNumbers(); track page) {
+              <button
+                class="page-button"
+                [class.active-page]="page === currentPage()"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </mat-card>
+</div>
+
+<!-- Detail modal — rendered outside the table flow -->
+@if (modalProductId() !== null) {
+  <app-stock-detail-modal
+    [productId]="modalProductId()!"
+    [productName]="modalProductName()"
+    (close)="closeDetail()"
+  />
+}

@@ -1,6 +1,6 @@
 using RapidDev.Application.DTOs.Purchase;
 
-namespace RapidDev.Infrastructure.Repositories.Interfaces.Purchase;
+namespace RapidDev.Application.Interfaces.Repositories.Purchase;
 
 public interface IPurchaseRequisitionRepository
 {

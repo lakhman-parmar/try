@@ -24,9 +24,9 @@ BEGIN
     BEGIN TRANSACTION;
 
     BEGIN TRY
-        -- ── Resolve supplier from items ─────────────────────────────────
+        -- Resolve supplier from items 
         -- UnitPrice in the TVP can be NULL; we fall back to product.purchase_price.
-        -- Supplier is resolved via supplier_product mapping (same rule as PO).
+        -- Supplier is resolved via supplier_product mapping.
 
         IF EXISTS (
             SELECT 1
@@ -62,7 +62,7 @@ BEGIN
             ON sp.product_id = i.ProductId
            AND sp.is_deleted = 0;
 
-        -- ── Auto-generate bill number (BILL-YYYYMMDD-0001) ──────────────
+        -- Auto-generate bill number (BILL-YYYYMMDD-0001)
         DECLARE @date_part  NVARCHAR(8)  = CONVERT(NVARCHAR(8), GETDATE(), 112);
         DECLARE @seq_prefix NVARCHAR(20) = 'BILL-' + @date_part + '-';
         DECLARE @next_seq   INT;
@@ -75,7 +75,7 @@ BEGIN
 
         DECLARE @bill_number NVARCHAR(50) = @seq_prefix + RIGHT('0000' + CAST(@next_seq AS NVARCHAR), 4);
 
-        -- ── Compute total amount (subtotal + tax) ───────────────────────
+        -- Compute total amount (subtotal + tax)
         DECLARE @subtotal DECIMAL(18, 4);
 
         SELECT @subtotal = SUM(i.Quantity * ISNULL(i.UnitPrice, p.purchase_price))
@@ -85,7 +85,7 @@ BEGIN
         DECLARE @total_amount DECIMAL(18, 4) =
             @subtotal + ISNULL(@subtotal * @tax_percentage / 100, 0);
 
-        -- ── Insert bill header ───────────────────────────────────────────
+        -- Insert bill header
         DECLARE @new_id INT;
 
         INSERT INTO dbo.purchase_bill
@@ -95,7 +95,7 @@ BEGIN
 
         SET @new_id = SCOPE_IDENTITY();
 
-        -- ── Insert bill line items ───────────────────────────────────────
+        -- Insert bill line items
         INSERT INTO dbo.purchase_bill_item
             (purchase_bill_id, product_id, purchase_order_id, purchase_order_item_id,
              quantity, unit_price, created_at, is_deleted)
@@ -111,14 +111,14 @@ BEGIN
         FROM @items i
         INNER JOIN dbo.product p ON p.product_id = i.ProductId;
 
-        -- ── Update product stock (increase on purchase) ─────────────────
+        -- Update product stock (increase on purchase)
         UPDATE p
         SET    p.stock      = p.stock + i.Quantity,
                p.modified_at = GETDATE()
         FROM   dbo.product p
         INNER JOIN @items i ON i.ProductId = p.product_id;
 
-        -- ── Insert stock_record entries ─────────────────────────────────
+        -- Insert stock_record entries
         -- RecordType: 1 = Purchase (matches domain enum)
         INSERT INTO dbo.stock_record
             (product_id, record_type, transaction_id, quantity_change, price, reason, created_at)

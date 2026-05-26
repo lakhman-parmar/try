@@ -47,16 +47,16 @@ export class PurchaseBillCreate implements OnInit {
   formTaxPercentage = signal<number | null>(null);
   formRemarks = signal('');
 
-  // ── Orders for bill (PO selection) ────────────────────────────────────────────
+  // Orders for bill (PO selection)
   ordersForBill = signal<PurchaseOrderForBillDto[]>([]);
   loadingOrders = signal(false);
   selectedPoIds = signal<Set<number>>(new Set());
   showPoPanel = signal(false);
 
-  // ── Line items ────────────────────────────────────────────────────────────────
+  // Line items
   lineItems = signal<BillLineItem[]>([]);
 
-  // ── Products (for extra rows) ──────────────────────────────────────────────────
+  // Products (for extra rows)
   products = signal<ProductDto[]>([]);
   loadingProducts = signal(false);
 
@@ -64,10 +64,10 @@ export class PurchaseBillCreate implements OnInit {
   filteredProductOptions: Observable<ProductDto[]>[] = [];
   displayedColumns = ['product', 'unit', 'quantity', 'unitPrice', 'source', 'actions'];
 
-  // ── Confirmation modal ────────────────────────────────────────────────────────
+  // Confirmation modal
   showConfirmModal = signal(false);
 
-  // ── Computed totals ───────────────────────────────────────────────────────────
+  // Computed totals
   readonly subTotal = computed(() =>
     this.lineItems().reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
   );
@@ -108,7 +108,7 @@ export class PurchaseBillCreate implements OnInit {
       });
   }
 
-  // ── PO selection panel ──────────────────────────────────────────────────────
+  // PO selection panel
   togglePoPanel(): void {
     this.showPoPanel.update((v) => !v);
   }
@@ -171,7 +171,7 @@ export class PurchaseBillCreate implements OnInit {
     this.showPoPanel.set(false);
   }
 
-  // ── Direct line items ───────────────────────────────────────────────────────
+  // Direct line items
   addDirectLineItem(): void {
     this.lineItems.update((items) => [
       ...items,
@@ -241,6 +241,25 @@ export class PurchaseBillCreate implements OnInit {
     this.updateQuantity(index, currentQuantity + delta);
   }
 
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
+  }
+
   productUnit(productId: number | null): string {
     if (!productId) return '-';
     return this.products().find((product) => product.productId === productId)?.unitShortName ?? '-';
@@ -283,7 +302,7 @@ export class PurchaseBillCreate implements OnInit {
     return this.products().find((product) => product.productId === productId);
   }
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // Submit
   requestGenerateBill(): void {
     const validItems = this.lineItems().filter((i) => i.productId !== null);
     if (validItems.length === 0) {
@@ -345,7 +364,7 @@ export class PurchaseBillCreate implements OnInit {
     this.router.navigate(['/admin/purchase/bill']);
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
+  // Helpers
   trackByIndex(index: number): number {
     return index;
   }
