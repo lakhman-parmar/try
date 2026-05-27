@@ -50,7 +50,7 @@ export class PurchaseOrder implements OnInit {
     'actions',
   ];
   detailColumns = ['detail'];
-  pageSize = 20;
+  pageSize = 10;
 
   loading = signal(false);
   errorMsg = signal<string | null>(null);

@@ -42,7 +42,7 @@ export class PurchaseBill implements OnInit {
 
   displayedColumns = ['toggle', 'number', 'supplier', 'items', 'totalAmount', 'date', 'actions'];
   detailColumns = ['detail'];
-  pageSize = 20;
+  pageSize = 10;
 
   loading = signal(false);
   errorMsg = signal<string | null>(null);
