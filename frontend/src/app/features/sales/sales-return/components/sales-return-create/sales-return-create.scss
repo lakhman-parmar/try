@@ -1,0 +1,31 @@
+@use '../../../../purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create.scss';
+
+.selected-invoice {
+  align-items: center;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  border-radius: 8px;
+  color: #155e75;
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+}
+
+.selected-invoice strong {
+  color: #0f172a;
+}
+
+.table-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.modal-overlay {
+  z-index: 10000;
+}
+
+.modal-dialog {
+  z-index: 10001;
+}
