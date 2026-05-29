@@ -114,6 +114,23 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'sales/return',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/sales/sales-return/sales-return').then((m) => m.SalesReturn),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./features/sales/sales-return/components/sales-return-create/sales-return-create').then(
+                (m) => m.SalesReturnCreate,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile',
         component: UserProfile,
       },

@@ -1,0 +1,244 @@
+<div class="purchase-bill-page">
+  <div class="page-header">
+    <div>
+      <h1>Sales Return</h1>
+      <p>Manage returns against invoiced sales items.</p>
+    </div>
+    <button class="primary-action" type="button" (click)="openCreateForm()">
+      <span class="material-symbols-outlined">add</span>
+      New Return
+    </button>
+  </div>
+
+  @if (errorMsg()) {
+    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+  }
+
+  <mat-card class="filter-card">
+    <label class="filter-field search-field">
+      <span class="field-label">Search</span>
+      <span class="material-symbols-outlined field-icon">search</span>
+      <input
+        class="field-control icon-control"
+        placeholder="Return number, invoice, customer"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+    <div class="filter-field date-field">
+      <span class="field-label">From</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="fromPicker"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div class="filter-field date-field">
+      <span class="field-label">To</span>
+      <mat-form-field appearance="outline" class="compact-date">
+        <input
+          matInput
+          [matDatepicker]="toPicker"
+          [ngModel]="toDate()"
+          (ngModelChange)="toDate.set($event); applyFilters()"
+          placeholder="MM/DD/YYYY"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+    @if (hasFilters()) {
+      <button class="secondary-action" type="button" (click)="clearFilters()">
+        <span class="material-symbols-outlined">filter_alt_off</span>
+        Clear
+      </button>
+    }
+  </mat-card>
+
+  <mat-card class="table-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading sales returns...</span>
+      </div>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">assignment_return</span>
+        <strong>No sales returns found</strong>
+        <span>Create a return from an invoiced item.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table mat-table [dataSource]="items()" class="bill-table" multiTemplateDataRows>
+          <ng-container matColumnDef="toggle">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                class="icon-action"
+                type="button"
+                (click)="toggleExpand(row.salesReturnId, $event)"
+              >
+                <span class="material-symbols-outlined">{{
+                  expandedId() === row.salesReturnId ? 'expand_less' : 'expand_more'
+                }}</span>
+              </button>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef>Return Number</th>
+            <td mat-cell *matCellDef="let row">{{ row.returnNumber }}</td>
+          </ng-container>
+          <ng-container matColumnDef="invoice">
+            <th mat-header-cell *matHeaderCellDef>Invoice</th>
+            <td mat-cell *matCellDef="let row">{{ row.invoiceNumber || '-' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="customer">
+            <th mat-header-cell *matHeaderCellDef>Customer</th>
+            <td mat-cell *matCellDef="let row">{{ row.customerName || '-' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="items">
+            <th mat-header-cell *matHeaderCellDef>Items</th>
+            <td mat-cell *matCellDef="let row">{{ row.itemCount }}</td>
+          </ng-container>
+          <ng-container matColumnDef="totalAmount">
+            <th mat-header-cell *matHeaderCellDef>Total Amount</th>
+            <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalAmount) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">{{ formatDate(row.createdAt) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="detail">
+            <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+              @if (expandedId() === row.salesReturnId) {
+                <div class="detail-panel">
+                  @if (expandLoading()) {
+                    <div class="loading-state slim">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading items...</span>
+                    </div>
+                  } @else if (expandedDetail()) {
+                    <table mat-table [dataSource]="expandedDetail()!.items" class="items-table">
+                      <ng-container matColumnDef="product"
+                        ><th mat-header-cell *matHeaderCellDef>Product</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.productName }}
+                        </td></ng-container
+                      >
+                      <ng-container matColumnDef="unit"
+                        ><th mat-header-cell *matHeaderCellDef>Unit</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.unitShortName || '-' }}
+                        </td></ng-container
+                      >
+                      <ng-container matColumnDef="invoice"
+                        ><th mat-header-cell *matHeaderCellDef>Invoice</th>
+                        <td mat-cell *matCellDef="let item">
+                          <span class="source-chip"
+                            ><span class="material-symbols-outlined">description</span
+                            >{{ item.invoiceNumber || '-' }}</span
+                          >
+                        </td></ng-container
+                      >
+                      <ng-container matColumnDef="quantity"
+                        ><th mat-header-cell *matHeaderCellDef>Returned Qty</th>
+                        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td></ng-container
+                      >
+                      <ng-container matColumnDef="unitPrice"
+                        ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{ formatCurrency(item.unitPrice) }}
+                        </td></ng-container
+                      >
+                      <ng-container matColumnDef="total"
+                        ><th mat-header-cell *matHeaderCellDef>Total</th>
+                        <td mat-cell *matCellDef="let item">
+                          {{
+                            item.unitPrice != null
+                              ? formatCurrency(item.quantity * item.unitPrice)
+                              : '-'
+                          }}
+                        </td></ng-container
+                      >
+                      <tr
+                        mat-header-row
+                        *matHeaderRowDef="[
+                          'product',
+                          'unit',
+                          'invoice',
+                          'quantity',
+                          'unitPrice',
+                          'total',
+                        ]"
+                      ></tr>
+                      <tr
+                        mat-row
+                        *matRowDef="
+                          let row;
+                          columns: ['product', 'unit', 'invoice', 'quantity', 'unitPrice', 'total']
+                        "
+                      ></tr>
+                    </table>
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.expanded]="expandedId() === row.salesReturnId"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: detailColumns"
+            class="detail-row"
+            [class.expanded]="expandedId() === row.salesReturnId"
+          ></tr>
+        </table>
+      </div>
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span
+            >Showing {{ (currentPage() - 1) * pageSize + 1 }}-{{
+              minOf(currentPage() * pageSize, totalCount())
+            }}
+            of {{ totalCount() }}</span
+          >
+          <div class="page-actions">
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === 1"
+              (click)="goToPage(currentPage() - 1)"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            @for (page of pageNumbers(); track page) {
+              <button
+                class="page-button"
+                [class.active-page]="page === currentPage()"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            <button
+              class="icon-action"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </mat-card>
+</div>

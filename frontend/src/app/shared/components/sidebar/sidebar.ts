@@ -49,7 +49,11 @@ export class Sidebar {
       icon: 'local_shipping',
       key: 'purchase',
       children: [
-        { label: 'Purchase Requisition', route: '/admin/purchase/requisition', icon: 'request_quote' },
+        {
+          label: 'Purchase Requisition',
+          route: '/admin/purchase/requisition',
+          icon: 'request_quote',
+        },
         { label: 'Purchase Order', route: '/admin/purchase/order', icon: 'shopping_cart' },
         { label: 'Purchase Bill', route: '/admin/purchase/bill', icon: 'receipt_long' },
       ],
@@ -62,6 +66,7 @@ export class Sidebar {
         { label: 'Estimation', route: '/admin/sales/estimation', icon: 'calculate' },
         { label: 'Sales Order', route: '/admin/sales/order', icon: 'assignment' },
         { label: 'Sales Invoice', route: '/admin/sales/invoice', icon: 'description' },
+        { label: 'Sales Return', route: '/admin/sales/return', icon: 'assignment_return' },
       ],
     },
     {
