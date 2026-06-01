@@ -1,0 +1,250 @@
+<div class="purchase-bill-form-page">
+    <div class="page-header">
+      <button class="icon-action back-action" type="button" (click)="cancel()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <div>
+        <h1>New Purchase Return</h1>
+        <p>Select a bill and return only items from that bill.</p>
+      </div>
+    </div>
+  
+    @if (errorMsg()) {
+      <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
+    }
+  
+    <mat-card class="form-card">
+      @if (loadingBills()) {
+        <div class="loading-state">
+          <mat-spinner diameter="32"></mat-spinner>
+          <span>Loading bills...</span>
+        </div>
+      } @else {
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            placeholder="Add remarks..."
+            [ngModel]="formRemarks()"
+            (ngModelChange)="formRemarks.set($event)"
+          ></textarea>
+        </label>
+  
+        <div class="po-panel-container">
+          <div class="panel-header">
+            <div>
+              <h2>From Purchase Bill</h2>
+              <p>Select one bill with returnable items.</p>
+            </div>
+            <button class="secondary-action" type="button" (click)="toggleBillPanel()">
+              <span class="material-symbols-outlined">receipt_long</span>
+              {{ showBillPanel() ? 'Close Panel' : 'Select Bill' }}
+            </button>
+          </div>
+  
+          @if (selectedBill()) {
+            <div class="selected-bill">
+              <span class="material-symbols-outlined">check_circle</span>
+              <strong>{{ selectedBill()!.billNumber }}</strong>
+              <span>{{ selectedBill()!.supplierName || 'No supplier' }}</span>
+            </div>
+          }
+  
+          @if (showBillPanel()) {
+            <div class="po-list-container">
+              @if (billsForReturn().length === 0) {
+                <div class="empty-pos">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No bills have returnable items</span>
+                </div>
+              } @else {
+                @for (bill of billsForReturn(); track bill.purchaseBillId) {
+                  <div
+                    class="po-card"
+                    [class.selected]="isBillSelected(bill.purchaseBillId)"
+                    (click)="selectBill(bill)"
+                  >
+                    <div class="po-card-header">
+                      <span class="material-symbols-outlined">{{
+                        isBillSelected(bill.purchaseBillId)
+                          ? 'check_circle'
+                          : 'radio_button_unchecked'
+                      }}</span>
+                      <div class="po-info">
+                        <strong>{{ bill.billNumber }}</strong>
+                        <span>{{ bill.supplierName || 'No supplier' }}</span>
+                      </div>
+                      <span class="po-count">{{ bill.items.length }} items</span>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+  
+        <div class="line-header">
+          <h2>Items</h2>
+        </div>
+  
+        @if (lineItems().length === 0) {
+          <div class="empty-pos table-empty">
+            <span class="material-symbols-outlined">assignment_return</span>
+            <span>Select a bill to load returnable items.</span>
+          </div>
+        } @else {
+          <div class="table-wrap">
+            <table mat-table [dataSource]="lineItems()" class="line-table">
+              <ng-container matColumnDef="product">
+                <th mat-header-cell *matHeaderCellDef>Product</th>
+                <td mat-cell *matCellDef="let line">
+                  <span class="product-name-fixed">
+                    <span class="material-symbols-outlined product-icon">inventory_2</span>
+                    {{ line.productName }}
+                  </span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="unit"
+                ><th mat-header-cell *matHeaderCellDef>Unit</th>
+                <td mat-cell *matCellDef="let line">{{ line.unitShortName || '-' }}</td></ng-container
+              >
+              <ng-container matColumnDef="billedQuantity"
+                ><th mat-header-cell *matHeaderCellDef>Billed Qty</th>
+                <td mat-cell *matCellDef="let line">{{ line.billedQuantity }}</td></ng-container
+              >
+              <ng-container matColumnDef="returnedQuantity"
+                ><th mat-header-cell *matHeaderCellDef>Returned</th>
+                <td mat-cell *matCellDef="let line">{{ line.returnedQuantity }}</td></ng-container
+              >
+              <ng-container matColumnDef="remainingQuantity"
+                ><th mat-header-cell *matHeaderCellDef>Remaining</th>
+                <td mat-cell *matCellDef="let line">{{ line.remainingQuantity }}</td></ng-container
+              >
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Return Qty</th>
+                <td mat-cell *matCellDef="let line; let i = index">
+                  <div class="quantity-stepper">
+                    <button
+                      class="quantity-btn"
+                      type="button"
+                      title="Decrease quantity"
+                      (mousedown)="startAdjust(i, -1)"
+                      (mouseup)="stopAdjust(i, -1)"
+                      (mouseleave)="stopAdjust(i, -1)"
+                      [disabled]="line.quantity <= 1"
+                    >
+                      <span class="material-symbols-outlined">remove</span>
+                    </button>
+                    <input
+                      class="field-control quantity-input"
+                      type="number"
+                      min="1"
+                      [max]="line.remainingQuantity"
+                      [ngModel]="line.quantity"
+                      (change)="updateQuantity(i, +$event.target.value)"
+                    />
+                    <button
+                      class="quantity-btn"
+                      type="button"
+                      title="Increase quantity"
+                      (mousedown)="startAdjust(i, 1)"
+                      (mouseup)="stopAdjust(i, 1)"
+                      (mouseleave)="stopAdjust(i, 1)"
+                      [disabled]="line.quantity >= line.remainingQuantity"
+                    >
+                      <span class="material-symbols-outlined">add</span>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="unitPrice"
+                ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
+                <td mat-cell *matCellDef="let line">
+                  {{ formatCurrency(line.unitPrice) }}
+                </td></ng-container
+              >
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let line; let i = index">
+                  <button
+                    class="icon-action danger"
+                    type="button"
+                    title="Remove row"
+                    (click)="removeLineItem(i)"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+          </div>
+        }
+  
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h3>Summary</h3>
+            <div class="summary-row">
+              <span>Items</span><span>{{ validLineCount() }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Sub Total</span><span>Rs. {{ subTotal() | number: '1.2-2' }}</span>
+            </div>
+            <div class="summary-row total">
+              <span>Return Total</span><span>Rs. {{ subTotal() | number: '1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="form-actions">
+          <span>{{ validLineCount() }} item{{ validLineCount() === 1 ? '' : 's' }} selected</span>
+          <div>
+            <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
+              Cancel
+            </button>
+            <button
+              class="primary-action"
+              type="button"
+              (click)="requestCreateReturn()"
+              [disabled]="saving()"
+            >
+              {{ saving() ? 'Saving...' : 'Create Return' }}
+            </button>
+          </div>
+        </div>
+      }
+    </mat-card>
+  </div>
+  
+  @if (showConfirmModal()) {
+    <div class="modal-overlay">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <span class="material-symbols-outlined header-icon">assignment_return</span>
+          <h2>Create Purchase Return?</h2>
+        </div>
+        <div class="modal-body">
+          <p>
+            This will create a return for <strong>{{ validLineCount() }} item(s)</strong> and deduct
+            the returned quantity from stock.
+          </p>
+          <div class="summary-box">
+            <div class="summary-box-row">
+              <span>Sub Total</span><span>Rs. {{ subTotal() | number: '1.2-2' }}</span>
+            </div>
+            <div class="summary-box-row total">
+              <span>Return Total</span><span>Rs. {{ subTotal() | number: '1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-action" type="button" (click)="cancelConfirm()">Go Back</button>
+          <button class="primary-action" type="button" (click)="confirmCreateReturn()">
+            Confirm & Create
+          </button>
+        </div>
+      </div>
+    </div>
+  }
