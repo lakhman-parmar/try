@@ -219,6 +219,44 @@ CREATE TABLE [purchase_bill_item] (
 );
 GO
 
+CREATE TABLE [purchase_return] (
+    purchase_return_id INT            IDENTITY(1,1) PRIMARY KEY,
+    purchase_return_number      VARCHAR(50)    NOT NULL UNIQUE,
+    supplier_id      INT,
+    remarks          VARCHAR(1000)   NULL,
+    total_amount     DECIMAL(10,2),
+    created_at       DATETIME2      DEFAULT GETDATE(),
+    modified_at      DATETIME2,
+    is_deleted       BIT            DEFAULT 0,
+
+    CONSTRAINT FK_purchase_return_supplier FOREIGN KEY (supplier_id)
+        REFERENCES [supplier] (supplier_id)
+);
+GO
+
+CREATE TABLE [purchase_return_item] (
+    purchase_return_item_id    INT           IDENTITY(1,1) PRIMARY KEY,
+    purchase_return_id         INT,
+    product_id               INT,
+    purchase_bill_id        INT,
+    purchase_bill_item_id   INT,
+    quantity                 DECIMAL(18,3),
+    unit_price               DECIMAL(10,2),
+    created_at               DATETIME2     DEFAULT GETDATE(),
+    modified_at              DATETIME2,
+    is_deleted               BIT           DEFAULT 0,
+
+    CONSTRAINT FK_pr_item_purchase_return       FOREIGN KEY (purchase_return_id)
+        REFERENCES [purchase_return] (purchase_return_id),
+    CONSTRAINT FK_pbr_item_product             FOREIGN KEY (product_id)
+        REFERENCES [product] (product_id),
+    CONSTRAINT FK_pr_item_purchase_bill      FOREIGN KEY (purchase_bill_id)
+        REFERENCES [purchase_bill] (purchase_bill_id),
+    CONSTRAINT FK_pr_item_purchase_return_item FOREIGN KEY (purchase_bill_item_id)
+        REFERENCES [purchase_bill_item] (purchase_bill_item_id)
+);
+GO
+
 CREATE TABLE [estimation] (
     estimation_id     INT            IDENTITY(1,1) PRIMARY KEY,
     estimation_number VARCHAR(50)    NOT NULL UNIQUE,
@@ -326,6 +364,47 @@ CREATE TABLE [sales_invoice_item] (
         REFERENCES [sales_order] (sales_order_id),
     CONSTRAINT FK_si_item_sales_order_item FOREIGN KEY (sales_order_item_id)
         REFERENCES [sales_order_item] (sales_order_item_id)
+);
+GO
+
+CREATE TABLE [sales_return] (
+    sales_return_id INT            IDENTITY(1,1) PRIMARY KEY,
+    return_number   VARCHAR(50)    NOT NULL UNIQUE,
+    sales_invoice_id INT,
+    customer_id      INT,
+    remarks          VARCHAR(1000),
+    total_amount     DECIMAL(10,2),
+    created_at       DATETIME2      DEFAULT GETDATE(),
+    modified_at      DATETIME2,
+    is_deleted       BIT            DEFAULT 0,
+
+    CONSTRAINT FK_sales_return_sales_invoice FOREIGN KEY (sales_invoice_id)
+        REFERENCES [sales_invoice] (sales_invoice_id),
+    CONSTRAINT FK_sales_return_customer FOREIGN KEY (customer_id)
+        REFERENCES [customer] (customer_id)
+);
+GO
+
+CREATE TABLE [sales_return_item] (
+    sales_return_item_id  INT           IDENTITY(1,1) PRIMARY KEY,
+    sales_return_id       INT,
+    sales_invoice_id      INT,
+    sales_invoice_item_id INT,
+    product_id            INT,
+    quantity              DECIMAL(18,3),
+    unit_price            DECIMAL(10,2),
+    created_at            DATETIME2     DEFAULT GETDATE(),
+    modified_at           DATETIME2,
+    is_deleted            BIT           DEFAULT 0,
+
+    CONSTRAINT FK_sr_item_sales_return FOREIGN KEY (sales_return_id)
+        REFERENCES [sales_return] (sales_return_id),
+    CONSTRAINT FK_sr_item_sales_invoice FOREIGN KEY (sales_invoice_id)
+        REFERENCES [sales_invoice] (sales_invoice_id),
+    CONSTRAINT FK_sr_item_sales_invoice_item FOREIGN KEY (sales_invoice_item_id)
+        REFERENCES [sales_invoice_item] (sales_invoice_item_id),
+    CONSTRAINT FK_sr_item_product FOREIGN KEY (product_id)
+        REFERENCES [product] (product_id)
 );
 GO
 

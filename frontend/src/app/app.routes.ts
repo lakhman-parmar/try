@@ -17,6 +17,8 @@ import { guestGuard } from './core/guards/guest-guard';
 import { authGuard } from './core/guards/auth-guard';
 import { UserProfile } from './features/user-profile/components/user-profile';
 import { Stock } from './features/stock/stock';
+import { PurchaseReturn } from './features/purchase/purchase-return/purchase-return';
+import { PurchaseReturnCreate } from './features/purchase/purchase-return/components/purchase-return-create/purchase-return-create';
 
 export const routes: Routes = [
   {
@@ -55,6 +57,17 @@ export const routes: Routes = [
           { path: '', component: PurchaseBill },
           { path: 'create', component: PurchaseBillCreate },
           { path: 'regenerate/:id', component: PurchaseBillRegenerate },
+        ],
+      },
+      {
+        path: 'purchase/return',
+        children: [
+          {
+            path: '', component: PurchaseReturn
+          },
+          {
+            path: 'create', component: PurchaseReturnCreate
+          },
         ],
       },
       {

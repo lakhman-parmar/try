@@ -1,0 +1,20 @@
+@use '../purchase-bill/purchase-bill.scss';
+
+:host ::ng-deep .mat-column-toggle .icon-action {
+  pointer-events: auto;
+  position: relative;
+  z-index: 6;
+}
+
+:host ::ng-deep .detail-row {
+  pointer-events: none;
+}
+
+:host ::ng-deep .detail-row.expanded {
+  pointer-events: auto;
+}
+
+:host ::ng-deep .bill-table .mdc-data-table__cell.mat-column-toggle {
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom-style: solid !important;
+}
