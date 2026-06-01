@@ -56,7 +56,7 @@ export class Sidebar {
         },
         { label: 'Purchase Order', route: '/admin/purchase/order', icon: 'shopping_cart' },
         { label: 'Purchase Bill', route: '/admin/purchase/bill', icon: 'receipt_long' },
-        { label: 'Purchase Return', route: '/admin/purchase/return', icon: 'assignment_return' },
+        { label: 'Purchase Return', route: '/admin/purchase/return', icon: 'keyboard_return' },
       ],
     },
     {
