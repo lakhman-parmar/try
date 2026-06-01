@@ -20,6 +20,10 @@ public class EstimationController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] EstimationFilterDto filter)
     {
+        var errors = SalesValidation.ValidateFilter(filter.PageNumber, filter.PageSize, filter.FromDate, filter.ToDate, filter.Search);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid filter.", errors));
+
         var result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<EstimationListItemDto>>.Success(result));
     }
@@ -37,8 +41,9 @@ public class EstimationController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEstimationDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid estimation.", errors));
 
         var newId = await _service.CreateAsync(dto);
         return CreatedAtAction(
@@ -50,8 +55,9 @@ public class EstimationController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateEstimationDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid estimation.", errors));
 
         var updated = await _service.UpdateAsync(id, dto);
         if (!updated)

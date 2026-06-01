@@ -76,6 +76,16 @@ export class SalesInvoiceRegenerate implements OnInit {
   }
 
   requestRegenerate(): void {
+    const tax = this.regenTaxPercentage();
+    if (tax != null && (tax < 0 || tax > 100)) {
+      this.errorMsg.set('Tax percentage must be between 0 and 100.');
+      return;
+    }
+    if (this.regenRemarks().length > 1000) {
+      this.errorMsg.set('Remarks cannot exceed 1000 characters.');
+      return;
+    }
+    this.errorMsg.set(null);
     this.showConfirm.set(true);
   }
   cancelConfirm(): void {

@@ -121,16 +121,9 @@ export class SalesReturnCreate implements OnInit {
   }
 
   requestCreateReturn(): void {
-    if (!this.selectedInvoice()) {
-      this.errorMsg.set('Select an invoice before creating a return.');
-      return;
-    }
-    if (this.lineItems().length === 0) {
-      this.errorMsg.set('Add at least one invoice item before creating a return.');
-      return;
-    }
-    if (this.lineItems().some((item) => item.quantity > item.returnableQuantity)) {
-      this.errorMsg.set('One or more return items exceed the returnable quantity.');
+    const validationError = this.getValidationError();
+    if (validationError) {
+      this.errorMsg.set(validationError);
       return;
     }
     this.errorMsg.set(null);
@@ -184,5 +177,25 @@ export class SalesReturnCreate implements OnInit {
     return val == null
       ? '-'
       : val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private getValidationError(): string | null {
+    if (!this.selectedInvoice()) return 'Select an invoice before creating a return.';
+    if (this.formRemarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
+    if (this.lineItems().length === 0) {
+      return 'Add at least one invoice item before creating a return.';
+    }
+    if (this.lineItems().length > 100) return 'A sales return cannot contain more than 100 items.';
+    if (this.lineItems().some((item) => item.quantity <= 0)) {
+      return 'Return quantity must be greater than zero.';
+    }
+    if (this.lineItems().some((item) => item.quantity > item.returnableQuantity)) {
+      return 'One or more return items exceed the returnable quantity.';
+    }
+    const invoiceItemIds = this.lineItems().map((item) => item.salesInvoiceItemId);
+    if (new Set(invoiceItemIds).size !== invoiceItemIds.length) {
+      return 'A sales invoice item cannot be returned more than once in the same return.';
+    }
+    return null;
   }
 }

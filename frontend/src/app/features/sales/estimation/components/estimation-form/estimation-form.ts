@@ -238,8 +238,9 @@ export class EstimationForm implements OnInit {
         quantity: item.quantity,
       }));
 
-    if (items.length === 0) {
-      this.errorMsg.set('Add at least one product.');
+    const validationError = this.getValidationError(items);
+    if (validationError) {
+      this.errorMsg.set(validationError);
       return;
     }
 
@@ -284,5 +285,17 @@ export class EstimationForm implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  private getValidationError(items: Array<{ productId: number; quantity: number }>): string | null {
+    if (this.customerControl.value && typeof this.customerControl.value === 'string') {
+      return 'Select a valid customer from the list or clear the customer field.';
+    }
+    if (this.remarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
+    if (items.length === 0) return 'Add at least one product.';
+    if (items.length > 100) return 'An estimation cannot contain more than 100 items.';
+    if (items.some((item) => item.quantity <= 0)) return 'Quantity must be greater than zero.';
+    if (items.some((item) => item.quantity > 999999)) return 'Quantity is too large.';
+    return null;
   }
 }
