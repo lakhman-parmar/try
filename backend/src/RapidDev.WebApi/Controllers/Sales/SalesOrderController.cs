@@ -20,6 +20,10 @@ public class SalesOrderController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] SalesOrderFilterDto filter)
     {
+        var errors = SalesValidation.ValidateFilter(filter.PageNumber, filter.PageSize, filter.FromDate, filter.ToDate, filter.Search);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid filter.", errors));
+
         var result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<SalesOrderListItemDto>>.Success(result));
     }
@@ -48,8 +52,9 @@ public class SalesOrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSalesOrderDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid sales order.", errors));
 
         var newId = await _service.CreateAsync(dto);
         return CreatedAtAction(
@@ -61,8 +66,9 @@ public class SalesOrderController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateSalesOrderDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid sales order.", errors));
 
         var updated = await _service.UpdateAsync(id, dto);
         if (!updated)

@@ -20,6 +20,10 @@ public class SalesInvoiceController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] SalesInvoiceFilterDto filter)
     {
+        var errors = SalesValidation.ValidateFilter(filter.PageNumber, filter.PageSize, filter.FromDate, filter.ToDate, filter.Search);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid filter.", errors));
+
         var result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<SalesInvoiceListItemDto>>.Success(result));
     }
@@ -44,8 +48,9 @@ public class SalesInvoiceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSalesInvoiceDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid sales invoice.", errors));
 
         var newId = await _service.CreateAsync(dto);
         return CreatedAtAction(
@@ -57,6 +62,10 @@ public class SalesInvoiceController : ControllerBase
     [HttpPost("{id:int}/regenerate")]
     public async Task<IActionResult> Regenerate(int id, [FromBody] RegenerateSalesInvoiceDto dto)
     {
+        var errors = SalesValidation.Validate(dto);
+        if (errors.Any())
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid sales invoice.", errors));
+
         var newId = await _service.RegenerateAsync(id, dto);
         return CreatedAtAction(
             nameof(GetById),

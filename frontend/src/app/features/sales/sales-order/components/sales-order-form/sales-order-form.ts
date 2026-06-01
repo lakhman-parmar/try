@@ -348,8 +348,9 @@ export class SalesOrderForm implements OnInit {
         quantity: item.quantity,
       }));
 
-    if (items.length === 0) {
-      this.errorMsg.set('Add at least one product.');
+    const validationError = this.getValidationError(items);
+    if (validationError) {
+      this.errorMsg.set(validationError);
       return;
     }
 
@@ -395,5 +396,32 @@ export class SalesOrderForm implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  private getValidationError(
+    items: Array<{
+      productId: number;
+      estimationId?: number;
+      estimationItemId?: number;
+      quantity: number;
+    }>,
+  ): string | null {
+    if (this.customerControl.value && typeof this.customerControl.value === 'string') {
+      return 'Select a valid customer from the list or clear the customer field.';
+    }
+    if (this.remarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
+    const tax = this.taxPercentage();
+    if (tax != null && (tax < 0 || tax > 100)) return 'Tax percentage must be between 0 and 100.';
+    if (items.length === 0) return 'Add at least one product.';
+    if (items.length > 100) return 'A sales order cannot contain more than 100 items.';
+    if (items.some((item) => item.quantity <= 0)) return 'Quantity must be greater than zero.';
+    if (items.some((item) => item.quantity > 999999)) return 'Quantity is too large.';
+    const estimationItemIds = items
+      .map((item) => item.estimationItemId)
+      .filter((id): id is number => id != null);
+    if (new Set(estimationItemIds).size !== estimationItemIds.length) {
+      return 'An estimation item cannot be added more than once.';
+    }
+    return null;
   }
 }
