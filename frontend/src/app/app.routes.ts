@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { Login } from './features/auth/login/login';
 import { Layout } from './shared/components/layout/layout';
-import { Dashboard } from './features/dashboard/components/dashboard';
 import { PurchaseRequisition } from './features/purchase/purchase-requisition/purchase-requisition';
 import { PurchaseRequisitionCreate } from './features/purchase/purchase-requisition/components/purchase-requisition-create/purchase-requisition-create';
 import { PurchaseRequisitionUpdate } from './features/purchase/purchase-requisition/components/purchase-requisition-update/purchase-requisition-update';
@@ -32,10 +31,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
-        path: 'dashboard',
-        component: Dashboard,
-      },
-      {
         path: 'purchase/requisition',
         children: [
           { path: '', component: PurchaseRequisition },
@@ -63,10 +58,12 @@ export const routes: Routes = [
         path: 'purchase/return',
         children: [
           {
-            path: '', component: PurchaseReturn
+            path: '',
+            component: PurchaseReturn,
           },
           {
-            path: 'create', component: PurchaseReturnCreate
+            path: 'create',
+            component: PurchaseReturnCreate,
           },
         ],
       },
@@ -149,7 +146,7 @@ export const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'purchase/requisition',
         pathMatch: 'full',
       },
       {

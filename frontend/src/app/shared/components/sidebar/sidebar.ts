@@ -39,12 +39,6 @@ export class Sidebar {
 
   navItems: NavItem[] = [
     {
-      label: 'Dashboard',
-      route: '/admin/dashboard',
-      icon: 'home',
-      key: 'dashboard',
-    },
-    {
       label: 'Purchase',
       icon: 'local_shipping',
       key: 'purchase',
