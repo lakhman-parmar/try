@@ -27,7 +27,7 @@ BEGIN
            OR e.remarks LIKE '%' + @Search + '%'
            OR c.name LIKE '%' + @Search + '%')
       AND (@FromDate IS NULL OR e.created_at >= @FromDate)
-      AND (@ToDate IS NULL OR e.created_at <= @ToDate);
+      AND (@ToDate IS NULL OR e.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)));
 
     SELECT
         e.estimation_id,
@@ -49,7 +49,7 @@ BEGIN
            OR e.remarks LIKE '%' + @Search + '%'
            OR c.name LIKE '%' + @Search + '%')
       AND (@FromDate IS NULL OR e.created_at >= @FromDate)
-      AND (@ToDate IS NULL OR e.created_at <= @ToDate)
+      AND (@ToDate IS NULL OR e.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)))
     GROUP BY
         e.estimation_id,
         e.estimation_number,

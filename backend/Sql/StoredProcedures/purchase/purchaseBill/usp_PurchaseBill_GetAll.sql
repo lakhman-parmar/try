@@ -32,7 +32,7 @@ BEGIN
             OR pb.bill_number  LIKE '%' + @Search + '%'
             OR s.name          LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR pb.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR pb.created_at <= @ToDate);
+      AND  (@ToDate   IS NULL OR pb.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)));
 
     -- Paged result set
     SELECT
@@ -56,7 +56,7 @@ BEGIN
             OR pb.bill_number  LIKE '%' + @Search + '%'
             OR s.name          LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR pb.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR pb.created_at <= @ToDate)
+      AND  (@ToDate   IS NULL OR pb.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)))
     GROUP BY
         pb.purchase_bill_id,
         pb.bill_number,

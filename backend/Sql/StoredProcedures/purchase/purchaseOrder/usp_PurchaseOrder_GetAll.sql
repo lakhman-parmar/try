@@ -33,7 +33,7 @@ BEGIN
             OR po.remarks     LIKE '%' + @Search + '%'
             OR s.name         LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR po.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR po.created_at <= @ToDate);
+      AND  (@ToDate   IS NULL OR po.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)));
 
     -- Paged result set
     SELECT
@@ -59,7 +59,7 @@ BEGIN
             OR po.remarks     LIKE '%' + @Search + '%'
             OR s.name         LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR po.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR po.created_at <= @ToDate)
+      AND  (@ToDate   IS NULL OR po.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)))
     GROUP BY
         po.purchase_order_id,
         po.po_number,

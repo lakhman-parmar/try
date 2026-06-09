@@ -34,7 +34,7 @@ BEGIN
            OR so.sales_order_number LIKE '%' + @Search + '%'
            OR c.name LIKE '%' + @Search + '%')
       AND (@FromDate IS NULL OR si.created_at >= @FromDate)
-      AND (@ToDate IS NULL OR si.created_at <= @ToDate);
+      AND (@ToDate IS NULL OR si.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)));
 
     SELECT
         si.sales_invoice_id,
@@ -63,7 +63,7 @@ BEGIN
            OR so.sales_order_number LIKE '%' + @Search + '%'
            OR c.name LIKE '%' + @Search + '%')
       AND (@FromDate IS NULL OR si.created_at >= @FromDate)
-      AND (@ToDate IS NULL OR si.created_at <= @ToDate)
+      AND (@ToDate IS NULL OR si.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)))
     GROUP BY
         si.sales_invoice_id,
         si.invoice_number,

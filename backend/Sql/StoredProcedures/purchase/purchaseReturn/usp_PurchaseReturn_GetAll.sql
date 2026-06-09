@@ -31,7 +31,7 @@ BEGIN
             OR pr.purchase_return_number LIKE '%' + @Search + '%'
             OR s.name                    LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR pr.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR pr.created_at <= @ToDate);
+      AND  (@ToDate   IS NULL OR pr.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)));
 
     SELECT
         pr.purchase_return_id,
@@ -53,7 +53,7 @@ BEGIN
             OR pr.purchase_return_number LIKE '%' + @Search + '%'
             OR s.name                    LIKE '%' + @Search + '%')
       AND  (@FromDate IS NULL OR pr.created_at >= @FromDate)
-      AND  (@ToDate   IS NULL OR pr.created_at <= @ToDate)
+      AND  (@ToDate   IS NULL OR pr.created_at < DATEADD(DAY,1,CAST(@ToDate AS DATE)))
     GROUP BY
         pr.purchase_return_id,
         pr.purchase_return_number,
