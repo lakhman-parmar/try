@@ -7,7 +7,7 @@ using RapidDev.Application.Services.Interfaces.Stock;
 
 namespace RapidDev.WebApi.Controllers.Stock;
 
-// [Authorize]
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/stock")]
 public class StockController(IStockService _stockService) : ControllerBase

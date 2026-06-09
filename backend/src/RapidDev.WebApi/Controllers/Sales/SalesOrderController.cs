@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.DTOs.Purchase;
@@ -6,6 +7,7 @@ using RapidDev.Application.Services.Interfaces.Sales;
 
 namespace RapidDev.WebApi.Controllers.Sales;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/sales-orders")]
 public class SalesOrderController : ControllerBase

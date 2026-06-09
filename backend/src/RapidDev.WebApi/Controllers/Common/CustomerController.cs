@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.Services.Interfaces.Common;
@@ -6,6 +7,7 @@ namespace RapidDev.WebApi.Controllers.Common;
 
 [ApiController]
 [Route("api/customers")]
+[Authorize(Roles = "Admin")]
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _customerService;

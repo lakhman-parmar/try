@@ -1,6 +1,7 @@
 using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using RapidDev.Application.Services.Implementation.Auth;
 using RapidDev.Application.Services.Implementation.Common;
@@ -30,15 +31,49 @@ Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-// Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+// ── Swagger with JWT Bearer support ─────────────────────────────────────────
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "RapidDev API", Version = "v1" });
+
+    // 1. Define the Bearer scheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.Http,
+        Scheme       = "bearer",          // lowercase — Swagger UI prefixes "Bearer " automatically
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Enter your JWT token. Example: eyJhbGci..."
+    });
+
+    // 2. Require it globally on every locked endpoint
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id   = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+// ────────────────────────────────────────────────────────────────────────────
+
+// Auth & Common
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
+// Purchase
 builder.Services.AddScoped<IPurchaseRequisitionRepository, PurchaseRequisitionRepository>();
 builder.Services.AddScoped<IPurchaseRequisitionService, PurchaseRequisitionService>();
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
@@ -48,6 +83,8 @@ builder.Services.AddScoped<IPurchaseBillService, PurchaseBillService>();
 builder.Services.AddScoped<IPurchaseBillPdfService, PurchaseBillPdfService>();
 builder.Services.AddScoped<IPurchaseReturnRepository, PurchaseReturnRepository>();
 builder.Services.AddScoped<IPurchaseReturnService, PurchaseReturnService>();
+
+// Sales
 builder.Services.AddScoped<IEstimationRepository, EstimationRepository>();
 builder.Services.AddScoped<IEstimationService, EstimationService>();
 builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
@@ -58,6 +95,7 @@ builder.Services.AddScoped<ISalesInvoicePdfService, SalesInvoicePdfService>();
 builder.Services.AddScoped<ISalesReturnRepository, SalesReturnRepository>();
 builder.Services.AddScoped<ISalesReturnService, SalesReturnService>();
 
+// Common / Stock
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -65,29 +103,31 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
 
-// JWT Authentication
+// ── JWT Authentication ───────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT Key is not configured.");
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
+        ValidateIssuer           = true,
+        ValidateAudience         = true,
+        ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+        ValidAudience            = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
+// ────────────────────────────────────────────────────────────────────────────
 
-// CORS
+// ── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
@@ -99,6 +139,7 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+// ────────────────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
@@ -114,7 +155,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AngularPolicy");
 
-app.UseAuthentication();
+app.UseAuthentication();   // must come before UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.DTOs.Purchase;
@@ -7,6 +8,7 @@ namespace RapidDev.WebApi.Controllers.Purchase;
 
 [ApiController]
 [Route("api/purchase-bills")]
+[Authorize(Roles = "Admin")]
 public class PurchaseBillController(
     IPurchaseBillService _service,
     IPurchaseBillPdfService _pdfService) : ControllerBase

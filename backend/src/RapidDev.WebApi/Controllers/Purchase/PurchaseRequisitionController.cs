@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RapidDev.Application.DTOs.Common;
 using RapidDev.Application.DTOs.Purchase;
@@ -5,6 +6,7 @@ using RapidDev.Application.Services.Interfaces.Purchase;
 
 namespace RapidDev.WebApi.Controllers.Purchase;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/purchase-requisitions")]
 public class PurchaseRequisitionController(IPurchaseRequisitionService _service) : ControllerBase
