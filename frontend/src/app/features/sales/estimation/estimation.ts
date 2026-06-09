@@ -49,7 +49,6 @@ export class Estimation implements OnInit {
 
   loading = signal(false);
   detailLoading = signal(false);
-  errorMsg = signal<string | null>(null);
   pagedResult = signal<PagedResult<EstimationListItemDto> | null>(null);
   customers = signal<CustomerDto[]>([]);
   expandedId = signal<number | null>(null);
@@ -87,7 +86,6 @@ export class Estimation implements OnInit {
 
   loadList(): void {
     this.loading.set(true);
-    this.errorMsg.set(null);
 
     this.svc
       .getAll({
@@ -103,7 +101,6 @@ export class Estimation implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load estimations.'),
       });
   }
 
@@ -171,7 +168,6 @@ export class Estimation implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load estimation details.'),
       });
   }
 
@@ -198,7 +194,6 @@ export class Estimation implements OnInit {
       next: (res) => {
         if (res.isSuccess) this.loadList();
       },
-      error: () => this.errorMsg.set('Failed to delete estimation.'),
     });
   }
 

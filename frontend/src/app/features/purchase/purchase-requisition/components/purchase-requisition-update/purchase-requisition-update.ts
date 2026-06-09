@@ -39,7 +39,6 @@ export class PurchaseRequisitionUpdate implements OnInit {
 
   loading = signal(false);
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
 
   products = signal<ProductDto[]>([]);
   formRemarks = signal('');
@@ -53,7 +52,6 @@ export class PurchaseRequisitionUpdate implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      this.errorMsg.set('Invalid requisition ID.');
       return;
     }
     this.requisitionId = id;
@@ -81,11 +79,8 @@ export class PurchaseRequisitionUpdate implements OnInit {
             }));
             this.lineItems.set(items);
             this.resetProductControls(items);
-          } else {
-            this.errorMsg.set(res.detail.message ?? 'Failed to load requisition.');
           }
         },
-        error: () => this.errorMsg.set('Failed to load requisition form.'),
       });
   }
 
@@ -152,7 +147,10 @@ export class PurchaseRequisitionUpdate implements OnInit {
     this.adjustQuantity(index, delta);
     const key = `${index}_${delta}`;
     if (!this.adjustIntervals.has(key)) {
-      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
     }
   }
 
@@ -203,12 +201,10 @@ export class PurchaseRequisitionUpdate implements OnInit {
   updateRequisition(): void {
     const validItems = this.lineItems().filter((item) => item.productId !== null);
     if (validItems.length === 0) {
-      this.errorMsg.set('Add at least one product before updating.');
       return;
     }
 
     this.saving.set(true);
-    this.errorMsg.set(null);
     this.svc
       .update(this.requisitionId, {
         remarks: this.formRemarks() || undefined,
@@ -222,12 +218,7 @@ export class PurchaseRequisitionUpdate implements OnInit {
         next: (res) => {
           if (res.isSuccess) {
             this.router.navigate(['/admin/purchase/requisition']);
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to update requisition.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(err?.error?.message ?? 'Failed to update requisition.');
         },
       });
   }

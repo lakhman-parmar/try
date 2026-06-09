@@ -16,7 +16,6 @@ import {
   SalesReturnDetailDto,
   SalesReturnListItemDto,
 } from './models/sales-return.model';
-import { getApiErrorMessage } from '../sales-invoice/utils/error-message.util';
 
 @Component({
   selector: 'app-sales-return',
@@ -44,7 +43,6 @@ export class SalesReturn implements OnInit {
   detailColumns = ['detail'];
   pageSize = 20;
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
   pagedResult = signal<PagedResult<SalesReturnListItemDto> | null>(null);
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
@@ -82,7 +80,6 @@ export class SalesReturn implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: (err) => this.errorMsg.set(getApiErrorMessage(err, 'Failed to load sales returns.')),
       });
   }
 
@@ -103,8 +100,6 @@ export class SalesReturn implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load return details.')),
       });
   }
 

@@ -45,7 +45,6 @@ export class PurchaseOrderDetail implements OnInit {
 
   loading = signal(false);
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
 
   // Data
   order = signal<PurchaseOrderDetailDto | null>(null);
@@ -77,12 +76,13 @@ export class PurchaseOrderDetail implements OnInit {
   });
   readonly grandTotal = computed(() => this.subTotal() + this.taxAmount());
 
-  readonly validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  readonly validLineCount = computed(
+    () => this.lineItems().filter((item) => item.productId).length,
+  );
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      this.errorMsg.set('Invalid order ID.');
       return;
     }
     this.orderId = id;
@@ -125,11 +125,8 @@ export class PurchaseOrderDetail implements OnInit {
             this.selectedReqIds.set(reqIds);
 
             this.resetProductControls(items);
-          } else {
-            this.errorMsg.set(res.order.message ?? 'Failed to load purchase order.');
           }
         },
-        error: () => this.errorMsg.set('Failed to load purchase order details.'),
       });
   }
 
@@ -259,7 +256,10 @@ export class PurchaseOrderDetail implements OnInit {
     this.adjustQuantity(index, delta);
     const key = `${index}_${delta}`;
     if (!this.adjustIntervals.has(key)) {
-      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
     }
   }
 
@@ -318,12 +318,10 @@ export class PurchaseOrderDetail implements OnInit {
   submit(): void {
     const validItems = this.lineItems().filter((item) => item.productId !== null);
     if (validItems.length === 0) {
-      this.errorMsg.set('Add at least one product before saving.');
       return;
     }
 
     this.saving.set(true);
-    this.errorMsg.set(null);
 
     this.svc
       .update(this.orderId, {
@@ -341,12 +339,7 @@ export class PurchaseOrderDetail implements OnInit {
         next: (res) => {
           if (res.isSuccess) {
             this.router.navigate(['/admin/purchase/order']);
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to update purchase order.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(err?.error?.message ?? 'Failed to update purchase order.');
         },
       });
   }
@@ -367,7 +360,9 @@ export class PurchaseOrderDetail implements OnInit {
   formatDate(dateStr?: string | null): string {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   }
 }

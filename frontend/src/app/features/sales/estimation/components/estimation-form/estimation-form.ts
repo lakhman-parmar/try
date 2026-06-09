@@ -42,7 +42,6 @@ export class EstimationForm implements OnInit {
 
   loading = signal(false);
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
   customers = signal<CustomerDto[]>([]);
   products = signal<ProductDto[]>([]);
   customerId = signal<number | null>(null);
@@ -89,7 +88,7 @@ export class EstimationForm implements OnInit {
               this.resetProductControls(items);
             }
           },
-          error: () => this.errorMsg.set('Failed to load estimation form.'),
+          error: () => {},
         });
       return;
     }
@@ -106,7 +105,6 @@ export class EstimationForm implements OnInit {
           this.customerControl.setValue(this.customerControl.value ?? '');
           this.resetProductControls(this.lineItems());
         },
-        error: () => this.errorMsg.set('Failed to load estimation form.'),
       });
   }
 
@@ -238,14 +236,7 @@ export class EstimationForm implements OnInit {
         quantity: item.quantity,
       }));
 
-    const validationError = this.getValidationError(items);
-    if (validationError) {
-      this.errorMsg.set(validationError);
-      return;
-    }
-
     this.saving.set(true);
-    this.errorMsg.set(null);
 
     const payload = {
       customerId: this.customerId() ?? undefined,
@@ -260,9 +251,7 @@ export class EstimationForm implements OnInit {
         .subscribe({
           next: (res) => {
             if (res.isSuccess) this.cancel();
-            else this.errorMsg.set(res.message ?? 'Failed to save estimation.');
           },
-          error: (err) => this.errorMsg.set(err?.error?.message ?? 'Failed to save estimation.'),
         });
       return;
     }
@@ -273,9 +262,7 @@ export class EstimationForm implements OnInit {
       .subscribe({
         next: (res) => {
           if (res.isSuccess) this.cancel();
-          else this.errorMsg.set(res.message ?? 'Failed to save estimation.');
         },
-        error: (err) => this.errorMsg.set(err?.error?.message ?? 'Failed to save estimation.'),
       });
   }
 
@@ -285,17 +272,5 @@ export class EstimationForm implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
-  }
-
-  private getValidationError(items: Array<{ productId: number; quantity: number }>): string | null {
-    if (this.customerControl.value && typeof this.customerControl.value === 'string') {
-      return 'Select a valid customer from the list or clear the customer field.';
-    }
-    if (this.remarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
-    if (items.length === 0) return 'Add at least one product.';
-    if (items.length > 100) return 'An estimation cannot contain more than 100 items.';
-    if (items.some((item) => item.quantity <= 0)) return 'Quantity must be greater than zero.';
-    if (items.some((item) => item.quantity > 999999)) return 'Quantity is too large.';
-    return null;
   }
 }

@@ -35,7 +35,6 @@ export class PurchaseRequisitionCreate implements OnInit {
   private readonly router = inject(Router);
 
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
 
   products = signal<ProductDto[]>([]);
   formRemarks = signal('');
@@ -125,7 +124,10 @@ export class PurchaseRequisitionCreate implements OnInit {
     this.adjustQuantity(index, delta);
     const key = `${index}_${delta}`;
     if (!this.adjustIntervals.has(key)) {
-      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
     }
   }
 
@@ -176,12 +178,10 @@ export class PurchaseRequisitionCreate implements OnInit {
   submitRequisition(): void {
     const validItems = this.lineItems().filter((item) => item.productId !== null);
     if (validItems.length === 0) {
-      this.errorMsg.set('Add at least one product before submitting.');
       return;
     }
 
     this.saving.set(true);
-    this.errorMsg.set(null);
     this.svc
       .create({
         remarks: this.formRemarks() || undefined,
@@ -195,12 +195,7 @@ export class PurchaseRequisitionCreate implements OnInit {
         next: (res) => {
           if (res.isSuccess) {
             this.router.navigate(['/admin/purchase/requisition']);
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to create requisition.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(err?.error?.message ?? 'Failed to create requisition.');
         },
       });
   }

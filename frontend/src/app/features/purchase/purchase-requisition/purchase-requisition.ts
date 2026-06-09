@@ -44,7 +44,6 @@ export class PurchaseRequisition implements OnInit {
   pageSize = 10;
 
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
 
   pagedResult = signal<PagedResult<PurchaseRequisitionListItemDto> | null>(null);
   searchTerm = signal('');
@@ -88,7 +87,6 @@ export class PurchaseRequisition implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load requisitions.'),
       });
   }
 
@@ -110,7 +108,6 @@ export class PurchaseRequisition implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load requisition details.'),
       });
   }
 
@@ -169,7 +166,6 @@ export class PurchaseRequisition implements OnInit {
           this.loadList();
         }
       },
-      error: () => this.errorMsg.set('Failed to delete requisition.'),
     });
   }
 

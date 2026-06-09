@@ -42,7 +42,6 @@ export class PurchaseBillCreate implements OnInit {
   private readonly router = inject(Router);
 
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
 
   formTaxPercentage = signal<number | null>(null);
   formRemarks = signal('');
@@ -79,7 +78,9 @@ export class PurchaseBillCreate implements OnInit {
 
   readonly grandTotal = computed(() => this.subTotal() + this.taxAmount());
 
-  readonly validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  readonly validLineCount = computed(
+    () => this.lineItems().filter((item) => item.productId).length,
+  );
 
   ngOnInit(): void {
     this.loadingProducts.set(true);
@@ -88,10 +89,12 @@ export class PurchaseBillCreate implements OnInit {
       pos: this.svc.getOrdersForBill(),
       products: this.svc.getProducts(),
     })
-      .pipe(finalize(() => {
-        this.loadingProducts.set(false);
-        this.loadingOrders.set(false);
-      }))
+      .pipe(
+        finalize(() => {
+          this.loadingProducts.set(false);
+          this.loadingOrders.set(false);
+        }),
+      )
       .subscribe({
         next: (res) => {
           if (res.pos.isSuccess) this.ordersForBill.set(res.pos.data);
@@ -104,7 +107,6 @@ export class PurchaseBillCreate implements OnInit {
             }
           }
         },
-        error: () => this.errorMsg.set('Failed to load purchase order or product data.'),
       });
   }
 
@@ -247,7 +249,10 @@ export class PurchaseBillCreate implements OnInit {
     this.adjustQuantity(index, delta);
     const key = `${index}_${delta}`;
     if (!this.adjustIntervals.has(key)) {
-      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
     }
   }
 
@@ -306,10 +311,8 @@ export class PurchaseBillCreate implements OnInit {
   requestGenerateBill(): void {
     const validItems = this.lineItems().filter((i) => i.productId !== null);
     if (validItems.length === 0) {
-      this.errorMsg.set('Add at least one product before generating.');
       return;
     }
-    this.errorMsg.set(null);
     this.showConfirmModal.set(true);
   }
 
@@ -344,14 +347,7 @@ export class PurchaseBillCreate implements OnInit {
           if (detailRes.isSuccess) {
             await downloadPurchaseBillPdf(detailRes.data);
             this.router.navigate(['/admin/purchase/bill']);
-          } else {
-            this.errorMsg.set(detailRes.message ?? 'Failed to load bill for PDF generation.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(
-            err?.message ?? err?.error?.message ?? 'Failed to generate purchase bill.',
-          );
         },
       });
   }

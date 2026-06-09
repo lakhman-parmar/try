@@ -16,7 +16,6 @@ import {
   PurchaseReturnDetailDto,
   PurchaseReturnListItemDto,
 } from './models/purchase-return.model';
-import { getApiErrorMessage } from '../../sales/sales-invoice/utils/error-message.util';
 
 @Component({
   selector: 'app-purchase-return',
@@ -44,7 +43,6 @@ export class PurchaseReturn implements OnInit {
   detailColumns = ['detail'];
   pageSize = 20;
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
   pagedResult = signal<PagedResult<PurchaseReturnListItemDto> | null>(null);
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
@@ -82,7 +80,6 @@ export class PurchaseReturn implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: (err) => this.errorMsg.set(getApiErrorMessage(err, 'Failed to load purchase returns.')),
       });
   }
 
@@ -103,8 +100,6 @@ export class PurchaseReturn implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load return details.')),
       });
   }
 

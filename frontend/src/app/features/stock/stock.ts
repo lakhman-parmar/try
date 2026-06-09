@@ -30,7 +30,6 @@ export class Stock implements OnInit {
   pageSize = 20;
 
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
 
   pagedResult = signal<PagedResult<StockListItemDto> | null>(null);
   searchTerm = signal('');
@@ -39,9 +38,7 @@ export class Stock implements OnInit {
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
   readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() =>
-    Array.from({ length: this.totalPages() }, (_, i) => i + 1),
-  );
+  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(() => !!this.searchTerm());
 
   // Modal state
@@ -70,9 +67,7 @@ export class Stock implements OnInit {
       .subscribe({
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
-          else this.errorMsg.set(res.message ?? 'Failed to load stock.');
         },
-        error: () => this.errorMsg.set('Failed to load stock.'),
       });
   }
 

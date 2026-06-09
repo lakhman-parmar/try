@@ -9,10 +9,6 @@
     </div>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="form-card">
     @if (loadingProducts() || loadingReqs()) {
       <div class="loading-state">

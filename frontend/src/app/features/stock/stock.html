@@ -6,10 +6,6 @@
     </div>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="filter-card">
     <label class="filter-field search-field">
       <span class="field-label">Search</span>
@@ -45,7 +41,6 @@
     } @else {
       <div class="table-wrap">
         <table mat-table [dataSource]="items()" class="stock-table">
-
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Product</th>
             <td mat-cell *matCellDef="let row">
@@ -119,7 +114,9 @@
       @if (totalPages() > 1) {
         <div class="pagination">
           <span>
-            Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minOf(currentPage() * pageSize, totalCount()) }}
+            Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{
+              minOf(currentPage() * pageSize, totalCount())
+            }}
             of {{ totalCount() }}
           </span>
           <div class="page-actions">

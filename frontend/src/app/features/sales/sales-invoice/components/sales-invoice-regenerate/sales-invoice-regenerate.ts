@@ -9,7 +9,6 @@ import { MatTableModule } from '@angular/material/table';
 import { SalesInvoiceService } from '../../services/sales-invoice.service';
 import { RegenerateSalesInvoiceDto, SalesInvoiceDetailDto } from '../../models/sales-invoice.model';
 import { downloadSalesInvoicePdf } from '../../utils/sales-invoice-pdf.util';
-import { getApiErrorMessage } from '../../utils/error-message.util';
 
 @Component({
   selector: 'app-sales-invoice-regenerate',
@@ -25,7 +24,6 @@ export class SalesInvoiceRegenerate implements OnInit {
 
   loading = signal(true);
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
   sourceInvoice = signal<SalesInvoiceDetailDto | null>(null);
   regenTaxPercentage = signal<number | null>(null);
   regenRemarks = signal('');
@@ -49,7 +47,6 @@ export class SalesInvoiceRegenerate implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.errorMsg.set('No invoice ID provided.');
       this.loading.set(false);
       return;
     }
@@ -67,25 +64,12 @@ export class SalesInvoiceRegenerate implements OnInit {
             this.sourceInvoice.set(res.data);
             this.regenTaxPercentage.set(res.data.taxPercentage ?? null);
             this.regenRemarks.set('');
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to load invoice.');
           }
         },
-        error: (err) => this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoice.')),
       });
   }
 
   requestRegenerate(): void {
-    const tax = this.regenTaxPercentage();
-    if (tax != null && (tax < 0 || tax > 100)) {
-      this.errorMsg.set('Tax percentage must be between 0 and 100.');
-      return;
-    }
-    if (this.regenRemarks().length > 1000) {
-      this.errorMsg.set('Remarks cannot exceed 1000 characters.');
-      return;
-    }
-    this.errorMsg.set(null);
     this.showConfirm.set(true);
   }
   cancelConfirm(): void {
@@ -117,12 +101,8 @@ export class SalesInvoiceRegenerate implements OnInit {
           if (detailRes.isSuccess) {
             downloadSalesInvoicePdf(detailRes.data);
             this.router.navigate(['/admin/sales/invoice']);
-          } else {
-            this.errorMsg.set(detailRes.message ?? 'Failed to load regenerated invoice for PDF.');
           }
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to regenerate sales invoice.')),
       });
   }
 

@@ -22,7 +22,6 @@ export class StockDetailModal implements OnInit {
   close = output<void>();
 
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
   detail = signal<StockDetailDto | null>(null);
 
   movementColumns = ['date', 'type', 'quantity', 'price', 'reason'];
@@ -35,9 +34,7 @@ export class StockDetailModal implements OnInit {
       .subscribe({
         next: (res) => {
           if (res.isSuccess) this.detail.set(res.data);
-          else this.errorMsg.set(res.message ?? 'Failed to load stock detail.');
         },
-        error: () => this.errorMsg.set('Failed to load stock detail.'),
       });
   }
 

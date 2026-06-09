@@ -10,10 +10,6 @@
     </button>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="filter-card">
     <label class="filter-field search-field">
       <span class="field-label">Search</span>
@@ -82,7 +78,11 @@
           <ng-container matColumnDef="toggle">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let row">
-              <button class="icon-action" type="button" (click)="toggleExpand(row.purchaseBillId, $event)">
+              <button
+                class="icon-action"
+                type="button"
+                (click)="toggleExpand(row.purchaseBillId, $event)"
+              >
                 <span class="material-symbols-outlined">{{
                   expandedId() === row.purchaseBillId ? 'expand_less' : 'expand_more'
                 }}</span>
@@ -195,18 +195,38 @@
                       <ng-container matColumnDef="total">
                         <th mat-header-cell *matHeaderCellDef>Total</th>
                         <td mat-cell *matCellDef="let item">
-                          {{ item.unitPrice != null ? formatCurrency(item.quantity * item.unitPrice) : '-' }}
+                          {{
+                            item.unitPrice != null
+                              ? formatCurrency(item.quantity * item.unitPrice)
+                              : '-'
+                          }}
                         </td>
                       </ng-container>
                       <tr
                         mat-header-row
-                        *matHeaderRowDef="['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total']"
+                        *matHeaderRowDef="[
+                          'product',
+                          'unit',
+                          'po',
+                          'requisition',
+                          'quantity',
+                          'unitPrice',
+                          'total',
+                        ]"
                       ></tr>
                       <tr
                         mat-row
                         *matRowDef="
                           let row;
-                          columns: ['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total']
+                          columns: [
+                            'product',
+                            'unit',
+                            'po',
+                            'requisition',
+                            'quantity',
+                            'unitPrice',
+                            'total',
+                          ]
                         "
                       ></tr>
                     </table>

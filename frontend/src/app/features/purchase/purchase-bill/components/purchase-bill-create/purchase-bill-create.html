@@ -9,10 +9,6 @@
     </div>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="form-card">
     @if (loadingProducts() || loadingOrders()) {
       <div class="loading-state">
@@ -78,9 +74,7 @@
                   <div class="po-card-header">
                     <span class="material-symbols-outlined">
                       {{
-                        isPoSelected(po.purchaseOrderId)
-                          ? 'check_circle'
-                          : 'radio_button_unchecked'
+                        isPoSelected(po.purchaseOrderId) ? 'check_circle' : 'radio_button_unchecked'
                       }}
                     </span>
                     <div class="po-info">
@@ -277,7 +271,12 @@
           <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
             Cancel
           </button>
-          <button class="primary-action" type="button" (click)="requestGenerateBill()" [disabled]="saving()">
+          <button
+            class="primary-action"
+            type="button"
+            (click)="requestGenerateBill()"
+            [disabled]="saving()"
+          >
             @if (saving()) {
               Saving...
             } @else {
@@ -301,7 +300,8 @@
       <div class="modal-body">
         <p>
           This will create a new purchase bill for
-          <strong>{{ validLineCount() }} item(s)</strong> and update stock immediately. This action cannot be undone.
+          <strong>{{ validLineCount() }} item(s)</strong> and update stock immediately. This action
+          cannot be undone.
         </p>
         <div class="summary-box">
           <div class="summary-box-row">

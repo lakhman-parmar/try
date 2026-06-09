@@ -58,7 +58,6 @@ export class SalesOrder implements OnInit {
 
   loading = signal(false);
   detailLoading = signal(false);
-  errorMsg = signal<string | null>(null);
   pagedResult = signal<PagedResult<SalesOrderListItemDto> | null>(null);
   customers = signal<CustomerDto[]>([]);
   expandedId = signal<number | null>(null);
@@ -97,7 +96,6 @@ export class SalesOrder implements OnInit {
 
   private loadList(): void {
     this.loading.set(true);
-    this.errorMsg.set(null);
 
     this.svc
       .getAll({
@@ -113,7 +111,6 @@ export class SalesOrder implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load sales orders.'),
       });
   }
 
@@ -181,7 +178,6 @@ export class SalesOrder implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load sales order details.'),
       });
   }
 
@@ -208,7 +204,6 @@ export class SalesOrder implements OnInit {
       next: (res) => {
         if (res.isSuccess) this.loadList();
       },
-      error: () => this.errorMsg.set('Failed to delete sales order.'),
     });
   }
 

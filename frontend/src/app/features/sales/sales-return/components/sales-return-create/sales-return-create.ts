@@ -13,7 +13,6 @@ import {
   SalesInvoiceForReturnDto,
   SalesInvoiceItemForReturnDto,
 } from '../../models/sales-return.model';
-import { getApiErrorMessage } from '../../../sales-invoice/utils/error-message.util';
 
 @Component({
   selector: 'app-sales-return-create',
@@ -28,7 +27,6 @@ export class SalesReturnCreate implements OnInit {
 
   saving = signal(false);
   loadingInvoices = signal(false);
-  errorMsg = signal<string | null>(null);
   formRemarks = signal('');
   invoicesForReturn = signal<SalesInvoiceForReturnDto[]>([]);
   selectedInvoiceId = signal<number | null>(null);
@@ -63,8 +61,6 @@ export class SalesReturnCreate implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.invoicesForReturn.set(res.data);
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoices for return.')),
       });
   }
 
@@ -80,7 +76,6 @@ export class SalesReturnCreate implements OnInit {
     this.selectedInvoiceId.set(invoice.salesInvoiceId);
     this.lineItems.set(invoice.items.map((item) => this.invoiceItemToLineItem(item, invoice)));
     this.showInvoicePanel.set(false);
-    this.errorMsg.set(null);
   }
 
   private invoiceItemToLineItem(
@@ -121,12 +116,6 @@ export class SalesReturnCreate implements OnInit {
   }
 
   requestCreateReturn(): void {
-    const validationError = this.getValidationError();
-    if (validationError) {
-      this.errorMsg.set(validationError);
-      return;
-    }
-    this.errorMsg.set(null);
     this.showConfirmModal.set(true);
   }
 
@@ -156,12 +145,8 @@ export class SalesReturnCreate implements OnInit {
         next: (res) => {
           if (res.isSuccess) {
             this.router.navigate(['/admin/sales/return']);
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to create sales return.');
           }
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to create sales return.')),
       });
   }
 
@@ -177,25 +162,5 @@ export class SalesReturnCreate implements OnInit {
     return val == null
       ? '-'
       : val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  private getValidationError(): string | null {
-    if (!this.selectedInvoice()) return 'Select an invoice before creating a return.';
-    if (this.formRemarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
-    if (this.lineItems().length === 0) {
-      return 'Add at least one invoice item before creating a return.';
-    }
-    if (this.lineItems().length > 100) return 'A sales return cannot contain more than 100 items.';
-    if (this.lineItems().some((item) => item.quantity <= 0)) {
-      return 'Return quantity must be greater than zero.';
-    }
-    if (this.lineItems().some((item) => item.quantity > item.returnableQuantity)) {
-      return 'One or more return items exceed the returnable quantity.';
-    }
-    const invoiceItemIds = this.lineItems().map((item) => item.salesInvoiceItemId);
-    if (new Set(invoiceItemIds).size !== invoiceItemIds.length) {
-      return 'A sales invoice item cannot be returned more than once in the same return.';
-    }
-    return null;
   }
 }

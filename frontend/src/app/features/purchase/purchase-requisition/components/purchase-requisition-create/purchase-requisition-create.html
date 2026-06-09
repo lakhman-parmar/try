@@ -9,10 +9,6 @@
     </div>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="form-card">
     <label class="form-field">
       <span class="field-label">Remarks</span>
@@ -124,12 +120,19 @@
     </div>
 
     <div class="form-actions">
-      <span>{{ lineItems().length }} product{{ lineItems().length === 1 ? '' : 's' }} selected</span>
+      <span
+        >{{ lineItems().length }} product{{ lineItems().length === 1 ? '' : 's' }} selected</span
+      >
       <div>
         <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
           Cancel
         </button>
-        <button class="primary-action" type="button" (click)="submitRequisition()" [disabled]="saving()">
+        <button
+          class="primary-action"
+          type="button"
+          (click)="submitRequisition()"
+          [disabled]="saving()"
+        >
           @if (saving()) {
             Saving...
           } @else {

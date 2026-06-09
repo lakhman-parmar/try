@@ -13,13 +13,7 @@ import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
 @Component({
   selector: 'app-purchase-bill-regenerate',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatTableModule,
-  ],
+  imports: [CommonModule, FormsModule, MatCardModule, MatProgressSpinnerModule, MatTableModule],
   templateUrl: './purchase-bill-regenerate.html',
   styleUrl: './purchase-bill-regenerate.scss',
 })
@@ -30,7 +24,6 @@ export class PurchaseBillRegenerate implements OnInit {
 
   loading = signal(true);
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
 
   sourceBill = signal<PurchaseBillDetailDto | null>(null);
 
@@ -60,7 +53,6 @@ export class PurchaseBillRegenerate implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.errorMsg.set('No bill ID provided.');
       this.loading.set(false);
       return;
     }
@@ -78,12 +70,7 @@ export class PurchaseBillRegenerate implements OnInit {
             this.sourceBill.set(res.data);
             this.regenTaxPercentage.set(res.data.taxPercentage ?? null);
             this.regenRemarks.set('');
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to load bill.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(err?.error?.message ?? 'Failed to load bill.');
         },
       });
   }
@@ -121,14 +108,7 @@ export class PurchaseBillRegenerate implements OnInit {
           if (detailRes.isSuccess) {
             await downloadPurchaseBillPdf(detailRes.data);
             this.router.navigate(['/admin/purchase/bill']);
-          } else {
-            this.errorMsg.set(detailRes.message ?? 'Failed to load regenerated bill for PDF.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(
-            err?.message ?? err?.error?.message ?? 'Failed to regenerate purchase bill.',
-          );
         },
       });
   }

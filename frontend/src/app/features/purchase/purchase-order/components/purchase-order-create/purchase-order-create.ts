@@ -42,7 +42,6 @@ export class PurchaseOrderCreate implements OnInit {
   saving = signal(false);
   loadingReqs = signal(false);
   loadingProducts = signal(false);
-  errorMsg = signal<string | null>(null);
 
   // Data
   requisitions = signal<RequisitionForPoDto[]>([]);
@@ -65,10 +64,7 @@ export class PurchaseOrderCreate implements OnInit {
 
   // Computed
   readonly subTotal = computed(() =>
-    this.lineItems().reduce(
-      (sum, item) => sum + (item.unitPrice ?? 0) * item.quantity,
-      0,
-    ),
+    this.lineItems().reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
   );
 
   readonly taxAmount = computed(() => {
@@ -78,7 +74,9 @@ export class PurchaseOrderCreate implements OnInit {
 
   readonly grandTotal = computed(() => this.subTotal() + this.taxAmount());
 
-  readonly validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  readonly validLineCount = computed(
+    () => this.lineItems().filter((item) => item.productId).length,
+  );
 
   ngOnInit(): void {
     this.loadingProducts.set(true);
@@ -87,10 +85,12 @@ export class PurchaseOrderCreate implements OnInit {
       reqs: this.svc.getRequisitionsForPo(),
       products: this.svc.getProducts(),
     })
-      .pipe(finalize(() => {
-        this.loadingProducts.set(false);
-        this.loadingReqs.set(false);
-      }))
+      .pipe(
+        finalize(() => {
+          this.loadingProducts.set(false);
+          this.loadingReqs.set(false);
+        }),
+      )
       .subscribe({
         next: (res) => {
           if (res.reqs.isSuccess) this.requisitions.set(res.reqs.data);
@@ -103,7 +103,6 @@ export class PurchaseOrderCreate implements OnInit {
             }
           }
         },
-        error: () => this.errorMsg.set('Failed to load requisition or product data.'),
       });
   }
 
@@ -233,7 +232,10 @@ export class PurchaseOrderCreate implements OnInit {
     this.adjustQuantity(index, delta);
     const key = `${index}_${delta}`;
     if (!this.adjustIntervals.has(key)) {
-      this.adjustIntervals.set(key, setInterval(() => this.adjustQuantity(index, delta), 150));
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
     }
   }
 
@@ -292,12 +294,10 @@ export class PurchaseOrderCreate implements OnInit {
   submit(): void {
     const validItems = this.lineItems().filter((item) => item.productId !== null);
     if (validItems.length === 0) {
-      this.errorMsg.set('Add at least one product before submitting.');
       return;
     }
 
     this.saving.set(true);
-    this.errorMsg.set(null);
 
     this.svc
       .create({
@@ -315,12 +315,7 @@ export class PurchaseOrderCreate implements OnInit {
         next: (res) => {
           if (res.isSuccess) {
             this.router.navigate(['/admin/purchase/order']);
-          } else {
-            this.errorMsg.set(res.message ?? 'Failed to create purchase order.');
           }
-        },
-        error: (err) => {
-          this.errorMsg.set(err?.error?.message ?? 'Failed to create purchase order.');
         },
       });
   }

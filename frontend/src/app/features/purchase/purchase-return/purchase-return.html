@@ -10,10 +10,6 @@
     </button>
   </div>
 
-  @if (errorMsg()) {
-    <mat-card class="message-card error-card">{{ errorMsg() }}</mat-card>
-  }
-
   <mat-card class="filter-card">
     <label class="filter-field search-field">
       <span class="field-label">Search</span>
@@ -123,11 +119,15 @@
                     <table mat-table [dataSource]="expandedDetail()!.items" class="items-table">
                       <ng-container matColumnDef="product"
                         ><th mat-header-cell *matHeaderCellDef>Product</th>
-                        <td mat-cell *matCellDef="let item">{{ item.productName }}</td></ng-container
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.productName }}
+                        </td></ng-container
                       >
                       <ng-container matColumnDef="unit"
                         ><th mat-header-cell *matHeaderCellDef>Unit</th>
-                        <td mat-cell *matCellDef="let item">{{ item.unitShortName || '-' }}</td></ng-container
+                        <td mat-cell *matCellDef="let item">
+                          {{ item.unitShortName || '-' }}
+                        </td></ng-container
                       >
                       <ng-container matColumnDef="bill"
                         ><th mat-header-cell *matHeaderCellDef>Bill</th>
@@ -144,7 +144,9 @@
                       >
                       <ng-container matColumnDef="unitPrice"
                         ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
-                        <td mat-cell *matCellDef="let item">{{ formatCurrency(item.unitPrice) }}</td></ng-container
+                        <td mat-cell *matCellDef="let item">
+                          {{ formatCurrency(item.unitPrice) }}
+                        </td></ng-container
                       >
                       <ng-container matColumnDef="total"
                         ><th mat-header-cell *matHeaderCellDef>Total</th>
@@ -158,11 +160,21 @@
                       >
                       <tr
                         mat-header-row
-                        *matHeaderRowDef="['product', 'unit', 'bill', 'quantity', 'unitPrice', 'total']"
+                        *matHeaderRowDef="[
+                          'product',
+                          'unit',
+                          'bill',
+                          'quantity',
+                          'unitPrice',
+                          'total',
+                        ]"
                       ></tr>
                       <tr
                         mat-row
-                        *matRowDef="let row; columns: ['product', 'unit', 'bill', 'quantity', 'unitPrice', 'total']"
+                        *matRowDef="
+                          let row;
+                          columns: ['product', 'unit', 'bill', 'quantity', 'unitPrice', 'total']
+                        "
                       ></tr>
                     </table>
                   }

@@ -53,7 +53,6 @@ export class PurchaseOrder implements OnInit {
   pageSize = 10;
 
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
 
   pagedResult = signal<PagedResult<PurchaseOrderListItemDto> | null>(null);
   searchTerm = signal('');
@@ -97,7 +96,6 @@ export class PurchaseOrder implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load purchase orders.'),
       });
   }
 
@@ -118,7 +116,6 @@ export class PurchaseOrder implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: () => this.errorMsg.set('Failed to load order details.'),
       });
   }
 
@@ -176,7 +173,6 @@ export class PurchaseOrder implements OnInit {
           this.loadList();
         }
       },
-      error: () => this.errorMsg.set('Failed to delete purchase order.'),
     });
   }
 

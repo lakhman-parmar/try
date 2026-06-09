@@ -18,7 +18,6 @@ import {
   SalesOrderItemForInvoiceDto,
 } from '../../models/sales-invoice.model';
 import { downloadSalesInvoicePdf } from '../../utils/sales-invoice-pdf.util';
-import { getApiErrorMessage } from '../../utils/error-message.util';
 
 @Component({
   selector: 'app-sales-invoice-create',
@@ -43,7 +42,6 @@ export class SalesInvoiceCreate implements OnInit {
   private readonly router = inject(Router);
 
   saving = signal(false);
-  errorMsg = signal<string | null>(null);
   formTaxPercentage = signal<number | null>(null);
   formRemarks = signal('');
   ordersForInvoice = signal<SalesOrderForInvoiceDto[]>([]);
@@ -85,8 +83,6 @@ export class SalesInvoiceCreate implements OnInit {
           if (res.products.isSuccess) this.products.set(res.products.data);
           this.addDirectLineItem();
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load sales order or product data.')),
       });
   }
 
@@ -216,12 +212,6 @@ export class SalesInvoiceCreate implements OnInit {
 
   requestGenerateInvoice(): void {
     const validItems = this.lineItems().filter((i) => i.productId !== null);
-    const validationError = this.getValidationError(validItems);
-    if (validationError) {
-      this.errorMsg.set(validationError);
-      return;
-    }
-    this.errorMsg.set(null);
     this.showConfirmModal.set(true);
   }
 
@@ -260,12 +250,8 @@ export class SalesInvoiceCreate implements OnInit {
           if (detailRes.isSuccess) {
             downloadSalesInvoicePdf(detailRes.data);
             this.router.navigate(['/admin/sales/invoice']);
-          } else {
-            this.errorMsg.set(detailRes.message ?? 'Failed to load invoice for PDF generation.');
           }
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to create sales invoice.')),
       });
   }
 
@@ -316,25 +302,5 @@ export class SalesInvoiceCreate implements OnInit {
     return productId
       ? this.products().find((product) => product.productId === productId)
       : undefined;
-  }
-
-  private getValidationError(items: InvoiceLineItem[]): string | null {
-    if (this.formRemarks().length > 1000) return 'Remarks cannot exceed 1000 characters.';
-    const tax = this.formTaxPercentage();
-    if (tax != null && (tax < 0 || tax > 100)) return 'Tax percentage must be between 0 and 100.';
-    if (items.length === 0) return 'Add at least one product before creating an invoice.';
-    if (items.length > 100) return 'A sales invoice cannot contain more than 100 items.';
-    if (items.some((item) => item.quantity <= 0)) return 'Quantity must be greater than zero.';
-    if (items.some((item) => item.quantity > 999999)) return 'Quantity is too large.';
-    if (items.some((item) => this.isOverStock(item))) {
-      return 'One or more invoice items exceed available stock.';
-    }
-    const orderItemIds = items
-      .map((item) => item.salesOrderItemId)
-      .filter((id): id is number => id != null);
-    if (new Set(orderItemIds).size !== orderItemIds.length) {
-      return 'A sales order item cannot be added more than once.';
-    }
-    return null;
   }
 }

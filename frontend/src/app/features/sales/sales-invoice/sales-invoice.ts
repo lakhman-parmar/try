@@ -16,7 +16,6 @@ import {
   SalesInvoiceDetailDto,
   SalesInvoiceListItemDto,
 } from './models/sales-invoice.model';
-import { getApiErrorMessage } from './utils/error-message.util';
 import { downloadSalesInvoicePdf } from './utils/sales-invoice-pdf.util';
 
 @Component({
@@ -46,7 +45,6 @@ export class SalesInvoice implements OnInit {
   detailColumns = ['detail'];
   pageSize = 20;
   loading = signal(false);
-  errorMsg = signal<string | null>(null);
   pagedResult = signal<PagedResult<SalesInvoiceListItemDto> | null>(null);
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
@@ -84,8 +82,6 @@ export class SalesInvoice implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.pagedResult.set(res.data);
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load sales invoices.')),
       });
   }
 
@@ -106,8 +102,6 @@ export class SalesInvoice implements OnInit {
         next: (res) => {
           if (res.isSuccess) this.expandedDetail.set(res.data);
         },
-        error: (err) =>
-          this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoice details.')),
       });
   }
 
@@ -150,12 +144,8 @@ export class SalesInvoice implements OnInit {
       next: (res) => {
         if (res.isSuccess) {
           downloadSalesInvoicePdf(res.data);
-        } else {
-          this.errorMsg.set(res.message ?? 'Failed to load invoice for print.');
         }
       },
-      error: (err) =>
-        this.errorMsg.set(getApiErrorMessage(err, 'Failed to load invoice for print.')),
     });
   }
 
