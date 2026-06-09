@@ -45,6 +45,7 @@ builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IPurchaseBillRepository, PurchaseBillRepository>();
 builder.Services.AddScoped<IPurchaseBillService, PurchaseBillService>();
+builder.Services.AddScoped<IPurchaseBillPdfService, PurchaseBillPdfService>();
 builder.Services.AddScoped<IPurchaseReturnRepository, PurchaseReturnRepository>();
 builder.Services.AddScoped<IPurchaseReturnService, PurchaseReturnService>();
 builder.Services.AddScoped<IEstimationRepository, EstimationRepository>();
