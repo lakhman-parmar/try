@@ -15,6 +15,10 @@ public class PurchaseRequisitionController(IPurchaseRequisitionService _service)
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] PurchaseRequisitionFilterDto filter)
     {
+        List<string> errors = PurchaseValidation.ValidateFilter(filter.PageNumber, filter.PageSize, filter.FromDate, filter.ToDate, filter.Search);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid filter.", errors));
+
         PagedResult<PurchaseRequisitionListItemDto> result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<PurchaseRequisitionListItemDto>>.Success(result));
     }
@@ -32,8 +36,9 @@ public class PurchaseRequisitionController(IPurchaseRequisitionService _service)
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePurchaseRequisitionDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        List<string> errors = PurchaseValidation.Validate(dto);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid purchase requisition.", errors));
 
         int newId = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = newId },
@@ -44,8 +49,9 @@ public class PurchaseRequisitionController(IPurchaseRequisitionService _service)
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePurchaseRequisitionDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        List<string> errors = PurchaseValidation.Validate(dto);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid purchase requisition.", errors));
 
         bool updated = await _service.UpdateAsync(id, dto);
         if (!updated) return NotFound(ApiResponse<string>.Failure("Purchase requisition not found."));

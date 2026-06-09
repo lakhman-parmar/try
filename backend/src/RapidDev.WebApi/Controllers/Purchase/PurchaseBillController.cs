@@ -17,6 +17,10 @@ public class PurchaseBillController(
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] PurchaseBillFilterDto filter)
     {
+        List<string> errors = PurchaseValidation.ValidateFilter(filter.PageNumber, filter.PageSize, filter.FromDate, filter.ToDate, filter.Search);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid filter.", errors));
+
         PagedResult<PurchaseBillListItemDto> result = await _service.GetAllAsync(filter);
         return Ok(ApiResponse<PagedResult<PurchaseBillListItemDto>>.Success(result));
     }
@@ -62,8 +66,9 @@ public class PurchaseBillController(
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePurchaseBillDto dto)
     {
-        if (dto.Items == null || !dto.Items.Any())
-            return BadRequest(ApiResponse<string>.Failure("At least one item is required."));
+        List<string> errors = PurchaseValidation.Validate(dto);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid purchase bill.", errors));
 
         int newId = await _service.CreateAsync(dto);
         return CreatedAtAction(
@@ -76,6 +81,10 @@ public class PurchaseBillController(
     [HttpPost("{id:int}/regenerate")]
     public async Task<IActionResult> Regenerate(int id, [FromBody] RegeneratePurchaseBillDto dto)
     {
+        List<string> errors = PurchaseValidation.Validate(dto);
+        if (errors.Count != 0)
+            return BadRequest(ApiResponse<IEnumerable<string>>.Failure("Invalid regenerate request.", errors));
+
         int newId = await _service.RegenerateAsync(id, dto);
         return CreatedAtAction(
             nameof(GetById),

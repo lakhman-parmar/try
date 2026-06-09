@@ -1,11 +1,3 @@
-// RapidDev.Application/Services/Implementation/Purchase/PurchaseBillPdfService.cs
-//
-// Package required in RapidDev.Application.csproj:
-//   <PackageReference Include="QuestPDF" Version="2024.3.4" />
-//
-// Also add to Program.cs (once, at startup):
-//   QuestPDF.Infrastructure.QuestPDF.Settings.License = LicenseType.Community;
-
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -20,8 +12,6 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
     {
         QuestPDF.Settings.License = LicenseType.Community;
     }
-
-    // ── Brand colours (matching the screenshot) ──────────────────────────────
     private static readonly string DarkGreen  = "#2D5016";
     private static readonly string MedGreen   = "#4A7C1E";
     private static readonly string LightGreen = "#F0F4EC";
@@ -55,7 +45,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
         return document.GeneratePdf();
     }
 
-    // ── Header: company name left, PURCHASE BILL right ───────────────────────
+    // Header: company name left, PURCHASE BILL right
     private static Action<IContainer> ComposeHeader(PurchaseBillDetailDto bill)
     {
         return c => c.Column(col =>
@@ -88,7 +78,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
         });
     }
 
-    // ── Meta block: supplier, date, bill number, tax rate ────────────────────
+    // Meta block: supplier, date, bill number, tax rate
     private static Action<IContainer> ComposeMetaBlock(PurchaseBillDetailDto bill)
     {
         return c => c
@@ -128,7 +118,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
             });
     }
 
-    // ── Line items table ──────────────────────────────────────────────────────
+    // Line items table
     private static Action<IContainer> ComposeLineItems(PurchaseBillDetailDto bill)
     {
         return c => c.Column(col =>
@@ -151,7 +141,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
                     cols.RelativeColumn(2);    // Req. No.
                 });
 
-                // ── Header row ──────────────────────────────────────────
+                // Header row
                 static IContainer HeaderCell(IContainer container) =>
                     container.Background(HeaderBg).Padding(5).AlignMiddle();
 
@@ -165,7 +155,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
                     H("Unit Price"); H("Amount"); H("PO No."); H("Req. No.");
                 });
 
-                // ── Data rows ───────────────────────────────────────────
+                // Data rows
                 var items = bill.Items.ToList();
                 for (int i = 0; i < items.Count; i++)
                 {
@@ -200,7 +190,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
         });
     }
 
-    // ── Totals block (right-aligned) ─────────────────────────────────────────
+    // Totals block (right-aligned)
     private static Action<IContainer> ComposeTotals(PurchaseBillDetailDto bill)
     {
         decimal subTotal = bill.Items.Sum(i => i.Quantity * (i.UnitPrice ?? 0m));
@@ -253,7 +243,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
         });
     }
 
-    // ── Remarks ──────────────────────────────────────────────────────────────
+    // Remarks
     private static Action<IContainer> ComposeRemarks(string remarks)
     {
         return c => c.Column(col =>
