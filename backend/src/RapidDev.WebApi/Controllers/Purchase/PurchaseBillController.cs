@@ -7,9 +7,11 @@ namespace RapidDev.WebApi.Controllers.Purchase;
 
 [ApiController]
 [Route("api/purchase-bills")]
-public class PurchaseBillController(IPurchaseBillService _service) : ControllerBase
+public class PurchaseBillController(
+    IPurchaseBillService _service,
+    IPurchaseBillPdfService _pdfService) : ControllerBase
 {
-    // GET /api/purchase-bills?search=&fromDate=&toDate=&supplierId=&pageNumber=1&pageSize=20
+    // GET /api/purchase-bills
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] PurchaseBillFilterDto filter)
     {
@@ -26,6 +28,24 @@ public class PurchaseBillController(IPurchaseBillService _service) : ControllerB
             return NotFound(ApiResponse<string>.Failure("Purchase bill not found."));
 
         return Ok(ApiResponse<PurchaseBillDetailDto>.Success(bill));
+    }
+
+    // GET /api/purchase-bills/{id}/pdf
+    [HttpGet("{id:int}/pdf")]
+    public async Task<IActionResult> DownloadPdf(int id)
+    {
+        PurchaseBillDetailDto? bill = await _service.GetByIdAsync(id);
+        if (bill is null)
+            return NotFound(ApiResponse<string>.Failure("Purchase bill not found."));
+
+        byte[] pdfBytes = _pdfService.Generate(bill);
+
+        string fileName = $"{bill.BillNumber}.pdf";
+
+        return File(
+            pdfBytes,
+            "application/pdf",
+            fileName);
     }
 
     // GET /api/purchase-bills/orders-for-bill
