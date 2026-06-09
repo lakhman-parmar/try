@@ -11,10 +11,14 @@ namespace RapidDev.WebApi.Controllers.Sales;
 public class SalesInvoiceController : ControllerBase
 {
     private readonly ISalesInvoiceService _service;
+    private readonly ISalesInvoicePdfService _pdfService;
 
-    public SalesInvoiceController(ISalesInvoiceService service)
+    public SalesInvoiceController(
+        ISalesInvoiceService service,
+        ISalesInvoicePdfService pdfService)
     {
         _service = service;
+        _pdfService = pdfService;
     }
 
     [HttpGet]
@@ -36,6 +40,17 @@ public class SalesInvoiceController : ControllerBase
             return NotFound(ApiResponse<string>.Failure("Sales invoice not found."));
 
         return Ok(ApiResponse<SalesInvoiceDetailDto>.Success(invoice));
+    }
+
+    [HttpGet("{id:int}/pdf")]
+    public async Task<IActionResult> DownloadPdf(int id)
+    {
+        var invoice = await _service.GetByIdAsync(id);
+        if (invoice is null)
+            return NotFound(ApiResponse<string>.Failure("Sales invoice not found."));
+
+        var pdfBytes = _pdfService.Generate(invoice);
+        return File(pdfBytes, "application/pdf", $"{invoice.InvoiceNumber}.pdf");
     }
 
     [HttpGet("orders-for-invoice")]

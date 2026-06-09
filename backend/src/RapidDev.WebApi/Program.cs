@@ -54,6 +54,7 @@ builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
 builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
+builder.Services.AddScoped<ISalesInvoicePdfService, SalesInvoicePdfService>();
 builder.Services.AddScoped<ISalesReturnRepository, SalesReturnRepository>();
 builder.Services.AddScoped<ISalesReturnService, SalesReturnService>();
 
