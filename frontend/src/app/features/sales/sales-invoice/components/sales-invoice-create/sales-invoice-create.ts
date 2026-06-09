@@ -197,6 +197,28 @@ export class SalesInvoiceCreate implements OnInit {
   adjustQuantity(index: number, delta: number): void {
     this.updateQuantity(index, (this.lineItems()[index]?.quantity ?? 1) + delta);
   }
+
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
+  }
   productUnit(productId: number | null): string {
     return productId ? (this.productById(productId)?.unitShortName ?? '-') : '-';
   }
@@ -261,6 +283,10 @@ export class SalesInvoiceCreate implements OnInit {
   cancel(): void {
     this.router.navigate(['/admin/sales/invoice']);
   }
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   selectedSoCount(): number {
     return this.selectedSoIds().size;
   }

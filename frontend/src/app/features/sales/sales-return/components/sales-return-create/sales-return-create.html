@@ -125,7 +125,9 @@
                     class="quantity-btn"
                     type="button"
                     title="Decrease quantity"
-                    (click)="adjustQuantity(i, -1)"
+                    (mousedown)="startAdjust(i, -1)"
+                    (mouseup)="stopAdjust(i, -1)"
+                    (mouseleave)="stopAdjust(i, -1)"
                     [disabled]="line.quantity <= 1"
                   >
                     <span class="material-symbols-outlined">remove</span>
@@ -142,7 +144,9 @@
                     class="quantity-btn"
                     type="button"
                     title="Increase quantity"
-                    (click)="adjustQuantity(i, 1)"
+                    (mousedown)="startAdjust(i, 1)"
+                    (mouseup)="stopAdjust(i, 1)"
+                    (mouseleave)="stopAdjust(i, 1)"
                     [disabled]="line.quantity >= line.returnableQuantity"
                   >
                     <span class="material-symbols-outlined">add</span>

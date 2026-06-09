@@ -169,6 +169,28 @@ export class EstimationForm implements OnInit {
     this.updateQuantity(index, currentQuantity + delta);
   }
 
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
+  }
+
   productUnit(productId: number | null): string {
     if (!productId) return '-';
     return this.products().find((product) => product.productId === productId)?.unitShortName ?? '-';

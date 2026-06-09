@@ -149,7 +149,9 @@
                   class="quantity-btn"
                   type="button"
                   title="Decrease quantity"
-                  (click)="adjustQuantity(i, -1)"
+                  (mousedown)="startAdjust(i, -1)"
+                  (mouseup)="stopAdjust(i, -1)"
+                  (mouseleave)="stopAdjust(i, -1)"
                   [disabled]="line.quantity <= 1"
                 >
                   <span class="material-symbols-outlined">remove</span>
@@ -159,13 +161,15 @@
                   type="number"
                   min="1"
                   [ngModel]="line.quantity"
-                  (ngModelChange)="updateQuantity(i, +$event)"
+                  (change)="updateQuantity(i, +$event.target.value)"
                 />
                 <button
                   class="quantity-btn"
                   type="button"
                   title="Increase quantity"
-                  (click)="adjustQuantity(i, 1)"
+                  (mousedown)="startAdjust(i, 1)"
+                  (mouseup)="stopAdjust(i, 1)"
+                  (mouseleave)="stopAdjust(i, 1)"
                 >
                   <span class="material-symbols-outlined">add</span>
                 </button>
@@ -211,7 +215,7 @@
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByIndex"></tr>
         </table>
       </div>
 
