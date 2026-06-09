@@ -12,12 +12,13 @@ import { catchError } from 'rxjs/operators';
 import { firstValueFrom, of } from 'rxjs';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
+import { errorToastInterceptor } from './core/interceptors/error-toast-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([errorToastInterceptor, authInterceptor])),
     provideRouter(routes),
     provideAppInitializer(() => {
       const authService = inject(CommonAuthService);
