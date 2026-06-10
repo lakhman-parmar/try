@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ApiResponse } from '../../../../shared/models/api-response.model';
 import {
   CreateSalesInvoiceDto,
+  CustomerDto,
   PagedResult,
   ProductDto,
   RegenerateSalesInvoiceDto,
@@ -38,10 +39,16 @@ export class SalesInvoiceService {
     return this.http.get<ApiResponse<SalesInvoiceDetailDto>>(`${this.apiUrl}/sales-invoices/${id}`);
   }
 
-  getOrdersForInvoice(): Observable<ApiResponse<SalesOrderForInvoiceDto[]>> {
+  getOrdersForInvoice(customerId: number): Observable<ApiResponse<SalesOrderForInvoiceDto[]>> {
+    const params = new HttpParams().set('customerId', customerId);
     return this.http.get<ApiResponse<SalesOrderForInvoiceDto[]>>(
       `${this.apiUrl}/sales-invoices/orders-for-invoice`,
+      { params },
     );
+  }
+
+  getCustomers(): Observable<ApiResponse<CustomerDto[]>> {
+    return this.http.get<ApiResponse<CustomerDto[]>>(`${this.apiUrl}/customers`);
   }
 
   getProducts(): Observable<ApiResponse<ProductDto[]>> {
@@ -63,5 +70,18 @@ export class SalesInvoiceService {
       `${this.apiUrl}/sales-invoices/${id}/regenerate`,
       dto,
     );
+  }
+
+  downloadPdf(id: number): void {
+    this.http.get(`${this.apiUrl}/sales-invoices/${id}/pdf`, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+    });
   }
 }

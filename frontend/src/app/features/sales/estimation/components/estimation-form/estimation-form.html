@@ -38,16 +38,6 @@
             </mat-autocomplete>
           </mat-form-field>
         </label>
-
-        <label class="form-field">
-          <span class="field-label">Remarks</span>
-          <textarea
-            class="field-control textarea-control"
-            rows="3"
-            [ngModel]="remarks()"
-            (ngModelChange)="remarks.set($event)"
-          ></textarea>
-        </label>
       </div>
 
       <div class="line-header">
@@ -99,7 +89,9 @@
                   class="quantity-btn"
                   type="button"
                   title="Decrease quantity"
-                  (click)="adjustQuantity(i, -1)"
+                  (mousedown)="startAdjust(i, -1)"
+                  (mouseup)="stopAdjust(i, -1)"
+                  (mouseleave)="stopAdjust(i, -1)"
                   [disabled]="line.quantity <= 1"
                 >
                   <span class="material-symbols-outlined">remove</span>
@@ -109,13 +101,15 @@
                   type="number"
                   min="1"
                   [ngModel]="line.quantity"
-                  (ngModelChange)="updateQuantity(i, +$event)"
+                  (change)="updateQuantity(i, +$event.target.value)"
                 />
                 <button
                   class="quantity-btn"
                   type="button"
                   title="Increase quantity"
-                  (click)="adjustQuantity(i, 1)"
+                  (mousedown)="startAdjust(i, 1)"
+                  (mouseup)="stopAdjust(i, 1)"
+                  (mouseleave)="stopAdjust(i, 1)"
                 >
                   <span class="material-symbols-outlined">add</span>
                 </button>
@@ -140,8 +134,20 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByIndex"></tr>
         </table>
+      </div>
+
+      <div class="notes-section">
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            [ngModel]="remarks()"
+            (ngModelChange)="remarks.set($event)"
+          ></textarea>
+        </label>
       </div>
 
       <div class="form-actions">
@@ -150,7 +156,12 @@
           <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
             Cancel
           </button>
-          <button class="primary-action" type="button" (click)="save()" [disabled]="saving()">
+          <button
+            class="primary-action"
+            type="button"
+            (click)="save()"
+            [disabled]="!canSave() || saving()"
+          >
             @if (saving()) {
               Saving...
             } @else {

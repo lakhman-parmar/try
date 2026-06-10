@@ -35,7 +35,6 @@ export interface SalesReturnItemDetailDto {
   quantity: number;
   unitPrice?: number;
   salesInvoiceId?: number;
-  invoiceNumber?: string;
 }
 
 export interface SalesInvoiceForReturnDto {

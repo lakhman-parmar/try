@@ -38,9 +38,11 @@ export class SalesOrderService {
     return this.http.get<ApiResponse<SalesOrderDetailDto>>(`${this.apiUrl}/sales-orders/${id}`);
   }
 
-  getEstimationsForSo(): Observable<ApiResponse<EstimationForSoDto[]>> {
+  getEstimationsForSo(customerId: number): Observable<ApiResponse<EstimationForSoDto[]>> {
+    const params = new HttpParams().set('customerId', customerId);
     return this.http.get<ApiResponse<EstimationForSoDto[]>>(
       `${this.apiUrl}/sales-orders/estimations-for-so`,
+      { params },
     );
   }
 

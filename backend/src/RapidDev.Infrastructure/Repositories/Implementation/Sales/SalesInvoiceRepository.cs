@@ -66,12 +66,16 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
         return header;
     }
 
-    public async Task<IEnumerable<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync()
+    public async Task<IEnumerable<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync(int customerId)
     {
         using var conn = CreateConnection();
 
+        var parameters = new DynamicParameters();
+        parameters.Add("@customer_id", customerId);
+
         using var multi = await conn.QueryMultipleAsync(
             "usp_SalesInvoice_GetOrdersForInvoice",
+            parameters,
             commandType: CommandType.StoredProcedure);
 
         var headers = (await multi.ReadAsync<SalesOrderForInvoiceDto>()).ToList();

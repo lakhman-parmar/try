@@ -116,19 +116,18 @@ public class SalesInvoicePdfService : ISalesInvoicePdfService
     {
         return container => container.Column(column =>
         {
-            column.Item().Text("LINE ITEMS").FontSize(9).Bold().FontColor(Blue);
+            column.Item().Text("ITEMS").FontSize(9).Bold().FontColor(Blue);
 
             column.Item().PaddingTop(6).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
                     columns.ConstantColumn(22);
-                    columns.RelativeColumn(3);
+                    columns.RelativeColumn(5);
                     columns.ConstantColumn(38);
                     columns.ConstantColumn(38);
                     columns.ConstantColumn(58);
                     columns.ConstantColumn(58);
-                    columns.RelativeColumn(2);
                 });
 
                 static IContainer HeaderCell(IContainer cell) =>
@@ -136,16 +135,12 @@ public class SalesInvoicePdfService : ISalesInvoicePdfService
 
                 table.Header(header =>
                 {
-                    void AddHeader(string label) =>
-                        header.Cell().Element(HeaderCell).Text(label).FontSize(8).Bold().FontColor(Colors.White);
-
-                    AddHeader("#");
-                    AddHeader("Product");
-                    AddHeader("Unit");
-                    AddHeader("Qty");
-                    AddHeader("Unit Price");
-                    AddHeader("Amount");
-                    AddHeader("Sales Order");
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("#").FontSize(8).Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderCell).Text("Product").FontSize(8).Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Unit").FontSize(8).Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderCell).AlignRight().Text("Qty").FontSize(8).Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderCell).AlignRight().Text("Unit Price").FontSize(8).Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderCell).AlignRight().Text("Amount").FontSize(8).Bold().FontColor(Colors.White);
                 });
 
                 var items = invoice.Items.ToList();
@@ -167,7 +162,6 @@ public class SalesInvoicePdfService : ISalesInvoicePdfService
                     table.Cell().Element(DataCell).AlignRight().Text(item.Quantity.ToString("0.##")).FontSize(8);
                     table.Cell().Element(DataCell).AlignRight().Text((item.UnitPrice ?? 0m).ToString("0.00")).FontSize(8);
                     table.Cell().Element(DataCell).AlignRight().Text(amount.ToString("0.00")).FontSize(8);
-                    table.Cell().Element(DataCell).Text(item.SalesOrderNumber ?? "-").FontSize(8);
                 }
             });
         });

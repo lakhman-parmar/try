@@ -41,12 +41,10 @@ BEGIN
         u.short_name AS unit_short_name,
         sri.quantity,
         sri.unit_price,
-        sri.sales_invoice_id,
-        si.invoice_number
+        sri.sales_invoice_id
     FROM dbo.sales_return_item sri
     INNER JOIN dbo.product p ON p.product_id = sri.product_id
     LEFT JOIN dbo.unit u ON u.unit_id = p.unit_id
-    LEFT JOIN dbo.sales_invoice si ON si.sales_invoice_id = sri.sales_invoice_id
     WHERE sri.sales_return_id = @sales_return_id
       AND sri.is_deleted = 0;
 END

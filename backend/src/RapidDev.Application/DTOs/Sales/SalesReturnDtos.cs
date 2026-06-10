@@ -53,7 +53,6 @@ public class SalesReturnItemDetailDto
     public decimal Quantity { get; set; }
     public decimal? UnitPrice { get; set; }
     public int? SalesInvoiceId { get; set; }
-    public string? InvoiceNumber { get; set; }
 }
 
 public class SalesInvoiceForReturnDto
