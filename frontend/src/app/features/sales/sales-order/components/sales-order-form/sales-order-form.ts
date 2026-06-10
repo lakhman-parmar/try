@@ -72,6 +72,7 @@ export class SalesOrderForm implements OnInit {
   grandTotal = computed(() => this.subTotal() + this.taxAmount());
 
   validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  canSave = computed(() => this.customerId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
     this.loading.set(true);
@@ -84,7 +85,6 @@ export class SalesOrderForm implements OnInit {
       forkJoin({
         products: this.svc.getProducts(),
         customers: this.svc.getCustomers(),
-        estimations: this.svc.getEstimationsForSo(),
         detail: this.svc.getById(this.id),
       })
         .pipe(finalize(() => this.loading.set(false)))
@@ -92,7 +92,6 @@ export class SalesOrderForm implements OnInit {
           next: (res) => {
             if (res.products.isSuccess) this.products.set(res.products.data);
             if (res.customers.isSuccess) this.customers.set(res.customers.data);
-            if (res.estimations.isSuccess) this.estimations.set(res.estimations.data);
             this.customerControl.setValue(this.customerControl.value ?? '');
 
             if (res.detail.isSuccess) {
@@ -107,14 +106,12 @@ export class SalesOrderForm implements OnInit {
     forkJoin({
       products: this.svc.getProducts(),
       customers: this.svc.getCustomers(),
-      estimations: this.svc.getEstimationsForSo(),
     })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (res) => {
           if (res.products.isSuccess) this.products.set(res.products.data);
           if (res.customers.isSuccess) this.customers.set(res.customers.data);
-          if (res.estimations.isSuccess) this.estimations.set(res.estimations.data);
           this.customerControl.setValue(this.customerControl.value ?? '');
           if (this.lineItems().length === 0) this.addLineItem();
         },
@@ -126,6 +123,7 @@ export class SalesOrderForm implements OnInit {
     this.customerControl.setValue(this.customerById(detail.customerId ?? null) ?? '');
     this.remarks.set(detail.remarks ?? '');
     this.taxPercentage.set(detail.taxPercentage ?? null);
+    if (detail.customerId) this.loadEstimations(detail.customerId);
 
     const items = detail.items.map((item) => ({
       productId: item.productId,
@@ -199,11 +197,22 @@ export class SalesOrderForm implements OnInit {
 
   onCustomerSelected(customer: CustomerDto): void {
     this.customerId.set(customer.customerId);
+    this.loadEstimations(customer.customerId);
   }
 
   onCustomerInput(value: string): void {
     if (value.trim()) return;
     this.customerId.set(null);
+    this.estimations.set([]);
+    this.selectedEstimationIds.set(new Set());
+  }
+
+  private loadEstimations(customerId: number): void {
+    this.svc.getEstimationsForSo(customerId).subscribe({
+      next: (res) => {
+        if (res.isSuccess) this.estimations.set(res.data);
+      },
+    });
   }
 
   onProductSelected(index: number, product: ProductDto): void {
@@ -226,6 +235,28 @@ export class SalesOrderForm implements OnInit {
   adjustQuantity(index: number, delta: number): void {
     const currentQuantity = this.lineItems()[index]?.quantity ?? 1;
     this.updateQuantity(index, currentQuantity + delta);
+  }
+
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
   }
 
   productUnit(productId: number | null): string {

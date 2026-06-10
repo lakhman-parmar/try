@@ -41,13 +41,13 @@ public class SalesOrderController : ControllerBase
     }
 
     /// <summary>
-    /// Returns all open estimations with their items so the UI can
+    /// Returns open estimations for a given customer so the UI can
     /// pre-fill / select items when creating a new sales order.
     /// </summary>
     [HttpGet("estimations-for-so")]
-    public async Task<IActionResult> GetEstimationsForSo()
+    public async Task<IActionResult> GetEstimationsForSo([FromQuery] int customerId)
     {
-        var result = await _service.GetEstimationsForSoAsync();
+        var result = await _service.GetEstimationsForSoAsync(customerId);
         return Ok(ApiResponse<IEnumerable<EstimationForSoDto>>.Success(result));
     }
 

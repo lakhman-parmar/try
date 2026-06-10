@@ -252,26 +252,6 @@
   font-weight: 600;
 }
 
-.estimation-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.item-chip {
-  background: #f1f5f9;
-  border-radius: 999px;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-}
-
-.item-chip.more {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
 .panel-footer {
   display: flex;
   justify-content: flex-end;

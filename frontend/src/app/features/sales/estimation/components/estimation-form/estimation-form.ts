@@ -53,6 +53,7 @@ export class EstimationForm implements OnInit {
   filteredProductOptions: Observable<ProductDto[]>[] = [];
 
   validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  canSave = computed(() => this.customerId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
     this.loading.set(true);
@@ -167,6 +168,28 @@ export class EstimationForm implements OnInit {
   adjustQuantity(index: number, delta: number): void {
     const currentQuantity = this.lineItems()[index]?.quantity ?? 1;
     this.updateQuantity(index, currentQuantity + delta);
+  }
+
+  private adjustIntervals = new Map<string, ReturnType<typeof setInterval>>();
+
+  startAdjust(index: number, delta: number): void {
+    this.adjustQuantity(index, delta);
+    const key = `${index}_${delta}`;
+    if (!this.adjustIntervals.has(key)) {
+      this.adjustIntervals.set(
+        key,
+        setInterval(() => this.adjustQuantity(index, delta), 150),
+      );
+    }
+  }
+
+  stopAdjust(index: number, delta: number): void {
+    const key = `${index}_${delta}`;
+    const interval = this.adjustIntervals.get(key);
+    if (interval) {
+      clearInterval(interval);
+      this.adjustIntervals.delete(key);
+    }
   }
 
   productUnit(productId: number | null): string {

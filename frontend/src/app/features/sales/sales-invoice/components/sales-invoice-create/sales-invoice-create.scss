@@ -1,5 +1,9 @@
 @use '../../../../purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create.scss';
 
+.header-fields {
+  grid-template-columns: minmax(220px, 320px) minmax(140px, 200px);
+}
+
 .stock-warning {
   color: #be123c;
   font-weight: 700;

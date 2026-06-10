@@ -11,6 +11,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[usp_SalesInvoice_GetOrdersForInvoice]
+    @customer_id INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -26,6 +27,7 @@ BEGIN
     FROM dbo.sales_order so
     LEFT JOIN dbo.customer c ON c.customer_id = so.customer_id
     WHERE so.is_deleted = 0
+      AND so.customer_id = @customer_id
       AND EXISTS (
           SELECT 1
           FROM dbo.sales_order_item soi

@@ -112,15 +112,6 @@
               [ngModel]="regenTaxPercentage() ?? ''"
               (ngModelChange)="regenTaxPercentage.set(+$event || null)"
           /></label>
-          <label class="form-field"
-            ><span class="field-label">Remarks / Notes</span
-            ><input
-              class="field-control"
-              type="text"
-              placeholder="Optional notes..."
-              [ngModel]="regenRemarks()"
-              (ngModelChange)="regenRemarks.set($event)"
-          /></label>
         </div>
       </div>
 
@@ -143,6 +134,19 @@
             <span>Grand Total</span><span>₹{{ grandTotal() | number: '1.2-2' }}</span>
           </div>
         </div>
+      </div>
+
+      <div class="notes-section">
+        <label class="form-field">
+          <span class="field-label">Remarks / Notes</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            placeholder="Optional notes..."
+            [ngModel]="regenRemarks()"
+            (ngModelChange)="regenRemarks.set($event)"
+          ></textarea>
+        </label>
       </div>
 
       <div class="form-actions">

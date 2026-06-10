@@ -43,6 +43,8 @@
   margin: 0;
   min-height: 0;
   padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
 }
 
 .header-fields {
@@ -90,6 +92,9 @@
   outline: none;
   padding: 0 12px;
   width: 100%;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .textarea-control {
@@ -141,6 +146,7 @@
   font-weight: 700;
   gap: 6px;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .primary-action {
@@ -148,6 +154,11 @@
   color: #ffffff;
   min-height: 40px;
   padding: 0 18px;
+}
+
+.primary-action:hover:not(:disabled) {
+  background: #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
 }
 
 .secondary-action {
@@ -168,6 +179,11 @@
 .back-action {
   background: #ffffff;
   border: 1px solid #e2e8f0;
+}
+
+.back-action:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 .icon-action:hover {
@@ -452,6 +468,37 @@
 .form-actions div {
   display: flex;
   gap: 10px;
+}
+
+.notes-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+
+.notes-section .field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notes-section .field-label::before {
+  content: 'edit_note';
+  font-family: 'Material Symbols Outlined';
+  font-size: 16px;
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.notes-section .textarea-control {
+  background: #fafbfc;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.notes-section .textarea-control:focus {
+  background: #ffffff;
 }
 
 /* Modal Dialog */
