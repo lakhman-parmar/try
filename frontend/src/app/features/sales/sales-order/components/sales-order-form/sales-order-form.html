@@ -69,35 +69,50 @@
         </div>
 
         @if (showEstimationPanel()) {
-          <div class="estimation-list">
-            @if (estimations().length === 0) {
-              <div class="empty-estimations">
-                <span class="material-symbols-outlined">inbox</span>
-                <span>No open estimations available</span>
-              </div>
-            } @else {
-              @for (est of estimations(); track est.estimationId) {
-                <div
-                  class="estimation-card"
-                  [class.selected]="isEstimationSelected(est.estimationId)"
-                  (click)="toggleEstimation(est)"
-                >
-                  <div class="estimation-card-header">
-                    <span class="material-symbols-outlined">
-                      {{
-                        isEstimationSelected(est.estimationId)
-                          ? 'check_circle'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                    <div class="estimation-info">
-                      <strong>{{ est.estimationNumber }}</strong>
-                      <span>{{ est.remarks || 'No remarks' }}</span>
-                    </div>
-                    <span class="estimation-count">{{ est.items.length }} items</span>
-                  </div>
+          <div class="estimation-body">
+            <div class="estimation-list" (scroll)="onEstimationScroll($event)">
+              @if (estimationLoading() && estimations().length === 0) {
+                <div class="empty-estimations">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading estimations...</span>
                 </div>
+              } @else if (estimations().length === 0) {
+                <div class="empty-estimations">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No open estimations available</span>
+                </div>
+              } @else {
+                @for (est of estimations(); track est.estimationId) {
+                  <div
+                    class="estimation-card"
+                    [class.selected]="isEstimationSelected(est.estimationId)"
+                    (click)="toggleEstimation(est)"
+                  >
+                    <div class="estimation-card-header">
+                      <span class="material-symbols-outlined">
+                        {{
+                          isEstimationSelected(est.estimationId)
+                            ? 'check_circle'
+                            : 'radio_button_unchecked'
+                        }}
+                      </span>
+                      <div class="estimation-info">
+                        <strong>{{ est.estimationNumber }}</strong>
+                        <span>{{ est.remarks || 'No remarks' }}</span>
+                      </div>
+                      <span class="estimation-count">{{ est.items.length }} items</span>
+                    </div>
+                  </div>
+                }
+                @if (estimationLoading()) {
+                  <div class="estimation-loading-more">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading more...</span>
+                  </div>
+                }
               }
+            </div>
+            @if (estimations().length > 0) {
               <div class="panel-footer">
                 <button class="primary-action" type="button" (click)="applyEstimations()">
                   <span class="material-symbols-outlined">check</span>
@@ -220,7 +235,7 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByIndex"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
       </div>
 

@@ -1,23 +1,40 @@
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, map, Observable, startWith } from 'rxjs';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { SalesReturnService } from '../../services/sales-return.service';
 import {
   CreateSalesReturnDto,
+  CustomerDto,
   ReturnLineItem,
   SalesInvoiceForReturnDto,
   SalesInvoiceItemForReturnDto,
 } from '../../models/sales-return.model';
+import { MatFormField } from '@angular/material/form-field';
 
 @Component({
   selector: 'app-sales-return-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, MatProgressSpinnerModule, MatTableModule],
+  imports: [
+    AsyncPipe,
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatTableModule,
+    MatFormField,
+  ],
   templateUrl: './sales-return-create.html',
   styleUrl: './sales-return-create.scss',
 })
@@ -26,9 +43,11 @@ export class SalesReturnCreate implements OnInit {
   private readonly router = inject(Router);
 
   saving = signal(false);
-  loadingInvoices = signal(false);
   formRemarks = signal('');
-  invoicesForReturn = signal<SalesInvoiceForReturnDto[]>([]);
+  customers = signal<CustomerDto[]>([]);
+  customerControl = new FormControl<CustomerDto | string>('', { nonNullable: true });
+  filteredCustomers$!: Observable<CustomerDto[]>;
+  customerId = signal<number | null>(null);
   selectedInvoiceId = signal<number | null>(null);
   showInvoicePanel = signal(false);
   lineItems = signal<ReturnLineItem[]>([]);
@@ -44,24 +63,66 @@ export class SalesReturnCreate implements OnInit {
   ];
   showConfirmModal = signal(false);
 
+  allInvoices = signal<SalesInvoiceForReturnDto[]>([]);
+  invoicePage = signal(1);
+  invoiceTotalPages = signal(1);
+  invoiceLoading = signal(false);
+  invoiceLoadingMore = signal(false);
+  invoiceLoaded = signal(false);
+
   readonly selectedInvoice = computed(() =>
-    this.invoicesForReturn().find((invoice) => invoice.salesInvoiceId === this.selectedInvoiceId()),
+    this.allInvoices().find((invoice) => invoice.salesInvoiceId === this.selectedInvoiceId()),
   );
   readonly subTotal = computed(() =>
     this.lineItems().reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0),
   );
   readonly validLineCount = computed(() => this.lineItems().length);
+  readonly canSave = computed(
+    () => !!this.customerId() && !!this.selectedInvoiceId() && this.validLineCount() > 0,
+  );
 
   ngOnInit(): void {
-    this.loadingInvoices.set(true);
-    this.svc
-      .getInvoicesForReturn()
-      .pipe(finalize(() => this.loadingInvoices.set(false)))
-      .subscribe({
-        next: (res) => {
-          if (res.isSuccess) this.invoicesForReturn.set(res.data);
-        },
-      });
+    this.filteredCustomers$ = this.customerControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterCustomers(value)),
+    );
+    this.loadCustomers();
+  }
+
+  private loadCustomers(): void {
+    this.svc.getCustomers().subscribe({
+      next: (res) => {
+        if (res.isSuccess) this.customers.set(res.data);
+        this.customerControl.setValue(this.customerControl.value ?? '');
+      },
+    });
+  }
+
+  displayCustomer(customer: CustomerDto | string | null): string {
+    return typeof customer === 'string' ? customer : (customer?.name ?? '');
+  }
+
+  onCustomerSelected(customer: CustomerDto): void {
+    this.customerId.set(customer.customerId);
+    this.selectedInvoiceId.set(null);
+    this.lineItems.set([]);
+    this.showInvoicePanel.set(false);
+    this.allInvoices.set([]);
+    this.invoicePage.set(1);
+    this.invoiceTotalPages.set(1);
+    this.invoiceLoaded.set(false);
+    this.loadInvoices();
+  }
+
+  onCustomerInput(value: string): void {
+    if (value.trim()) return;
+    this.customerId.set(null);
+  }
+
+  private filterCustomers(value: CustomerDto | string | null): CustomerDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.customers().filter((customer) => customer.name.toLowerCase().includes(filterValue));
   }
 
   toggleInvoicePanel(): void {
@@ -73,9 +134,18 @@ export class SalesReturnCreate implements OnInit {
   }
 
   selectInvoice(invoice: SalesInvoiceForReturnDto): void {
+    if (this.selectedInvoiceId() === invoice.salesInvoiceId) {
+      this.unselectInvoice();
+      return;
+    }
     this.selectedInvoiceId.set(invoice.salesInvoiceId);
     this.lineItems.set(invoice.items.map((item) => this.invoiceItemToLineItem(item, invoice)));
     this.showInvoicePanel.set(false);
+  }
+
+  unselectInvoice(): void {
+    this.selectedInvoiceId.set(null);
+    this.lineItems.set([]);
   }
 
   private invoiceItemToLineItem(
@@ -178,6 +248,42 @@ export class SalesReturnCreate implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/admin/sales/return']);
+  }
+
+  loadInvoices(): void {
+    const custId = this.customerId();
+    if (!custId) return;
+
+    const page = this.invoicePage();
+    this.invoiceLoading.set(page === 1);
+    this.invoiceLoadingMore.set(page > 1);
+
+    this.svc
+      .getInvoicesForReturn(custId, page, 20)
+      .pipe(
+        finalize(() => {
+          this.invoiceLoading.set(false);
+          this.invoiceLoadingMore.set(false);
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.allInvoices.update((prev) => [...prev, ...res.data.items]);
+            this.invoiceTotalPages.set(res.data.totalPages);
+            this.invoiceLoaded.set(true);
+          }
+        },
+      });
+  }
+
+  onInvoiceScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (atBottom && !this.invoiceLoadingMore() && this.invoicePage() < this.invoiceTotalPages()) {
+      this.invoicePage.update((p) => p + 1);
+      this.loadInvoices();
+    }
   }
 
   formatCurrency(val?: number | null): string {

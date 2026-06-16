@@ -24,9 +24,9 @@ public class SalesInvoiceService : ISalesInvoiceService
         return _repository.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync(int customerId)
+    public Task<PagedResult<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync(int customerId, int pageNumber, int pageSize)
     {
-        return _repository.GetOrdersForInvoiceAsync(customerId);
+        return _repository.GetOrdersForInvoiceAsync(customerId, pageNumber, pageSize);
     }
 
     public Task<int> CreateAsync(CreateSalesInvoiceDto dto)

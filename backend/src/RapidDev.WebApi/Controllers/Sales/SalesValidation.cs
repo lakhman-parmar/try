@@ -102,6 +102,7 @@ internal static class SalesValidation
         foreach (var (item, index) in items.Select((item, index) => (item, index)))
         {
             ValidateProductAndQuantity(errors, item.ProductId, item.Quantity, index);
+            if (item.UnitPrice is < 0) errors.Add($"Item {index + 1}: unit price cannot be negative.");
         }
 
         return errors;

@@ -24,9 +24,9 @@ public class SalesOrderService : ISalesOrderService
         return _repository.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId)
+    public Task<PagedResult<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId, int pageNumber, int pageSize)
     {
-        return _repository.GetEstimationsForSoAsync(customerId);
+        return _repository.GetEstimationsForSoAsync(customerId, pageNumber, pageSize);
     }
 
     public Task<int> CreateAsync(CreateSalesOrderDto dto)

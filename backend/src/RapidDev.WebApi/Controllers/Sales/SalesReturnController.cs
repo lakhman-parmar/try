@@ -41,10 +41,13 @@ public class SalesReturnController : ControllerBase
     }
 
     [HttpGet("invoices-for-return")]
-    public async Task<IActionResult> GetInvoicesForReturn()
+    public async Task<IActionResult> GetInvoicesForReturn(
+        [FromQuery] int? customerId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _service.GetInvoicesForReturnAsync();
-        return Ok(ApiResponse<IEnumerable<SalesInvoiceForReturnDto>>.Success(result));
+        var result = await _service.GetInvoicesForReturnAsync(customerId, pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<SalesInvoiceForReturnDto>>.Success(result));
     }
 
     [HttpPost]

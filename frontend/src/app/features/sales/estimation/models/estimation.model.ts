@@ -15,6 +15,7 @@ export interface EstimationListItemDto {
   remarks?: string;
   itemCount: number;
   createdAt?: string;
+  totalAmount: number;
 }
 
 export interface EstimationDetailDto {
@@ -25,6 +26,7 @@ export interface EstimationDetailDto {
   remarks?: string;
   createdAt?: string;
   modifiedAt?: string;
+  totalAmount: number;
   items: EstimationItemDetailDto[];
 }
 
@@ -34,6 +36,7 @@ export interface EstimationItemDetailDto {
   productName: string;
   unitShortName?: string;
   quantity: number;
+  unitPrice?: number;
 }
 
 export interface CreateEstimationDto {
@@ -45,6 +48,7 @@ export interface CreateEstimationDto {
 export interface CreateEstimationItemDto {
   productId: number;
   quantity: number;
+  unitPrice?: number;
 }
 
 export interface UpdateEstimationDto extends CreateEstimationDto {}
@@ -78,4 +82,5 @@ export interface CustomerDto {
 export interface EstimationLineItem {
   productId: number | null;
   quantity: number;
+  unitPrice?: number | null;
 }

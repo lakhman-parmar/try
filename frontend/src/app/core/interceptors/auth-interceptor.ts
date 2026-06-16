@@ -38,8 +38,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError((refreshErr) => {
-            const loginRoute = '';
-            router.navigate([loginRoute]);
+            authService.clearAuth();
+            router.navigate(['']);
             return throwError(() => refreshErr);
           }),
         );

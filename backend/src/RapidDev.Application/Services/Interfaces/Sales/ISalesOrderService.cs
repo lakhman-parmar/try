@@ -7,7 +7,7 @@ public interface ISalesOrderService
 {
     Task<PagedResult<SalesOrderListItemDto>> GetAllAsync(SalesOrderFilterDto filter);
     Task<SalesOrderDetailDto?> GetByIdAsync(int id);
-    Task<IEnumerable<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId);
+    Task<PagedResult<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId, int pageNumber, int pageSize);
     Task<int> CreateAsync(CreateSalesOrderDto dto);
     Task<bool> UpdateAsync(int id, UpdateSalesOrderDto dto);
     Task<bool> DeleteAsync(int id);

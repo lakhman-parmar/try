@@ -56,10 +56,13 @@ public class SalesInvoiceController : ControllerBase
     }
 
     [HttpGet("orders-for-invoice")]
-    public async Task<IActionResult> GetOrdersForInvoice([FromQuery] int customerId)
+    public async Task<IActionResult> GetOrdersForInvoice(
+        [FromQuery] int customerId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _service.GetOrdersForInvoiceAsync(customerId);
-        return Ok(ApiResponse<IEnumerable<SalesOrderForInvoiceDto>>.Success(result));
+        var result = await _service.GetOrdersForInvoiceAsync(customerId, pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<SalesOrderForInvoiceDto>>.Success(result));
     }
 
     [HttpPost]

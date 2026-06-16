@@ -38,8 +38,8 @@ BEGIN
         WHERE estimation_id = @estimation_id
           AND is_deleted = 0;
 
-        INSERT INTO dbo.estimation_item (estimation_id, product_id, quantity, created_at, is_deleted)
-        SELECT @estimation_id, i.product_id, i.quantity, GETDATE(), 0
+        INSERT INTO dbo.estimation_item (estimation_id, product_id, quantity, unit_price, created_at, is_deleted)
+        SELECT @estimation_id, i.product_id, i.quantity, i.unit_price, GETDATE(), 0
         FROM @items i;
 
         COMMIT TRANSACTION;

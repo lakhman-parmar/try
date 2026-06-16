@@ -245,6 +245,21 @@
   max-width: 520px;
 }
 
+.price-input {
+  max-width: 120px;
+  text-align: right;
+}
+
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.price-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
 .quantity-stepper {
   align-items: center;
   display: grid;

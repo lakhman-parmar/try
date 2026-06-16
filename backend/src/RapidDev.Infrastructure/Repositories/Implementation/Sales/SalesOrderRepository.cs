@@ -66,12 +66,15 @@ public class SalesOrderRepository : ISalesOrderRepository
         return header;
     }
 
-    public async Task<IEnumerable<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId)
+    public async Task<PagedResult<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId, int pageNumber, int pageSize)
     {
         using var conn = CreateConnection();
 
         var parameters = new DynamicParameters();
         parameters.Add("@customer_id", customerId);
+        parameters.Add("@PageNumber", pageNumber);
+        parameters.Add("@PageSize", pageSize);
+        parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
         using var multi = await conn.QueryMultipleAsync(
             "usp_SalesOrder_GetEstimationsForSO",
@@ -90,7 +93,13 @@ public class SalesOrderRepository : ISalesOrderRepository
                 header.Items = items;
         }
 
-        return headers;
+        return new PagedResult<EstimationForSoDto>
+        {
+            Items = headers,
+            TotalCount = parameters.Get<int>("@TotalCount"),
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<int> CreateAsync(CreateSalesOrderDto dto)

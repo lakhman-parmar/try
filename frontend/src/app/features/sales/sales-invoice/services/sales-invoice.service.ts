@@ -39,9 +39,16 @@ export class SalesInvoiceService {
     return this.http.get<ApiResponse<SalesInvoiceDetailDto>>(`${this.apiUrl}/sales-invoices/${id}`);
   }
 
-  getOrdersForInvoice(customerId: number): Observable<ApiResponse<SalesOrderForInvoiceDto[]>> {
-    const params = new HttpParams().set('customerId', customerId);
-    return this.http.get<ApiResponse<SalesOrderForInvoiceDto[]>>(
+  getOrdersForInvoice(
+    customerId: number,
+    pageNumber: number = 1,
+    pageSize: number = 20,
+  ): Observable<ApiResponse<PagedResult<SalesOrderForInvoiceDto>>> {
+    let params = new HttpParams()
+      .set('customerId', customerId)
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+    return this.http.get<ApiResponse<PagedResult<SalesOrderForInvoiceDto>>>(
       `${this.apiUrl}/sales-invoices/orders-for-invoice`,
       { params },
     );

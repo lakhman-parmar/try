@@ -9,6 +9,7 @@ public class Estimation
     public DateTime? CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
     public bool? IsDeleted { get; set; }
+    public decimal? TotalAmount { get; set; }
     
     public Customer? Customer { get; set; }
     public ICollection<EstimationItem> EstimationItems { get; set; } = new List<EstimationItem>();

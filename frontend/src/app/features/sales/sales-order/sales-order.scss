@@ -12,8 +12,7 @@
 }
 
 .page-header,
-.filter-card,
-.pagination {
+.filter-card {
   align-items: center;
   display: flex;
   gap: 16px;
@@ -190,7 +189,6 @@
 
 .primary-action,
 .secondary-action,
-.page-button,
 .icon-action {
   align-items: center;
   border: 0;
@@ -378,37 +376,12 @@
   display: none;
 }
 
-.pagination {
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
-  padding: 12px 16px;
-}
-
-.page-actions {
-  align-items: center;
-  display: flex;
-  gap: 4px;
-}
-
-.page-button {
-  background: transparent;
-  color: #475569;
-  min-width: 36px;
-  padding: 0 10px;
-}
-
-.active-page {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
 @media (max-width: 720px) {
   .sales-order-page {
     padding: 16px;
   }
 
-  .page-header,
-  .pagination {
+  .page-header {
     align-items: stretch;
     flex-direction: column;
   }
