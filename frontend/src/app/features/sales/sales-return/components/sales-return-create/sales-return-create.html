@@ -16,17 +16,6 @@
         <span>Loading invoices...</span>
       </div>
     } @else {
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
-
       <div class="po-panel-container">
         <div class="panel-header">
           <div>
@@ -192,6 +181,19 @@
             <span>Return Total</span><span>Rs. {{ subTotal() | number: '1.2-2' }}</span>
           </div>
         </div>
+      </div>
+
+      <div class="notes-section">
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            placeholder="Add remarks..."
+            [ngModel]="formRemarks()"
+            (ngModelChange)="formRemarks.set($event)"
+          ></textarea>
+        </label>
       </div>
 
       <div class="form-actions">

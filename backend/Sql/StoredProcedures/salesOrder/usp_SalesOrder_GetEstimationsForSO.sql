@@ -12,6 +12,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[usp_SalesOrder_GetEstimationsForSO]
+    @customer_id INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -27,6 +28,7 @@ BEGIN
            ON ei.estimation_id = e.estimation_id
           AND ei.is_deleted = 0
     WHERE  e.is_deleted = 0
+      AND  e.customer_id = @customer_id
     ORDER BY e.created_at DESC;
 
     -- ── Result set 2: All items of those estimations ───────────────────

@@ -2,13 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { SalesInvoiceService } from '../../services/sales-invoice.service';
 import { RegenerateSalesInvoiceDto, SalesInvoiceDetailDto } from '../../models/sales-invoice.model';
-import { downloadSalesInvoicePdf } from '../../utils/sales-invoice-pdf.util';
 
 @Component({
   selector: 'app-sales-invoice-regenerate',
@@ -87,19 +86,11 @@ export class SalesInvoiceRegenerate implements OnInit {
     this.saving.set(true);
     this.svc
       .regenerate(source.salesInvoiceId, dto)
-      .pipe(
-        switchMap((regenRes) => {
-          if (!regenRes.isSuccess) {
-            throw new Error(regenRes.message ?? 'Failed to regenerate sales invoice.');
-          }
-          return this.svc.getById(regenRes.data.salesInvoiceId);
-        }),
-        finalize(() => this.saving.set(false)),
-      )
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: (detailRes) => {
-          if (detailRes.isSuccess) {
-            downloadSalesInvoicePdf(detailRes.data);
+        next: (regenRes) => {
+          if (regenRes.isSuccess) {
+            this.svc.downloadPdf(regenRes.data.salesInvoiceId);
             this.router.navigate(['/admin/sales/invoice']);
           }
         },

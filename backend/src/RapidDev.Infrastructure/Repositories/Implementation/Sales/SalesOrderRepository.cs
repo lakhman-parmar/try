@@ -66,12 +66,16 @@ public class SalesOrderRepository : ISalesOrderRepository
         return header;
     }
 
-    public async Task<IEnumerable<EstimationForSoDto>> GetEstimationsForSoAsync()
+    public async Task<IEnumerable<EstimationForSoDto>> GetEstimationsForSoAsync(int customerId)
     {
         using var conn = CreateConnection();
 
+        var parameters = new DynamicParameters();
+        parameters.Add("@customer_id", customerId);
+
         using var multi = await conn.QueryMultipleAsync(
             "usp_SalesOrder_GetEstimationsForSO",
+            parameters,
             commandType: CommandType.StoredProcedure);
 
         var headers = (await multi.ReadAsync<EstimationForSoDto>()).ToList();

@@ -30,7 +30,9 @@ internal static class SalesValidation
 
     public static List<string> Validate(CreateSalesInvoiceDto dto)
     {
-        var errors = ValidateCommonHeader(dto.CustomerId, dto.TaxPercentage, dto.Remarks);
+        var errors = new List<string>();
+        if (dto.CustomerId is null or <= 0) errors.Add("Customer is required.");
+        errors.AddRange(ValidateTaxAndRemarks(dto.TaxPercentage, dto.Remarks));
         var items = dto.Items?.ToList() ?? new List<CreateSalesInvoiceItemDto>();
         ValidateItemsExist(errors, items.Count);
 
@@ -90,7 +92,10 @@ internal static class SalesValidation
         string? remarks,
         IEnumerable<CreateEstimationItemDto>? itemSource)
     {
-        var errors = ValidateCustomerAndRemarks(customerId, remarks);
+        var errors = new List<string>();
+        if (customerId is null or <= 0) errors.Add("Customer is required.");
+        if (!string.IsNullOrWhiteSpace(remarks) && remarks.Length > 1000)
+            errors.Add("Remarks cannot exceed 1000 characters.");
         var items = itemSource?.ToList() ?? new List<CreateEstimationItemDto>();
         ValidateItemsExist(errors, items.Count);
 
@@ -108,7 +113,9 @@ internal static class SalesValidation
         string? remarks,
         IEnumerable<CreateSalesOrderItemDto>? itemSource)
     {
-        var errors = ValidateCommonHeader(customerId, taxPercentage, remarks);
+        var errors = new List<string>();
+        if (customerId is null or <= 0) errors.Add("Customer is required.");
+        errors.AddRange(ValidateTaxAndRemarks(taxPercentage, remarks));
         var items = itemSource?.ToList() ?? new List<CreateSalesOrderItemDto>();
         ValidateItemsExist(errors, items.Count);
 

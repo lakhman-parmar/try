@@ -10,13 +10,34 @@
   </div>
 
   <mat-card class="form-card">
-    @if (loadingProducts() || loadingOrders()) {
+    @if (loadingProducts() || loadingCustomers()) {
       <div class="loading-state">
         <mat-spinner diameter="32"></mat-spinner>
         <span>Loading details...</span>
       </div>
     } @else {
       <div class="header-fields">
+        <label class="form-field">
+          <span class="field-label">Customer</span>
+          <mat-form-field appearance="outline" class="compact-autocomplete">
+            <input
+              matInput
+              placeholder="Search customer"
+              [formControl]="customerControl"
+              [matAutocomplete]="customerAuto"
+              (input)="onCustomerInput($any($event.target).value)"
+            />
+            <mat-autocomplete
+              #customerAuto="matAutocomplete"
+              [displayWith]="displayCustomer"
+              (optionSelected)="onCustomerSelected($event.option.value)"
+            >
+              @for (customer of filteredCustomers$ | async; track customer.customerId) {
+                <mat-option [value]="customer">{{ customer.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </label>
         <label class="form-field">
           <span class="field-label">Tax %</span>
           <input
@@ -30,17 +51,6 @@
           />
         </label>
       </div>
-
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
 
       <div class="po-panel-container">
         <div class="panel-header">
@@ -253,6 +263,19 @@
         }
       </div>
 
+      <div class="notes-section">
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            placeholder="Add remarks..."
+            [ngModel]="formRemarks()"
+            (ngModelChange)="formRemarks.set($event)"
+          ></textarea>
+        </label>
+      </div>
+
       <div class="form-actions">
         <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
         <div>
@@ -263,7 +286,7 @@
             class="primary-action"
             type="button"
             (click)="requestGenerateInvoice()"
-            [disabled]="saving()"
+            [disabled]="!canSave() || saving()"
           >
             {{ saving() ? 'Saving...' : 'Create Invoice' }}
           </button>

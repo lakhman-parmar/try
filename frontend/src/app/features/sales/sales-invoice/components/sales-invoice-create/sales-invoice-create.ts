@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, forkJoin, map, Observable, startWith, switchMap } from 'rxjs';
+import { finalize, forkJoin, map, Observable, startWith } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,12 +12,12 @@ import { MatTableModule } from '@angular/material/table';
 import { SalesInvoiceService } from '../../services/sales-invoice.service';
 import {
   CreateSalesInvoiceDto,
+  CustomerDto,
   InvoiceLineItem,
   ProductDto,
   SalesOrderForInvoiceDto,
   SalesOrderItemForInvoiceDto,
 } from '../../models/sales-invoice.model';
-import { downloadSalesInvoicePdf } from '../../utils/sales-invoice-pdf.util';
 
 @Component({
   selector: 'app-sales-invoice-create',
@@ -44,6 +44,11 @@ export class SalesInvoiceCreate implements OnInit {
   saving = signal(false);
   formTaxPercentage = signal<number | null>(null);
   formRemarks = signal('');
+  customerId = signal<number | null>(null);
+  customerControl = new FormControl<CustomerDto | string>('', { nonNullable: true });
+  filteredCustomers$!: Observable<CustomerDto[]>;
+  customers = signal<CustomerDto[]>([]);
+  loadingCustomers = signal(false);
   ordersForInvoice = signal<SalesOrderForInvoiceDto[]>([]);
   loadingOrders = signal(false);
   selectedSoIds = signal<Set<number>>(new Set());
@@ -66,24 +71,69 @@ export class SalesInvoiceCreate implements OnInit {
   readonly validLineCount = computed(
     () => this.lineItems().filter((item) => item.productId).length,
   );
+  readonly canSave = computed(() => this.customerId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
+    this.filteredCustomers$ = this.customerControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterCustomers(value)),
+    );
     this.loadingProducts.set(true);
-    this.loadingOrders.set(true);
-    forkJoin({ orders: this.svc.getOrdersForInvoice(), products: this.svc.getProducts() })
+    this.loadingCustomers.set(true);
+    forkJoin({
+      products: this.svc.getProducts(),
+      customers: this.svc.getCustomers(),
+    })
       .pipe(
         finalize(() => {
           this.loadingProducts.set(false);
-          this.loadingOrders.set(false);
+          this.loadingCustomers.set(false);
         }),
       )
       .subscribe({
         next: (res) => {
-          if (res.orders.isSuccess) this.ordersForInvoice.set(res.orders.data);
           if (res.products.isSuccess) this.products.set(res.products.data);
+          if (res.customers.isSuccess) this.customers.set(res.customers.data);
+          this.customerControl.setValue(this.customerControl.value ?? '');
           this.addDirectLineItem();
         },
       });
+  }
+
+  private loadOrders(customerId: number): void {
+    this.loadingOrders.set(true);
+    this.svc.getOrdersForInvoice(customerId).subscribe({
+      next: (res) => {
+        if (res.isSuccess) this.ordersForInvoice.set(res.data);
+        this.loadingOrders.set(false);
+      },
+      error: () => this.loadingOrders.set(false),
+    });
+  }
+
+  displayCustomer(customer: CustomerDto | string | null): string {
+    return typeof customer === 'string' ? customer : (customer?.name ?? '');
+  }
+
+  onCustomerSelected(customer: CustomerDto): void {
+    this.customerId.set(customer.customerId);
+    this.selectedSoIds.set(new Set());
+    this.lineItems.set([]);
+    this.productControls = [];
+    this.filteredProductOptions = [];
+    this.addDirectLineItem();
+    this.loadOrders(customer.customerId);
+  }
+
+  onCustomerInput(value: string): void {
+    if (value.trim()) return;
+    this.customerId.set(null);
+    this.ordersForInvoice.set([]);
+    this.selectedSoIds.set(new Set());
+    this.lineItems.set([]);
+    this.productControls = [];
+    this.filteredProductOptions = [];
+    this.addDirectLineItem();
   }
 
   toggleSoPanel(): void {
@@ -240,11 +290,8 @@ export class SalesInvoiceCreate implements OnInit {
   confirmGenerateInvoice(): void {
     this.showConfirmModal.set(false);
     const validItems = this.lineItems().filter((i) => i.productId !== null);
-    const firstOrder = this.ordersForInvoice().find((order) =>
-      this.selectedSoIds().has(order.salesOrderId),
-    );
     const dto: CreateSalesInvoiceDto = {
-      customerId: firstOrder?.customerId,
+      customerId: this.customerId() ?? undefined,
       taxPercentage: this.formTaxPercentage() ?? undefined,
       remarks: this.formRemarks() || undefined,
       items: validItems.map((item) => ({
@@ -258,19 +305,11 @@ export class SalesInvoiceCreate implements OnInit {
     this.saving.set(true);
     this.svc
       .create(dto)
-      .pipe(
-        switchMap((createRes) => {
-          if (!createRes.isSuccess) {
-            throw new Error(createRes.message ?? 'Failed to create sales invoice.');
-          }
-          return this.svc.getById(createRes.data.salesInvoiceId);
-        }),
-        finalize(() => this.saving.set(false)),
-      )
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: (detailRes) => {
-          if (detailRes.isSuccess) {
-            downloadSalesInvoicePdf(detailRes.data);
+        next: (createRes) => {
+          if (createRes.isSuccess) {
+            this.svc.downloadPdf(createRes.data.salesInvoiceId);
             this.router.navigate(['/admin/sales/invoice']);
           }
         },
@@ -328,5 +367,16 @@ export class SalesInvoiceCreate implements OnInit {
     return productId
       ? this.products().find((product) => product.productId === productId)
       : undefined;
+  }
+
+  private filterCustomers(value: CustomerDto | string | null): CustomerDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    return this.customers().filter((customer) =>
+      customer.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }
+
+  private customerById(customerId: number | null): CustomerDto | undefined {
+    return customerId ? this.customers().find((c) => c.customerId === customerId) : undefined;
   }
 }

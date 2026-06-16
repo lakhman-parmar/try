@@ -16,7 +16,6 @@ import {
   SalesInvoiceDetailDto,
   SalesInvoiceListItemDto,
 } from './models/sales-invoice.model';
-import { downloadSalesInvoicePdf } from './utils/sales-invoice-pdf.util';
 
 @Component({
   selector: 'app-sales-invoice',
@@ -140,13 +139,7 @@ export class SalesInvoice implements OnInit {
 
   printInvoice(id: number, event: Event): void {
     event.stopPropagation();
-    this.svc.getById(id).subscribe({
-      next: (res) => {
-        if (res.isSuccess) {
-          downloadSalesInvoicePdf(res.data);
-        }
-      },
-    });
+    this.svc.downloadPdf(id);
   }
 
   minOf(a: number, b: number): number {

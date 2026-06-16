@@ -38,16 +38,6 @@
             </mat-autocomplete>
           </mat-form-field>
         </label>
-
-        <label class="form-field">
-          <span class="field-label">Remarks</span>
-          <textarea
-            class="field-control textarea-control"
-            rows="3"
-            [ngModel]="remarks()"
-            (ngModelChange)="remarks.set($event)"
-          ></textarea>
-        </label>
       </div>
 
       <div class="line-header">
@@ -148,13 +138,30 @@
         </table>
       </div>
 
+      <div class="notes-section">
+        <label class="form-field">
+          <span class="field-label">Remarks</span>
+          <textarea
+            class="field-control textarea-control"
+            rows="3"
+            [ngModel]="remarks()"
+            (ngModelChange)="remarks.set($event)"
+          ></textarea>
+        </label>
+      </div>
+
       <div class="form-actions">
         <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
         <div>
           <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
             Cancel
           </button>
-          <button class="primary-action" type="button" (click)="save()" [disabled]="saving()">
+          <button
+            class="primary-action"
+            type="button"
+            (click)="save()"
+            [disabled]="!canSave() || saving()"
+          >
             @if (saving()) {
               Saving...
             } @else {

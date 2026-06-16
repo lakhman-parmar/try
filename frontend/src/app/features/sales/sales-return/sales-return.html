@@ -133,24 +133,15 @@
                           {{ item.unitShortName || '-' }}
                         </td></ng-container
                       >
-                      <ng-container matColumnDef="invoice"
-                        ><th mat-header-cell *matHeaderCellDef>Invoice</th>
-                        <td mat-cell *matCellDef="let item">
-                          <span class="source-chip"
-                            ><span class="material-symbols-outlined">description</span
-                            >{{ item.invoiceNumber || '-' }}</span
-                          >
-                        </td></ng-container
-                      >
-                      <ng-container matColumnDef="quantity"
-                        ><th mat-header-cell *matHeaderCellDef>Returned Qty</th>
-                        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td></ng-container
-                      >
                       <ng-container matColumnDef="unitPrice"
                         ><th mat-header-cell *matHeaderCellDef>Unit Price</th>
                         <td mat-cell *matCellDef="let item">
                           {{ formatCurrency(item.unitPrice) }}
                         </td></ng-container
+                      >
+                      <ng-container matColumnDef="quantity"
+                        ><th mat-header-cell *matHeaderCellDef>Returned Qty</th>
+                        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td></ng-container
                       >
                       <ng-container matColumnDef="total"
                         ><th mat-header-cell *matHeaderCellDef>Total</th>
@@ -164,20 +155,13 @@
                       >
                       <tr
                         mat-header-row
-                        *matHeaderRowDef="[
-                          'product',
-                          'unit',
-                          'invoice',
-                          'quantity',
-                          'unitPrice',
-                          'total',
-                        ]"
+                        *matHeaderRowDef="['product', 'unit', 'unitPrice', 'quantity', 'total']"
                       ></tr>
                       <tr
                         mat-row
                         *matRowDef="
                           let row;
-                          columns: ['product', 'unit', 'invoice', 'quantity', 'unitPrice', 'total']
+                          columns: ['product', 'unit', 'unitPrice', 'quantity', 'total']
                         "
                       ></tr>
                     </table>

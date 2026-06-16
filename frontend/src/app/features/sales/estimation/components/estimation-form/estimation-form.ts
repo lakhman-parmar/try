@@ -53,6 +53,7 @@ export class EstimationForm implements OnInit {
   filteredProductOptions: Observable<ProductDto[]>[] = [];
 
   validLineCount = computed(() => this.lineItems().filter((item) => item.productId).length);
+  canSave = computed(() => this.customerId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
     this.loading.set(true);

@@ -46,7 +46,7 @@ public class EstimationItemDetailDto
 
 public class CreateEstimationDto
 {
-    public int? CustomerId { get; set; }
+    public int CustomerId { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreateEstimationItemDto> Items { get; set; } = Enumerable.Empty<CreateEstimationItemDto>();
 }
