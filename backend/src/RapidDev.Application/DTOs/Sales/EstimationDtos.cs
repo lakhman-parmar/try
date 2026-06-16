@@ -21,6 +21,7 @@ public class EstimationListItemDto
     public string? Remarks { get; set; }
     public int ItemCount { get; set; }
     public DateTime? CreatedAt { get; set; }
+    public decimal TotalAmount { get; set; }
 }
 
 public class EstimationDetailDto
@@ -32,6 +33,7 @@ public class EstimationDetailDto
     public string? Remarks { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
+    public decimal TotalAmount { get; set; }
     public IEnumerable<EstimationItemDetailDto> Items { get; set; } = Enumerable.Empty<EstimationItemDetailDto>();
 }
 
@@ -42,6 +44,7 @@ public class EstimationItemDetailDto
     public string ProductName { get; set; } = null!;
     public string? UnitShortName { get; set; }
     public decimal Quantity { get; set; }
+    public decimal? UnitPrice { get; set; }
 }
 
 public class CreateEstimationDto
@@ -55,6 +58,7 @@ public class CreateEstimationItemDto
 {
     public int ProductId { get; set; }
     public decimal Quantity { get; set; }
+    public decimal? UnitPrice { get; set; }
 }
 
 public class UpdateEstimationDto

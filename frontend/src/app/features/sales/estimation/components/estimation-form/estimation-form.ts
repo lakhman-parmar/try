@@ -38,7 +38,7 @@ export class EstimationForm implements OnInit {
   readonly id = Number(this.route.snapshot.paramMap.get('id'));
   readonly isEdit = Number.isFinite(this.id) && this.id > 0;
   readonly title = this.isEdit ? 'Edit Estimation' : 'New Estimation';
-  readonly displayedColumns = ['product', 'unit', 'quantity', 'actions'];
+  readonly displayedColumns = ['product', 'unit', 'quantity', 'unitPrice', 'total', 'actions'];
 
   loading = signal(false);
   saving = signal(false);
@@ -48,7 +48,7 @@ export class EstimationForm implements OnInit {
   customerControl = new FormControl<CustomerDto | string>('', { nonNullable: true });
   filteredCustomers$!: Observable<CustomerDto[]>;
   remarks = signal('');
-  lineItems = signal<EstimationLineItem[]>([{ productId: null, quantity: 1 }]);
+  lineItems = signal<EstimationLineItem[]>([{ productId: null, quantity: 1, unitPrice: null }]);
   productControls: FormControl<ProductDto | string>[] = [];
   filteredProductOptions: Observable<ProductDto[]>[] = [];
 
@@ -84,6 +84,7 @@ export class EstimationForm implements OnInit {
               const items = detail.items.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
+                unitPrice: item.unitPrice ?? null,
               }));
               this.lineItems.set(items);
               this.resetProductControls(items);
@@ -110,7 +111,7 @@ export class EstimationForm implements OnInit {
   }
 
   addLineItem(): void {
-    this.lineItems.update((items) => [...items, { productId: null, quantity: 1 }]);
+    this.lineItems.update((items) => [...items, { productId: null, quantity: 1, unitPrice: null }]);
     this.addProductControl();
   }
 
@@ -146,14 +147,22 @@ export class EstimationForm implements OnInit {
 
   onProductSelected(index: number, product: ProductDto): void {
     this.lineItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, productId: product.productId } : item)),
+      items.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              productId: product.productId,
+              unitPrice: item.unitPrice ?? product.sellingPrice ?? null,
+            }
+          : item,
+      ),
     );
   }
 
   onProductInput(index: number, value: string): void {
     if (value.trim()) return;
     this.lineItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, productId: null } : item)),
+      items.map((item, i) => (i === index ? { ...item, productId: null, unitPrice: null } : item)),
     );
   }
 
@@ -163,6 +172,23 @@ export class EstimationForm implements OnInit {
         i === index ? { ...item, quantity: Math.max(1, quantity || 1) } : item,
       ),
     );
+  }
+
+  updateUnitPrice(index: number, price: number): void {
+    this.lineItems.update((items) =>
+      items.map((item, i) =>
+        i === index ? { ...item, unitPrice: Math.max(0, price || 0) || null } : item,
+      ),
+    );
+  }
+
+  itemTotal(item: EstimationLineItem): number {
+    if (!item.productId || !item.unitPrice || !item.quantity) return 0;
+    return item.unitPrice * item.quantity;
+  }
+
+  grandTotal(): number {
+    return this.lineItems().reduce((sum, item) => sum + this.itemTotal(item), 0);
   }
 
   adjustQuantity(index: number, delta: number): void {
@@ -257,6 +283,7 @@ export class EstimationForm implements OnInit {
       .map((item) => ({
         productId: item.productId!,
         quantity: item.quantity,
+        unitPrice: item.unitPrice ?? undefined,
       }));
 
     this.saving.set(true);

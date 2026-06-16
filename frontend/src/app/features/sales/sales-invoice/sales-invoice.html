@@ -151,7 +151,7 @@
                         </td></ng-container
                       >
                       <ng-container matColumnDef="so"
-                        ><th mat-header-cell *matHeaderCellDef>Sales Order</th>
+                        ><th mat-header-cell *matHeaderCellDef>Sales No.</th>
                         <td mat-cell *matCellDef="let item">
                           @if (item.salesOrderNumber) {
                             <span class="source-chip"
@@ -186,9 +186,9 @@
                       <tr
                         mat-header-row
                         *matHeaderRowDef="[
+                          'so',
                           'product',
                           'unit',
-                          'so',
                           'quantity',
                           'unitPrice',
                           'total',
@@ -198,7 +198,7 @@
                         mat-row
                         *matRowDef="
                           let row;
-                          columns: ['product', 'unit', 'so', 'quantity', 'unitPrice', 'total']
+                          columns: ['so', 'product', 'unit', 'quantity', 'unitPrice', 'total']
                         "
                       ></tr>
                     </table>
@@ -221,41 +221,16 @@
           ></tr>
         </table>
       </div>
-      @if (totalPages() > 1) {
-        <div class="pagination">
-          <span
-            >Showing {{ (currentPage() - 1) * pageSize + 1 }}-{{
-              minOf(currentPage() * pageSize, totalCount())
-            }}
-            of {{ totalCount() }}</span
-          >
-          <div class="page-actions">
-            <button
-              class="icon-action"
-              [disabled]="currentPage() === 1"
-              (click)="goToPage(currentPage() - 1)"
-            >
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            @for (page of pageNumbers(); track page) {
-              <button
-                class="page-button"
-                [class.active-page]="page === currentPage()"
-                (click)="goToPage(page)"
-              >
-                {{ page }}
-              </button>
-            }
-            <button
-              class="icon-action"
-              [disabled]="currentPage() === totalPages()"
-              (click)="goToPage(currentPage() + 1)"
-            >
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-        </div>
-      }
+
+      <mat-paginator
+        [length]="totalCount()"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [pageIndex]="currentPage()"
+        (page)="onPageChange($event)"
+        aria-label="Select page"
+      >
+      </mat-paginator>
     }
   </mat-card>
 </div>

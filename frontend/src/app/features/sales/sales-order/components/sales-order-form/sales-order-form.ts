@@ -51,6 +51,10 @@ export class SalesOrderForm implements OnInit {
   customers = signal<CustomerDto[]>([]);
   products = signal<ProductDto[]>([]);
   estimations = signal<EstimationForSoDto[]>([]);
+  estimationPage = signal(1);
+  estimationTotalPages = signal(1);
+  estimationLoading = signal(false);
+  private estimationPageSize = 20;
   customerId = signal<number | null>(null);
   customerControl = new FormControl<CustomerDto | string>('', { nonNullable: true });
   filteredCustomers$!: Observable<CustomerDto[]>;
@@ -197,6 +201,7 @@ export class SalesOrderForm implements OnInit {
 
   onCustomerSelected(customer: CustomerDto): void {
     this.customerId.set(customer.customerId);
+    this.clearLineItems();
     this.loadEstimations(customer.customerId);
   }
 
@@ -204,15 +209,57 @@ export class SalesOrderForm implements OnInit {
     if (value.trim()) return;
     this.customerId.set(null);
     this.estimations.set([]);
+    this.estimationPage.set(1);
+    this.estimationTotalPages.set(1);
     this.selectedEstimationIds.set(new Set());
+    this.clearLineItems();
+  }
+
+  private clearLineItems(): void {
+    this.lineItems.set([]);
+    this.productControls = [];
+    this.filteredProductOptions = [];
   }
 
   private loadEstimations(customerId: number): void {
-    this.svc.getEstimationsForSo(customerId).subscribe({
+    this.estimationPage.set(1);
+    this.estimationTotalPages.set(1);
+    this.estimationLoading.set(true);
+    this.svc.getEstimationsForSo(customerId, 1, this.estimationPageSize).subscribe({
       next: (res) => {
-        if (res.isSuccess) this.estimations.set(res.data);
+        if (res.isSuccess) {
+          this.estimations.set(res.data.items);
+          this.estimationTotalPages.set(res.data.totalPages);
+          this.estimationPage.set(2);
+        }
       },
+      complete: () => this.estimationLoading.set(false),
     });
+  }
+
+  onEstimationScroll(event: Event): void {
+    if (this.estimationLoading()) return;
+    if (this.estimationPage() > this.estimationTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.estimationLoading.set(true);
+    const customerId = this.customerId();
+    if (!customerId) return;
+
+    this.svc
+      .getEstimationsForSo(customerId, this.estimationPage(), this.estimationPageSize)
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.estimations.update((prev) => [...prev, ...res.data.items]);
+            this.estimationPage.update((p) => p + 1);
+          }
+        },
+        complete: () => this.estimationLoading.set(false),
+      });
   }
 
   onProductSelected(index: number, product: ProductDto): void {

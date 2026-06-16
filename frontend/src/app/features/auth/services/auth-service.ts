@@ -161,6 +161,11 @@ export class CommonAuthService {
   clearAuthUser() {
     this.user.set(null);
   }
+
+  clearAuth() {
+    this.accessToken.set(null);
+    this.user.set(null);
+  }
   setToken(token: string) {
     this.accessToken.set(token);
     this.getUserFromToken();

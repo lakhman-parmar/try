@@ -193,6 +193,13 @@
   background: #ffffff;
 }
 
+.estimation-body {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  max-height: 420px;
+}
+
 .panel-header p {
   color: #64748b;
   margin: 4px 0 0;
@@ -208,9 +215,23 @@
 }
 
 .estimation-list {
-  margin-top: 16px;
   display: grid;
   gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.estimation-loading-more {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+  padding: 8px 0;
 }
 
 .estimation-card {
@@ -255,6 +276,12 @@
 .panel-footer {
   display: flex;
   justify-content: flex-end;
+  padding: 12px 0 0;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 12px;
+  flex-shrink: 0;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .table-wrap {

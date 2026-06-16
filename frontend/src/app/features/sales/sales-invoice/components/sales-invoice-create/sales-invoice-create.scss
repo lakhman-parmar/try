@@ -9,6 +9,38 @@
   font-weight: 700;
 }
 
+.po-body {
+  display: flex;
+  flex-direction: column;
+  max-height: 420px;
+}
+
+.po-list-container {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  margin-top: 16px;
+  padding: 0;
+}
+
+.panel-footer {
+  padding: 12px 0 0;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+
+.orders-loading-more {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
 .modal-overlay {
   z-index: 10000;
 }

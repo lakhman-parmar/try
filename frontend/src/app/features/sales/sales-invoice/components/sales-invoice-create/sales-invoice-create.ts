@@ -50,7 +50,10 @@ export class SalesInvoiceCreate implements OnInit {
   customers = signal<CustomerDto[]>([]);
   loadingCustomers = signal(false);
   ordersForInvoice = signal<SalesOrderForInvoiceDto[]>([]);
+  ordersPage = signal(1);
+  ordersTotalPages = signal(1);
   loadingOrders = signal(false);
+  private ordersPageSize = 20;
   selectedSoIds = signal<Set<number>>(new Set());
   showSoPanel = signal(false);
   lineItems = signal<InvoiceLineItem[]>([]);
@@ -101,13 +104,41 @@ export class SalesInvoiceCreate implements OnInit {
   }
 
   private loadOrders(customerId: number): void {
+    this.ordersPage.set(1);
+    this.ordersTotalPages.set(1);
     this.loadingOrders.set(true);
-    this.svc.getOrdersForInvoice(customerId).subscribe({
+    this.svc.getOrdersForInvoice(customerId, 1, this.ordersPageSize).subscribe({
       next: (res) => {
-        if (res.isSuccess) this.ordersForInvoice.set(res.data);
-        this.loadingOrders.set(false);
+        if (res.isSuccess) {
+          this.ordersForInvoice.set(res.data.items);
+          this.ordersTotalPages.set(res.data.totalPages);
+          this.ordersPage.set(2);
+        }
       },
-      error: () => this.loadingOrders.set(false),
+      complete: () => this.loadingOrders.set(false),
+    });
+  }
+
+  onOrdersScroll(event: Event): void {
+    if (this.loadingOrders()) return;
+    if (this.ordersPage() > this.ordersTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.loadingOrders.set(true);
+    const customerId = this.customerId();
+    if (!customerId) return;
+
+    this.svc.getOrdersForInvoice(customerId, this.ordersPage(), this.ordersPageSize).subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.ordersForInvoice.update((prev) => [...prev, ...res.data.items]);
+          this.ordersPage.update((p) => p + 1);
+        }
+      },
+      complete: () => this.loadingOrders.set(false),
     });
   }
 
@@ -129,6 +160,8 @@ export class SalesInvoiceCreate implements OnInit {
     if (value.trim()) return;
     this.customerId.set(null);
     this.ordersForInvoice.set([]);
+    this.ordersPage.set(1);
+    this.ordersTotalPages.set(1);
     this.selectedSoIds.set(new Set());
     this.lineItems.set([]);
     this.productControls = [];

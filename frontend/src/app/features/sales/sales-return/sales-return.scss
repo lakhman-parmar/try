@@ -18,3 +18,32 @@
   border-bottom: 1px solid #e2e8f0 !important;
   border-bottom-style: solid !important;
 }
+
+.customer-field {
+  min-width: 220px;
+}
+
+.compact-autocomplete {
+  height: 42px;
+  width: 100%;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-text-field-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-flex {
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-infix {
+  min-height: 42px;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}

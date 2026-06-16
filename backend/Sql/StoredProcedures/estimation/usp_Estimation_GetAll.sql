@@ -36,7 +36,8 @@ BEGIN
         c.name AS customer_name,
         e.remarks,
         COUNT(ei.estimation_item_id) AS item_count,
-        e.created_at
+        e.created_at,
+        ISNULL(SUM(ei.quantity * ei.unit_price), 0) AS total_amount
     FROM dbo.estimation e
     LEFT JOIN dbo.customer c ON c.customer_id = e.customer_id
     LEFT JOIN dbo.estimation_item ei

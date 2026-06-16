@@ -119,9 +119,10 @@ public class EstimationRepository : IEstimationRepository
         var table = new DataTable();
         table.Columns.Add("product_id", typeof(int));
         table.Columns.Add("quantity", typeof(decimal));
+        table.Columns.Add("unit_price", typeof(decimal));
 
         foreach (var item in items)
-            table.Rows.Add(item.ProductId, item.Quantity);
+            table.Rows.Add(item.ProductId, item.Quantity, item.UnitPrice ?? (object)DBNull.Value);
 
         return table;
     }

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ApiResponse } from '../../../../shared/models/api-response.model';
 import {
   CreateSalesReturnDto,
+  CustomerDto,
   PagedResult,
   SalesInvoiceForReturnDto,
   SalesReturnDetailDto,
@@ -36,9 +37,20 @@ export class SalesReturnService {
     return this.http.get<ApiResponse<SalesReturnDetailDto>>(`${this.apiUrl}/sales-returns/${id}`);
   }
 
-  getInvoicesForReturn(): Observable<ApiResponse<SalesInvoiceForReturnDto[]>> {
-    return this.http.get<ApiResponse<SalesInvoiceForReturnDto[]>>(
+  getCustomers(): Observable<ApiResponse<CustomerDto[]>> {
+    return this.http.get<ApiResponse<CustomerDto[]>>(`${this.apiUrl}/customers`);
+  }
+
+  getInvoicesForReturn(
+    customerId?: number | null,
+    pageNumber = 1,
+    pageSize = 20,
+  ): Observable<ApiResponse<PagedResult<SalesInvoiceForReturnDto>>> {
+    let params = new HttpParams().set('pageNumber', pageNumber).set('pageSize', pageSize);
+    if (customerId) params = params.set('customerId', customerId);
+    return this.http.get<ApiResponse<PagedResult<SalesInvoiceForReturnDto>>>(
       `${this.apiUrl}/sales-returns/invoices-for-return`,
+      { params },
     );
   }
 

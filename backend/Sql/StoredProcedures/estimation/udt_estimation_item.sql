@@ -8,7 +8,8 @@ BEGIN
     CREATE TYPE [dbo].[udt_estimation_item] AS TABLE
     (
         product_id INT NOT NULL,
-        quantity   DECIMAL(18,3) NOT NULL
+        quantity   DECIMAL(18,3) NOT NULL,
+        unit_price DECIMAL(10,2) NULL
     );
 END
 GO

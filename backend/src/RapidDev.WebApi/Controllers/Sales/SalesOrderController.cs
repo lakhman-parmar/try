@@ -41,14 +41,17 @@ public class SalesOrderController : ControllerBase
     }
 
     /// <summary>
-    /// Returns open estimations for a given customer so the UI can
-    /// pre-fill / select items when creating a new sales order.
+    /// Returns paginated open estimations for a given customer so the
+    /// UI can pre-fill / select items when creating a new sales order.
     /// </summary>
     [HttpGet("estimations-for-so")]
-    public async Task<IActionResult> GetEstimationsForSo([FromQuery] int customerId)
+    public async Task<IActionResult> GetEstimationsForSo(
+        [FromQuery] int customerId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _service.GetEstimationsForSoAsync(customerId);
-        return Ok(ApiResponse<IEnumerable<EstimationForSoDto>>.Success(result));
+        var result = await _service.GetEstimationsForSoAsync(customerId, pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<EstimationForSoDto>>.Success(result));
     }
 
     [HttpPost]

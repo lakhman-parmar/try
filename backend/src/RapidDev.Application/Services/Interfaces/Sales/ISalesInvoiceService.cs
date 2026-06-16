@@ -7,7 +7,7 @@ public interface ISalesInvoiceService
 {
     Task<PagedResult<SalesInvoiceListItemDto>> GetAllAsync(SalesInvoiceFilterDto filter);
     Task<SalesInvoiceDetailDto?> GetByIdAsync(int id);
-    Task<IEnumerable<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync(int customerId);
+    Task<PagedResult<SalesOrderForInvoiceDto>> GetOrdersForInvoiceAsync(int customerId, int pageNumber, int pageSize);
     Task<int> CreateAsync(CreateSalesInvoiceDto dto);
     Task<int> RegenerateAsync(int sourceInvoiceId, RegenerateSalesInvoiceDto dto);
 }

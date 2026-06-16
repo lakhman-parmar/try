@@ -21,6 +21,27 @@
         (ngModelChange)="onSearchChange($event)"
       />
     </label>
+    <label class="filter-field customer-field">
+      <span class="field-label">Customer</span>
+      <mat-form-field appearance="outline" class="compact-autocomplete">
+        <input
+          matInput
+          placeholder="All customers"
+          [formControl]="customerControl"
+          [matAutocomplete]="customerAuto"
+          (input)="onCustomerInput($any($event.target).value)"
+        />
+        <mat-autocomplete
+          #customerAuto="matAutocomplete"
+          [displayWith]="displayCustomer"
+          (optionSelected)="onCustomerSelected($event.option.value)"
+        >
+          @for (customer of filteredCustomers$ | async; track customer.customerId) {
+            <mat-option [value]="customer">{{ customer.name }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </label>
     <div class="filter-field date-field">
       <span class="field-label">From</span>
       <mat-form-field appearance="outline" class="compact-date">
@@ -184,41 +205,16 @@
           ></tr>
         </table>
       </div>
-      @if (totalPages() > 1) {
-        <div class="pagination">
-          <span
-            >Showing {{ (currentPage() - 1) * pageSize + 1 }}-{{
-              minOf(currentPage() * pageSize, totalCount())
-            }}
-            of {{ totalCount() }}</span
-          >
-          <div class="page-actions">
-            <button
-              class="icon-action"
-              [disabled]="currentPage() === 1"
-              (click)="goToPage(currentPage() - 1)"
-            >
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            @for (page of pageNumbers(); track page) {
-              <button
-                class="page-button"
-                [class.active-page]="page === currentPage()"
-                (click)="goToPage(page)"
-              >
-                {{ page }}
-              </button>
-            }
-            <button
-              class="icon-action"
-              [disabled]="currentPage() === totalPages()"
-              (click)="goToPage(currentPage() + 1)"
-            >
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-        </div>
-      }
+
+      <mat-paginator
+        [length]="totalCount()"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [pageIndex]="currentPage()"
+        (page)="onPageChange($event)"
+        aria-label="Select page"
+      >
+      </mat-paginator>
     }
   </mat-card>
 </div>

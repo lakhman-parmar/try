@@ -1,17 +1,20 @@
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounceTime, finalize, Subject } from 'rxjs';
+import { debounceTime, finalize, map, Observable, startWith, Subject } from 'rxjs';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { SalesReturnService } from './services/sales-return.service';
 import {
+  CustomerDto,
   PagedResult,
   SalesReturnDetailDto,
   SalesReturnListItemDto,
@@ -21,13 +24,16 @@ import {
   selector: 'app-sales-return',
   standalone: true,
   imports: [
+    AsyncPipe,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatCardModule,
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
   ],
@@ -41,26 +47,35 @@ export class SalesReturn implements OnInit {
 
   displayedColumns = ['toggle', 'number', 'invoice', 'customer', 'items', 'totalAmount', 'date'];
   detailColumns = ['detail'];
-  pageSize = 20;
+  pageSize = 10;
   loading = signal(false);
   pagedResult = signal<PagedResult<SalesReturnListItemDto> | null>(null);
+  customers = signal<CustomerDto[]>([]);
+  customerControl = new FormControl<CustomerDto | string>('', { nonNullable: true });
+  filteredCustomers$!: Observable<CustomerDto[]>;
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
-  currentPage = signal(1);
+  customerId = signal<number | null>(null);
+  currentPage = signal(0);
   expandedId = signal<number | null>(null);
   expandedDetail = signal<SalesReturnDetailDto | null>(null);
   expandLoading = signal(false);
 
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
-  readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
-  hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
+  hasFilters = computed(
+    () => !!(this.searchTerm() || this.fromDate() || this.toDate() || this.customerId()),
+  );
 
   private searchSubject = new Subject<void>();
 
   ngOnInit(): void {
+    this.filteredCustomers$ = this.customerControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterCustomers(value)),
+    );
+    this.loadCustomers();
     this.loadList();
     this.searchSubject.pipe(debounceTime(350)).subscribe(() => this.applyFilters());
   }
@@ -69,10 +84,11 @@ export class SalesReturn implements OnInit {
     this.loading.set(true);
     this.svc
       .getAll({
-        search: this.searchTerm(),
+        search: this.searchTerm() || undefined,
         fromDate: this.toQueryDate(this.fromDate()),
         toDate: this.toQueryDate(this.toDate()),
-        pageNumber: this.currentPage(),
+        customerId: this.customerId() ?? undefined,
+        pageNumber: this.currentPage() + 1,
         pageSize: this.pageSize,
       })
       .pipe(finalize(() => this.loading.set(false)))
@@ -105,28 +121,53 @@ export class SalesReturn implements OnInit {
 
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.searchSubject.next();
   }
 
   applyFilters(): void {
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
   }
 
-  clearFilters(): void {
-    this.searchTerm.set('');
-    this.fromDate.set(null);
-    this.toDate.set(null);
-    this.currentPage.set(1);
-    this.loadList();
+  private loadCustomers(): void {
+    this.svc.getCustomers().subscribe({
+      next: (res) => {
+        if (res.isSuccess) this.customers.set(res.data);
+        this.customerControl.setValue(this.customerControl.value ?? '');
+      },
+    });
   }
 
-  goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages()) return;
-    this.currentPage.set(page);
+  displayCustomer(customer: CustomerDto | string | null): string {
+    return typeof customer === 'string' ? customer : (customer?.name ?? '');
+  }
+
+  onCustomerSelected(customer: CustomerDto): void {
+    this.customerId.set(customer.customerId);
+    this.applyFilters();
+  }
+
+  onCustomerInput(value: string): void {
+    if (value.trim()) return;
+    this.customerId.set(null);
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.customerControl.setValue('', { emitEvent: false });
+    this.fromDate.set(null);
+    this.toDate.set(null);
+    this.customerId.set(null);
+    this.applyFilters();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize = event.pageSize;
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
@@ -134,10 +175,6 @@ export class SalesReturn implements OnInit {
 
   openCreateForm(): void {
     this.router.navigate(['/admin/sales/return/create']);
-  }
-
-  minOf(a: number, b: number): number {
-    return Math.min(a, b);
   }
 
   formatDate(dateStr?: string | null): string {
@@ -157,5 +194,11 @@ export class SalesReturn implements OnInit {
   private toQueryDate(date: Date | null): string | undefined {
     if (!date) return undefined;
     return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
+  }
+
+  private filterCustomers(value: CustomerDto | string | null): CustomerDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.customers().filter((customer) => customer.name.toLowerCase().includes(filterValue));
   }
 }

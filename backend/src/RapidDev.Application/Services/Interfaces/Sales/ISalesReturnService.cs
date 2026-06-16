@@ -7,6 +7,6 @@ public interface ISalesReturnService
 {
     Task<PagedResult<SalesReturnListItemDto>> GetAllAsync(SalesReturnFilterDto filter);
     Task<SalesReturnDetailDto?> GetByIdAsync(int id);
-    Task<IEnumerable<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync();
+    Task<PagedResult<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync(int? customerId, int pageNumber, int pageSize);
     Task<int> CreateAsync(CreateSalesReturnDto dto);
 }

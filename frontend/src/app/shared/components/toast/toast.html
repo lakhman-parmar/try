@@ -1,12 +1,19 @@
 @if (toastService.toast(); as toast) {
-  <div class="error-toast" role="alert" aria-live="assertive">
-    <div class="error-toast__icon">!</div>
-    <div class="error-toast__content">
+  <div class="toast toast--{{ toast.type }}" role="alert" aria-live="assertive">
+    <div class="toast__icon">
+      @switch (toast.type) {
+        @case ('error') { ! }
+        @case ('warning') { &#9888; }
+        @case ('info') { &#8505; }
+        @case ('success') { &#10003; }
+      }
+    </div>
+    <div class="toast__content">
       <strong>{{ toast.title }}</strong>
       <span>{{ toast.message }}</span>
     </div>
     <button
-      class="error-toast__close"
+      class="toast__close"
       type="button"
       aria-label="Dismiss notification"
       (click)="toastService.dismiss()"

@@ -12,8 +12,7 @@
 }
 
 .page-header,
-.filter-card,
-.pagination {
+.filter-card {
   align-items: center;
   display: flex;
   gap: 16px;
@@ -212,7 +211,6 @@
 
 .primary-action,
 .secondary-action,
-.page-button,
 .icon-action {
   align-items: center;
   border: 0;
@@ -304,16 +302,20 @@
 .items-table th.mat-column-product,
 .items-table td.mat-column-product {
   padding-left: 0;
-  width: 50%;
+  width: 30%;
 }
 
 .items-table th.mat-column-unit,
 .items-table td.mat-column-unit,
 .items-table th.mat-column-quantity,
-.items-table td.mat-column-quantity {
+.items-table td.mat-column-quantity,
+.items-table th.mat-column-unitPrice,
+.items-table td.mat-column-unitPrice,
+.items-table th.mat-column-itemTotal,
+.items-table td.mat-column-itemTotal {
   padding-left: 0;
   text-align: left;
-  width: 25%;
+  width: 15%;
 }
 
 .remarks-cell {
@@ -373,37 +375,12 @@
   display: none;
 }
 
-.pagination {
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
-  padding: 12px 16px;
-}
-
-.page-actions {
-  align-items: center;
-  display: flex;
-  gap: 4px;
-}
-
-.page-button {
-  background: transparent;
-  color: #475569;
-  min-width: 36px;
-  padding: 0 10px;
-}
-
-.active-page {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
 @media (max-width: 720px) {
   .estimation-page {
     padding: 16px;
   }
 
-  .page-header,
-  .pagination {
+  .page-header {
     align-items: stretch;
     flex-direction: column;
   }

@@ -9,6 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import {
@@ -32,6 +33,7 @@ import { EstimationService } from './services/estimation.service';
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
   ],
@@ -43,7 +45,16 @@ export class Estimation implements OnInit {
   private readonly svc = inject(EstimationService);
   private readonly router = inject(Router);
 
-  displayedColumns = ['toggle', 'number', 'customer', 'remarks', 'items', 'date', 'actions'];
+  displayedColumns = [
+    'toggle',
+    'number',
+    'customer',
+    'remarks',
+    'items',
+    'total',
+    'date',
+    'actions',
+  ];
   detailColumns = ['detail'];
   pageSize = 10;
 
@@ -60,13 +71,11 @@ export class Estimation implements OnInit {
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
   customerId = signal<number | null>(null);
-  currentPage = signal(1);
+  currentPage = signal(0);
   private searchSubject = new Subject<void>();
 
   items = computed(() => this.pagedResult()?.items ?? []);
   totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
-  totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(
     () => !!(this.searchTerm() || this.fromDate() || this.toDate() || this.customerId()),
   );
@@ -93,7 +102,7 @@ export class Estimation implements OnInit {
         fromDate: this.toQueryDate(this.fromDate()),
         toDate: this.toQueryDate(this.toDate()),
         customerId: this.customerId() ?? undefined,
-        pageNumber: this.currentPage(),
+        pageNumber: this.currentPage() + 1,
         pageSize: this.pageSize,
       })
       .pipe(finalize(() => this.loading.set(false)))
@@ -115,12 +124,12 @@ export class Estimation implements OnInit {
 
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.searchSubject.next();
   }
 
   applyFilters(): void {
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
@@ -171,9 +180,9 @@ export class Estimation implements OnInit {
       });
   }
 
-  goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages()) return;
-    this.currentPage.set(page);
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize = event.pageSize;
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
@@ -195,10 +204,6 @@ export class Estimation implements OnInit {
         if (res.isSuccess) this.loadList();
       },
     });
-  }
-
-  minOf(a: number, b: number): number {
-    return Math.min(a, b);
   }
 
   formatDate(dateStr?: string | null): string {

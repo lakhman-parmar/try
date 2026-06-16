@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { SalesInvoiceService } from './services/sales-invoice.service';
@@ -28,6 +29,7 @@ import {
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
     RouterLink,
@@ -42,21 +44,19 @@ export class SalesInvoice implements OnInit {
 
   displayedColumns = ['toggle', 'number', 'customer', 'items', 'totalAmount', 'date', 'actions'];
   detailColumns = ['detail'];
-  pageSize = 20;
+  pageSize = 10;
   loading = signal(false);
   pagedResult = signal<PagedResult<SalesInvoiceListItemDto> | null>(null);
   searchTerm = signal('');
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
-  currentPage = signal(1);
+  currentPage = signal(0);
   expandedId = signal<number | null>(null);
   expandedDetail = signal<SalesInvoiceDetailDto | null>(null);
   expandLoading = signal(false);
 
   readonly items = computed(() => this.pagedResult()?.items ?? []);
   readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
-  readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
-  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   hasFilters = computed(() => !!(this.searchTerm() || this.fromDate() || this.toDate()));
 
   private searchSubject = new Subject<void>();
@@ -73,7 +73,7 @@ export class SalesInvoice implements OnInit {
         search: this.searchTerm(),
         fromDate: this.toQueryDate(this.fromDate()),
         toDate: this.toQueryDate(this.toDate()),
-        pageNumber: this.currentPage(),
+        pageNumber: this.currentPage() + 1,
         pageSize: this.pageSize,
       })
       .pipe(finalize(() => this.loading.set(false)))
@@ -106,12 +106,12 @@ export class SalesInvoice implements OnInit {
 
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.searchSubject.next();
   }
 
   applyFilters(): void {
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
@@ -121,13 +121,13 @@ export class SalesInvoice implements OnInit {
     this.searchTerm.set('');
     this.fromDate.set(null);
     this.toDate.set(null);
-    this.currentPage.set(1);
+    this.currentPage.set(0);
     this.loadList();
   }
 
-  goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages()) return;
-    this.currentPage.set(page);
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize = event.pageSize;
     this.expandedId.set(null);
     this.expandedDetail.set(null);
     this.loadList();
@@ -140,10 +140,6 @@ export class SalesInvoice implements OnInit {
   printInvoice(id: number, event: Event): void {
     event.stopPropagation();
     this.svc.downloadPdf(id);
-  }
-
-  minOf(a: number, b: number): number {
-    return Math.min(a, b);
   }
 
   formatDate(dateStr?: string | null): string {

@@ -66,12 +66,19 @@ public class SalesReturnRepository : ISalesReturnRepository
         return header;
     }
 
-    public async Task<IEnumerable<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync()
+    public async Task<PagedResult<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync(int? customerId, int pageNumber, int pageSize)
     {
         using var conn = CreateConnection();
 
+        var parameters = new DynamicParameters();
+        parameters.Add("@CustomerId", customerId);
+        parameters.Add("@PageNumber", pageNumber);
+        parameters.Add("@PageSize", pageSize);
+        parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
         using var multi = await conn.QueryMultipleAsync(
             "usp_SalesReturn_GetInvoicesForReturn",
+            parameters,
             commandType: CommandType.StoredProcedure);
 
         var headers = (await multi.ReadAsync<SalesInvoiceForReturnDto>()).ToList();
@@ -86,7 +93,13 @@ public class SalesReturnRepository : ISalesReturnRepository
                 header.Items = items;
         }
 
-        return headers;
+        return new PagedResult<SalesInvoiceForReturnDto>
+        {
+            Items = headers,
+            TotalCount = parameters.Get<int>("@TotalCount"),
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<int> CreateAsync(CreateSalesReturnDto dto)

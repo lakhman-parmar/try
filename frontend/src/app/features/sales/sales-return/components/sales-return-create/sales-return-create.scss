@@ -1,5 +1,17 @@
 @use '../../../../purchase/purchase-bill/components/purchase-bill-create/purchase-bill-create.scss';
 
+.po-panel-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+}
+
+.po-list-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
 .selected-invoice {
   align-items: center;
   background: #ecfeff;
@@ -7,9 +19,31 @@
   border-radius: 8px;
   color: #155e75;
   display: flex;
+  flex-shrink: 0;
   gap: 10px;
   margin-top: 12px;
   padding: 12px 14px;
+
+  .close-action {
+    margin-left: auto;
+    color: #155e75;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background-color: #cffafe;
+      color: #083344;
+    }
+  }
 }
 
 .selected-invoice strong {
@@ -28,4 +62,39 @@
 
 .modal-dialog {
   z-index: 10001;
+}
+
+.compact-autocomplete {
+  height: 42px;
+  width: 100%;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-text-field-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-flex {
+  height: 42px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-infix {
+  min-height: 42px;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+:host ::ng-deep .compact-autocomplete .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.loading-more {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px;
+  color: #64748b;
+  font-size: 13px;
 }

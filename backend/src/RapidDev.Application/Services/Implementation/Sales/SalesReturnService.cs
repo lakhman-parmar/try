@@ -24,9 +24,9 @@ public class SalesReturnService : ISalesReturnService
         return _repository.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync()
+    public Task<PagedResult<SalesInvoiceForReturnDto>> GetInvoicesForReturnAsync(int? customerId, int pageNumber, int pageSize)
     {
-        return _repository.GetInvoicesForReturnAsync();
+        return _repository.GetInvoicesForReturnAsync(customerId, pageNumber, pageSize);
     }
 
     public Task<int> CreateAsync(CreateSalesReturnDto dto)
