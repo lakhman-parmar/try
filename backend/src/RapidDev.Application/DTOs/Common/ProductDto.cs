@@ -16,3 +16,9 @@ public class ProductDto
 
     public string? UnitShortName { get; set; }
 }
+
+public class SupplierDto
+{
+    public int SupplierId { get; set; }
+    public string Name { get; set; } = null!;
+}

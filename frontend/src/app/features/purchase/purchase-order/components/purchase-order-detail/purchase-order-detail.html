@@ -24,6 +24,16 @@
     } @else {
       <div class="header-fields">
         <label class="form-field">
+          <span class="field-label">Supplier</span>
+          <input
+            class="field-control"
+            type="text"
+            [value]="order()?.supplierName ?? ''"
+            readonly
+          />
+        </label>
+
+        <label class="form-field">
           <span class="field-label">Tax %</span>
           <input
             class="field-control"
@@ -36,17 +46,6 @@
           />
         </label>
       </div>
-
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
 
       <div class="requisition-panel">
         <div class="panel-header">
@@ -64,43 +63,58 @@
         </div>
 
         @if (showReqPanel()) {
-          <div class="requisition-list">
-            @if (requisitions().length === 0) {
-              <div class="empty-requisitions">
-                <span class="material-symbols-outlined">inbox</span>
-                <span>No open requisitions available</span>
-              </div>
-            } @else {
-              @for (req of requisitions(); track req.purchaseRequisitionId) {
-                <div
-                  class="requisition-card"
-                  [class.selected]="isReqSelected(req.purchaseRequisitionId)"
-                  (click)="toggleRequisition(req)"
-                >
-                  <div class="requisition-card-header">
-                    <span class="material-symbols-outlined">
-                      {{
-                        isReqSelected(req.purchaseRequisitionId)
-                          ? 'check_circle'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                    <div class="requisition-info">
-                      <strong>{{ req.requisitionNo }}</strong>
-                      <span>{{ req.remarks || 'No remarks' }}</span>
-                    </div>
-                    <span class="requisition-count">{{ req.items.length }} items</span>
-                  </div>
-                  <div class="requisition-items">
-                    @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
-                      <span class="item-chip">{{ item.productName }}</span>
-                    }
-                    @if (req.items.length > 3) {
-                      <span class="item-chip more">+{{ req.items.length - 3 }} more</span>
-                    }
-                  </div>
+          <div class="req-body">
+            <div class="requisition-list" (scroll)="onReqScroll($event)">
+              @if (reqLoading() && requisitions().length === 0) {
+                <div class="empty-requisitions">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading requisitions...</span>
                 </div>
+              } @else if (requisitions().length === 0) {
+                <div class="empty-requisitions">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No open requisitions available</span>
+                </div>
+              } @else {
+                @for (req of requisitions(); track req.purchaseRequisitionId) {
+                  <div
+                    class="requisition-card"
+                    [class.selected]="isReqSelected(req.purchaseRequisitionId)"
+                    (click)="toggleRequisition(req)"
+                  >
+                    <div class="requisition-card-header">
+                      <span class="material-symbols-outlined">
+                        {{
+                          isReqSelected(req.purchaseRequisitionId)
+                            ? 'check_circle'
+                            : 'radio_button_unchecked'
+                        }}
+                      </span>
+                      <div class="requisition-info">
+                        <strong>{{ req.requisitionNo }}</strong>
+                        <span>{{ req.remarks || 'No remarks' }}</span>
+                      </div>
+                      <span class="requisition-count">{{ req.items.length }} items</span>
+                    </div>
+                    <div class="requisition-items">
+                      @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (req.items.length > 3) {
+                        <span class="item-chip more">+{{ req.items.length - 3 }} more</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (reqLoading()) {
+                  <div class="req-loading-more">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading more...</span>
+                  </div>
+                }
               }
+            </div>
+            @if (requisitions().length > 0) {
               <div class="panel-footer">
                 <button class="primary-action" type="button" (click)="applyRequisitions()">
                   <span class="material-symbols-outlined">check</span>
@@ -267,6 +281,17 @@
           </div>
         }
       </div>
+
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
 
       <div class="form-actions">
         <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>

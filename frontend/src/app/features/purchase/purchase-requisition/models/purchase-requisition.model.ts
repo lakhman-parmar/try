@@ -9,6 +9,8 @@ export interface PurchaseRequisitionFilterDto {
   export interface PurchaseRequisitionListItemDto {
     purchaseRequisitionId: number;
     requisitionNo: string;
+    supplierId?: number;
+    supplierName?: string;
     remarks?: string;
     itemCount: number;
     createdAt?: string;
@@ -17,6 +19,8 @@ export interface PurchaseRequisitionFilterDto {
   export interface PurchaseRequisitionDetailDto {
     purchaseRequisitionId: number;
     requisitionNo: string;
+    supplierId?: number;
+    supplierName?: string;
     remarks?: string;
     createdAt?: string;
     modifiedAt?: string;
@@ -32,6 +36,7 @@ export interface PurchaseRequisitionFilterDto {
   }
   
   export interface CreatePurchaseRequisitionDto {
+    supplierId?: number;
     remarks?: string;
     items: CreatePurchaseRequisitionItemDto[];
   }
@@ -42,6 +47,7 @@ export interface PurchaseRequisitionFilterDto {
   }
   
   export interface UpdatePurchaseRequisitionDto {
+    supplierId?: number;
     remarks?: string;
     items: CreatePurchaseRequisitionItemDto[];
   }
@@ -69,4 +75,9 @@ export interface PurchaseRequisitionFilterDto {
     productName: string;
     unitShortName: string;
     quantity: number;
+  }
+
+  export interface SupplierDto {
+    supplierId: number;
+    name: string;
   }

@@ -71,6 +71,7 @@ export interface PurchaseOrderItemForBillDto {
 }
 
 export interface CreatePurchaseBillDto {
+  supplierId?: number;
   taxPercentage?: number;
   remarks?: string;
   items: CreatePurchaseBillItemDto[];
@@ -118,4 +119,9 @@ export interface ProductDto {
   purchasePrice?: number;
   stock?: number;
   unitShortName?: string;
+}
+
+export interface SupplierDto {
+  supplierId: number;
+  name: string;
 }

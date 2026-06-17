@@ -60,12 +60,18 @@ public class PurchaseReturnRepository(IConfiguration configuration) : IPurchaseR
         return header;
     }
 
-    public async Task<IEnumerable<BillForReturnDto>> GetBillsForReturnAsync()
+    public async Task<PagedResult<BillForReturnDto>> GetBillsForReturnAsync(int pageNumber, int pageSize)
     {
         using IDbConnection conn = CreateConnection();
 
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@PageNumber", pageNumber);
+        parameters.Add("@PageSize",   pageSize);
+        parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
         using SqlMapper.GridReader multi = await conn.QueryMultipleAsync(
             "usp_PurchaseReturn_GetBillsForReturn",
+            parameters,
             commandType: CommandType.StoredProcedure);
 
         List<BillForReturnDto> bills = (await multi.ReadAsync<BillForReturnDto>()).ToList();
@@ -81,7 +87,13 @@ public class PurchaseReturnRepository(IConfiguration configuration) : IPurchaseR
                 bill.Items = items;
         }
 
-        return bills;
+        return new PagedResult<BillForReturnDto>
+        {
+            Items      = bills,
+            TotalCount = parameters.Get<int>("@TotalCount"),
+            PageNumber = pageNumber,
+            PageSize   = pageSize
+        };
     }
 
     public async Task<int> CreateAsync(CreatePurchaseReturnDto dto)

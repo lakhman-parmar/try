@@ -73,6 +73,7 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
         DataTable itemsTable = BuildItemsTvp(dto.Items);
 
         DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@supplier_id", dto.SupplierId);
         parameters.Add("@remarks", dto.Remarks);
         parameters.Add("@items", itemsTable.AsTableValuedParameter("dbo.udt_purchase_requisition_item"));
 
@@ -92,6 +93,7 @@ public class PurchaseRequisitionRepository : IPurchaseRequisitionRepository
 
         DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@purchase_requisition_id", id);
+        parameters.Add("@supplier_id", dto.SupplierId);
         parameters.Add("@remarks", dto.Remarks);
         parameters.Add("@items", itemsTable.AsTableValuedParameter("dbo.udt_purchase_requisition_item"));
 

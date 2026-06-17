@@ -16,17 +16,6 @@
         <span>Loading bills...</span>
       </div>
     } @else {
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
-
       <div class="po-panel-container">
         <div class="panel-header">
           <div>
@@ -48,33 +37,62 @@
         }
 
         @if (showBillPanel()) {
-          <div class="po-list-container">
-            @if (billsForReturn().length === 0) {
-              <div class="empty-pos">
-                <span class="material-symbols-outlined">inbox</span>
-                <span>No bills have returnable items</span>
-              </div>
-            } @else {
-              @for (bill of billsForReturn(); track bill.purchaseBillId) {
-                <div
-                  class="po-card"
-                  [class.selected]="isBillSelected(bill.purchaseBillId)"
-                  (click)="selectBill(bill)"
-                >
-                  <div class="po-card-header">
-                    <span class="material-symbols-outlined">{{
-                      isBillSelected(bill.purchaseBillId)
-                        ? 'check_circle'
-                        : 'radio_button_unchecked'
-                    }}</span>
-                    <div class="po-info">
-                      <strong>{{ bill.billNumber }}</strong>
-                      <span>{{ bill.supplierName || 'No supplier' }}</span>
-                    </div>
-                    <span class="po-count">{{ bill.items.length }} items</span>
-                  </div>
+          <div class="po-body">
+            <div class="po-list-container" (scroll)="onBillScroll($event)">
+              @if (billLoading() && billsForReturn().length === 0) {
+                <div class="empty-pos">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading bills...</span>
                 </div>
+              } @else if (billsForReturn().length === 0) {
+                <div class="empty-pos">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No bills have returnable items</span>
+                </div>
+              } @else {
+                @for (bill of billsForReturn(); track bill.purchaseBillId) {
+                  <div
+                    class="po-card"
+                    [class.selected]="isBillSelected(bill.purchaseBillId)"
+                    (click)="selectBill(bill)"
+                  >
+                    <div class="po-card-header">
+                      <span class="material-symbols-outlined">{{
+                        isBillSelected(bill.purchaseBillId)
+                          ? 'check_circle'
+                          : 'radio_button_unchecked'
+                      }}</span>
+                      <div class="po-info">
+                        <strong>{{ bill.billNumber }}</strong>
+                        <span>{{ bill.supplierName || 'No supplier' }}</span>
+                      </div>
+                      <span class="po-count">{{ bill.items.length }} items</span>
+                    </div>
+                    <div class="requisition-items">
+                      @for (item of bill.items.slice(0, 3); track item.purchaseBillItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (bill.items.length > 3) {
+                        <span class="item-chip more">+{{ bill.items.length - 3 }} more</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (billLoading()) {
+                  <div class="po-loading-more">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading more...</span>
+                  </div>
+                }
               }
+            </div>
+            @if (billsForReturn().length > 0) {
+              <div class="panel-footer">
+                <button class="primary-action" type="button" (click)="toggleBillPanel()">
+                  <span class="material-symbols-outlined">check</span>
+                  Done
+                </button>
+              </div>
             }
           </div>
         }
@@ -193,6 +211,17 @@
           </div>
         </div>
       </div>
+
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
 
       <div class="form-actions">
         <span>{{ validLineCount() }} item{{ validLineCount() === 1 ? '' : 's' }} selected</span>

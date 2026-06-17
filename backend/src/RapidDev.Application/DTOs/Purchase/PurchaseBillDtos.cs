@@ -82,6 +82,7 @@ public class PurchaseOrderItemForBillDto
 
 public class CreatePurchaseBillDto
 {
+    public int? SupplierId { get; set; }
     public decimal? TaxPercentage { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseBillItemDto> Items { get; set; }

@@ -9,21 +9,34 @@
     </div>
   </div>
 
-  <mat-card class="form-card">
+  <mat-card class="form-card"> 
+    <div class="header-fields">
     <label class="form-field">
-      <span class="field-label">Remarks</span>
-      <textarea
-        class="field-control textarea-control"
-        rows="3"
-        placeholder="Add any notes or context for this requisition..."
-        [ngModel]="formRemarks()"
-        (ngModelChange)="formRemarks.set($event)"
-      ></textarea>
+      <span class="field-label">Supplier</span>
+      <mat-form-field appearance="outline" class="compact-autocomplete">
+        <input
+          matInput
+          placeholder="Search supplier"
+          [formControl]="supplierControl"
+          [matAutocomplete]="supplierAuto"
+          (input)="onSupplierInput($any($event.target).value)"
+        />
+        <mat-autocomplete
+          #supplierAuto="matAutocomplete"
+          [displayWith]="displaySupplier"
+          (optionSelected)="onSupplierSelected($event.option.value)"
+        >
+          @for (supplier of filteredSuppliers$ | async; track supplier.supplierId) {
+            <mat-option [value]="supplier">{{ supplier.name }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
     </label>
+    </div>
 
     <div class="line-header">
       <h2>Items</h2>
-      <button class="secondary-action" type="button" (click)="addLineItem()">
+      <button class="secondary-action" type="button" (click)="addLineItem()" [disabled]="!supplierId()">
         <span class="material-symbols-outlined">add</span>
         Add Row
       </button>
@@ -42,6 +55,7 @@
                   [formControl]="productControls[i]"
                   [matAutocomplete]="productAuto"
                   (input)="onProductInput(i, $any($event.target).value)"
+                  [disabled]="!supplierId()"
                 />
                 <mat-autocomplete
                   #productAuto="matAutocomplete"
@@ -119,9 +133,20 @@
       </table>
     </div>
 
+    <label class="form-field">
+      <span class="field-label">Remarks</span>
+      <textarea
+        class="field-control textarea-control"
+        rows="3"
+        placeholder="Add any notes or context for this requisition..."
+        [ngModel]="formRemarks()"
+        (ngModelChange)="formRemarks.set($event)"
+      ></textarea>
+    </label>
+
     <div class="form-actions">
       <span
-        >{{ lineItems().length }} product{{ lineItems().length === 1 ? '' : 's' }} selected</span
+        >{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span
       >
       <div>
         <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
@@ -131,7 +156,7 @@
           class="primary-action"
           type="button"
           (click)="submitRequisition()"
-          [disabled]="saving()"
+          [disabled]="!canSave() || saving()"
         >
           @if (saving()) {
             Saving...

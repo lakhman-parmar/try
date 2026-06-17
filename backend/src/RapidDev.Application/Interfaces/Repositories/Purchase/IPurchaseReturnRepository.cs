@@ -6,6 +6,6 @@ public interface IPurchaseReturnRepository
 {
     Task<PagedResult<PurchaseReturnListItemDto>> GetAllAsync(PurchaseReturnFilterDto filter);
     Task<PurchaseReturnDetailDto?> GetByIdAsync(int id);
-    Task<IEnumerable<BillForReturnDto>> GetBillsForReturnAsync();
+    Task<PagedResult<BillForReturnDto>> GetBillsForReturnAsync(int pageNumber, int pageSize);
     Task<int> CreateAsync(CreatePurchaseReturnDto dto);
 }

@@ -15,6 +15,7 @@ export interface PurchaseReturnListItemDto {
     totalAmount?: number;
     itemCount: number;
     createdAt?: string;
+    billNumber?: string;
 }
 
 export interface PurchaseReturnDetailDto {

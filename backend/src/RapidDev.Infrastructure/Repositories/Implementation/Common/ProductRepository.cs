@@ -17,17 +17,30 @@ public class ProductRepository(IConfiguration configuration) : IProductRepositor
         return new SqlConnection(_connectionString);
     }
 
-    public async Task<IEnumerable<ProductDto>> GetAllAsync()
+    public async Task<IEnumerable<ProductDto>> GetAllAsync(int? supplierId = null)
     {
         using IDbConnection conn = CreateConnection();
 
         const string sp = "sp_GetAllProducts";
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@supplier_id", supplierId);
 
         IEnumerable<ProductDto> products = await conn.QueryAsync<ProductDto>(
             sp,
+            parameters,
             commandType: CommandType.StoredProcedure
         );
 
         return products;
+    }
+
+    public async Task<IEnumerable<SupplierDto>> GetSuppliersAsync()
+    {
+        using IDbConnection conn = CreateConnection();
+
+        return await conn.QueryAsync<SupplierDto>(
+            "sp_GetAllSuppliers",
+            commandType: CommandType.StoredProcedure
+        );
     }
 }

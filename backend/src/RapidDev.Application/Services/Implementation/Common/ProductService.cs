@@ -6,8 +6,13 @@ namespace RapidDev.Application.Services.Implementation.Common;
 
 public class ProductService(IProductRepository _productRepository) : IProductService
 {
-    public async Task<IEnumerable<ProductDto>> GetAllAsync()
+    public async Task<IEnumerable<ProductDto>> GetAllAsync(int? supplierId = null)
     {
-        return await _productRepository.GetAllAsync();
+        return await _productRepository.GetAllAsync(supplierId);
+    }
+
+    public async Task<IEnumerable<SupplierDto>> GetSuppliersAsync()
+    {
+        return await _productRepository.GetSuppliersAsync();
     }
 }

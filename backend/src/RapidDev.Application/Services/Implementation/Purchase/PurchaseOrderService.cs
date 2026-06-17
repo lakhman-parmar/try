@@ -16,9 +16,9 @@ public class PurchaseOrderService(IPurchaseOrderRepository _repository) : IPurch
         return _repository.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<RequisitionForPoDto>> GetRequisitionsForPoAsync()
+    public Task<PagedResult<RequisitionForPoDto>> GetRequisitionsForPoAsync(int supplierId, int pageNumber = 1, int pageSize = 20)
     {
-        return _repository.GetRequisitionsForPoAsync();
+        return _repository.GetRequisitionsForPoAsync(supplierId, pageNumber, pageSize);
     }
 
     public Task<int> CreateAsync(CreatePurchaseOrderDto dto)

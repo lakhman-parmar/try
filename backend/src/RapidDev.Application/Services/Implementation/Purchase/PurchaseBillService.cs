@@ -16,9 +16,9 @@ public class PurchaseBillService(IPurchaseBillRepository _repository) : IPurchas
         return _repository.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<PurchaseOrderForBillDto>> GetOrdersForBillAsync()
+    public Task<PagedResult<PurchaseOrderForBillDto>> GetOrdersForBillAsync(int supplierId, int pageNumber = 1, int pageSize = 20)
     {
-        return _repository.GetOrdersForBillAsync();
+        return _repository.GetOrdersForBillAsync(supplierId, pageNumber, pageSize);
     }
 
     public Task<int> CreateAsync(CreatePurchaseBillDto dto)

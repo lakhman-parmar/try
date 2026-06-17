@@ -137,8 +137,6 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
                     cols.ConstantColumn(32);   // Qty
                     cols.ConstantColumn(54);   // Unit Price
                     cols.ConstantColumn(54);   // Amount
-                    cols.RelativeColumn(2);    // PO No.
-                    cols.RelativeColumn(2);    // Req. No.
                 });
 
                 // Header row
@@ -152,7 +150,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
                               .Text(label).FontSize(8).Bold().FontColor(Colors.White);
 
                     H("#"); H("Product"); H("Unit"); H("Qty");
-                    H("Unit Price"); H("Amount"); H("PO No."); H("Req. No.");
+                    H("Unit Price"); H("Amount");
                 });
 
                 // Data rows
@@ -182,10 +180,7 @@ public class PurchaseBillPdfService : IPurchaseBillPdfService
                     table.Cell().Element(DataCell).AlignCenter().Text(item.UnitShortName ?? "").FontSize(8);
                     table.Cell().Element(DataCell).AlignCenter().Text(item.Quantity.ToString("0.##")).FontSize(8);
                     table.Cell().Element(DataCell).AlignRight().Text((item.UnitPrice ?? 0).ToString("0.00")).FontSize(8);
-                    table.Cell().Element(DataCell).AlignRight().Text(amount.ToString("0.00")).FontSize(8);
-                    table.Cell().Element(DataCell).Text(item.PoNumber ?? "—").FontSize(8);
-                    table.Cell().Element(DataCell).Text(item.RequisitionNo ?? "—").FontSize(8);
-                }
+                    table.Cell().Element(DataCell).AlignRight().Text(amount.ToString("0.00")).FontSize(8);                }
             });
         });
     }

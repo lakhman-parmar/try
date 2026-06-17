@@ -18,6 +18,28 @@
     } @else {
       <div class="header-fields">
         <label class="form-field">
+          <span class="field-label">Supplier</span>
+          <mat-form-field appearance="outline" class="compact-autocomplete">
+            <input
+              matInput
+              placeholder="Search supplier"
+              [formControl]="supplierControl"
+              [matAutocomplete]="supplierAuto"
+              (input)="onSupplierInput($any($event.target).value)"
+            />
+            <mat-autocomplete
+              #supplierAuto="matAutocomplete"
+              [displayWith]="displaySupplier"
+              (optionSelected)="onSupplierSelected($event.option.value)"
+            >
+              @for (supplier of filteredSuppliers$ | async; track supplier.supplierId) {
+                <mat-option [value]="supplier">{{ supplier.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </label>
+
+        <label class="form-field">
           <span class="field-label">Tax %</span>
           <input
             class="field-control"
@@ -31,24 +53,13 @@
         </label>
       </div>
 
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
-
       <div class="po-panel-container">
         <div class="panel-header">
           <div>
             <h2>From Purchase Orders</h2>
             <p>Select purchase orders to bill against.</p>
           </div>
-          <button class="secondary-action" type="button" (click)="togglePoPanel()">
+          <button class="secondary-action" type="button" (click)="togglePoPanel()" [disabled]="!supplierId()">
             <span class="material-symbols-outlined">shopping_cart</span>
             {{ showPoPanel() ? 'Close Panel' : 'Select Purchase Orders' }}
             @if (selectedPoCount() > 0) {
@@ -58,33 +69,56 @@
         </div>
 
         @if (showPoPanel()) {
-          <div class="po-list-container">
-            @if (ordersForBill().length === 0) {
-              <div class="empty-pos">
-                <span class="material-symbols-outlined">inbox</span>
-                <span>No open purchase orders with unbilled items</span>
-              </div>
-            } @else {
-              @for (po of ordersForBill(); track po.purchaseOrderId) {
-                <div
-                  class="po-card"
-                  [class.selected]="isPoSelected(po.purchaseOrderId)"
-                  (click)="togglePurchaseOrder(po)"
-                >
-                  <div class="po-card-header">
-                    <span class="material-symbols-outlined">
-                      {{
-                        isPoSelected(po.purchaseOrderId) ? 'check_circle' : 'radio_button_unchecked'
-                      }}
-                    </span>
-                    <div class="po-info">
-                      <strong>{{ po.poNumber }}</strong>
-                      <span>{{ po.supplierName || 'No supplier' }}</span>
-                    </div>
-                    <span class="po-count">{{ po.items.length }} items</span>
-                  </div>
+          <div class="po-body">
+            <div class="po-list-container" (scroll)="onPoScroll($event)">
+              @if (poLoading() && ordersForBill().length === 0) {
+                <div class="empty-pos">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading purchase orders...</span>
                 </div>
+              } @else if (ordersForBill().length === 0) {
+                <div class="empty-pos">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No open purchase orders with unbilled items</span>
+                </div>
+              } @else {
+                @for (po of ordersForBill(); track po.purchaseOrderId) {
+                  <div
+                    class="po-card"
+                    [class.selected]="isPoSelected(po.purchaseOrderId)"
+                    (click)="togglePurchaseOrder(po)"
+                  >
+                    <div class="po-card-header">
+                      <span class="material-symbols-outlined">
+                        {{
+                          isPoSelected(po.purchaseOrderId) ? 'check_circle' : 'radio_button_unchecked'
+                        }}
+                      </span>
+                      <div class="po-info">
+                        <strong>{{ po.poNumber }}</strong>
+                        <span>{{ po.supplierName || 'No supplier' }}</span>
+                      </div>
+                      <span class="po-count">{{ po.items.length }} items</span>
+                    </div>
+                    <div class="requisition-items">
+                      @for (item of po.items.slice(0, 3); track item.purchaseOrderItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (po.items.length > 3) {
+                        <span class="item-chip more">+{{ po.items.length - 3 }} more</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (poLoading()) {
+                  <div class="po-loading-more">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading more...</span>
+                  </div>
+                }
               }
+            </div>
+            @if (ordersForBill().length > 0) {
               <div class="panel-footer">
                 <button class="primary-action" type="button" (click)="applyPoSelection()">
                   <span class="material-symbols-outlined">check</span>
@@ -98,7 +132,7 @@
 
       <div class="line-header">
         <h2>Items</h2>
-        <button class="secondary-action" type="button" (click)="addDirectLineItem()">
+        <button class="secondary-action" type="button" (click)="addDirectLineItem()" [disabled]="!supplierId()">
           <span class="material-symbols-outlined">add</span>
           Add Row
         </button>
@@ -123,6 +157,7 @@
                       [formControl]="productControls[i]"
                       [matAutocomplete]="productAuto"
                       (input)="onProductInput(i, $any($event.target).value)"
+                      [disabled]="!supplierId()"
                     />
                     <mat-autocomplete
                       #productAuto="matAutocomplete"
@@ -265,6 +300,17 @@
         }
       </div>
 
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
+
       <div class="form-actions">
         <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
         <div>
@@ -275,7 +321,7 @@
             class="primary-action"
             type="button"
             (click)="requestGenerateBill()"
-            [disabled]="saving()"
+            [disabled]="!canSave() || saving()"
           >
             @if (saving()) {
               Saving...

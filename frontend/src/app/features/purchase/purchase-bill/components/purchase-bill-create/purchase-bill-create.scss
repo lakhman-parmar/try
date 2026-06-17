@@ -50,7 +50,7 @@
 .header-fields {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(140px, 200px);
+  grid-template-columns: minmax(220px, 320px) minmax(140px, 200px);
 }
 
 .line-header,
@@ -223,10 +223,40 @@
   padding: 2px 8px;
 }
 
+.po-body {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  max-height: 420px;
+}
+
+.empty-pos {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #94a3b8;
+  padding: 40px 0;
+}
+
 .po-list-container {
-  margin-top: 16px;
   display: grid;
   gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.po-loading-more {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+  padding: 8px 0;
 }
 
 .po-card {
@@ -268,9 +298,33 @@
   font-weight: 600;
 }
 
+.requisition-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item-chip {
+  background: #f1f5f9;
+  border-radius: 999px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.item-chip.more {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
 .panel-footer {
   display: flex;
   justify-content: flex-end;
+  padding: 12px 0 0;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 12px;
+  flex-shrink: 0;
 }
 
 .table-wrap {

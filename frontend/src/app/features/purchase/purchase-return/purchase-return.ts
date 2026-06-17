@@ -39,7 +39,7 @@ export class PurchaseReturn implements OnInit {
   private readonly svc = inject(PurchaseReturnService);
   private readonly router = inject(Router);
 
-  displayedColumns = ['toggle', 'number', 'supplier', 'items', 'totalAmount', 'date'];
+  displayedColumns = ['toggle', 'number', 'bill', 'supplier', 'items', 'totalAmount', 'date'];
   detailColumns = ['detail'];
   pageSize = 20;
   loading = signal(false);

@@ -6,6 +6,7 @@ import {
   CreatePurchaseRequisitionDto,
   PagedResult,
   ProductDto,
+  SupplierDto,
   PurchaseRequisitionDetailDto,
   PurchaseRequisitionFilterDto,
   PurchaseRequisitionListItemDto,
@@ -58,7 +59,12 @@ export class PurchaseRequisitionService {
     );
   }
 
-  getProducts(): Observable<ApiResponse<ProductDto[]>> {
-    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`);
+  getProducts(supplierId?: number): Observable<ApiResponse<ProductDto[]>> {
+    const params = supplierId ? new HttpParams().set('supplierId', supplierId) : undefined;
+    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`, { params });
+  }
+
+  getSuppliers(): Observable<ApiResponse<SupplierDto[]>> {
+    return this.http.get<ApiResponse<SupplierDto[]>>(`${this.apiUrl}/products/suppliers`);
   }
 }

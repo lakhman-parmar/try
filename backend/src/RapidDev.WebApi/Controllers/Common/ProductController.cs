@@ -11,15 +11,22 @@ namespace RapidDev.WebApi.Controllers.Common;
 public class ProductController(IProductService _productService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int? supplierId)
     {
-        IEnumerable<ProductDto> products = await _productService.GetAllAsync();
+        IEnumerable<ProductDto> products = await _productService.GetAllAsync(supplierId);
 
         return Ok(
-            ApiResponse<IEnumerable<object>>.Success(
-                products.Cast<object>(),
+            ApiResponse<IEnumerable<ProductDto>>.Success(
+                products,
                 "Products retrieved successfully."
             )
         );
+    }
+
+    [HttpGet("suppliers")]
+    public async Task<IActionResult> GetSuppliers()
+    {
+        IEnumerable<SupplierDto> suppliers = await _productService.GetSuppliersAsync();
+        return Ok(ApiResponse<IEnumerable<SupplierDto>>.Success(suppliers));
     }
 }

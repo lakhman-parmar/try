@@ -11,6 +11,7 @@ import {
   PurchaseBillListItemDto,
   PurchaseOrderForBillDto,
   RegeneratePurchaseBillDto,
+  SupplierDto,
 } from '../models/purchase-bill.model';
 
 @Injectable({ providedIn: 'root' })
@@ -38,14 +39,28 @@ export class PurchaseBillService {
     return this.http.get<ApiResponse<PurchaseBillDetailDto>>(`${this.apiUrl}/purchase-bills/${id}`);
   }
 
-  getOrdersForBill(): Observable<ApiResponse<PurchaseOrderForBillDto[]>> {
-    return this.http.get<ApiResponse<PurchaseOrderForBillDto[]>>(
+  getOrdersForBill(
+    supplierId: number,
+    pageNumber: number = 1,
+    pageSize: number = 20,
+  ): Observable<ApiResponse<PagedResult<PurchaseOrderForBillDto>>> {
+    let params = new HttpParams()
+      .set('supplierId', supplierId)
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+    return this.http.get<ApiResponse<PagedResult<PurchaseOrderForBillDto>>>(
       `${this.apiUrl}/purchase-bills/orders-for-bill`,
+      { params },
     );
   }
 
-  getProducts(): Observable<ApiResponse<ProductDto[]>> {
-    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`);
+  getProducts(supplierId?: number): Observable<ApiResponse<ProductDto[]>> {
+    const params = supplierId ? new HttpParams().set('supplierId', supplierId) : undefined;
+    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`, { params });
+  }
+
+  getSuppliers(): Observable<ApiResponse<SupplierDto[]>> {
+    return this.http.get<ApiResponse<SupplierDto[]>>(`${this.apiUrl}/products/suppliers`);
   }
 
   create(dto: CreatePurchaseBillDto): Observable<ApiResponse<{ purchaseBillId: number }>> {
@@ -63,5 +78,18 @@ export class PurchaseBillService {
       `${this.apiUrl}/purchase-bills/${id}/regenerate`,
       dto,
     );
+  }
+
+  downloadPdf(id: number): void {
+    this.http.get(`${this.apiUrl}/purchase-bills/${id}/pdf`, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bill-${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+    });
   }
 }

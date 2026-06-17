@@ -1,52 +1,71 @@
--- ============================================================
--- Stored Procedure: usp_PurchaseOrder_GetRequisitionsForPO
--- Returns all open requisitions (not yet fully ordered) with
--- their items, so the UI can pre-fill a new Purchase Order.
--- ============================================================
 USE [dbRapidDevs]
 GO
-
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-
 CREATE OR ALTER PROCEDURE [dbo].[usp_PurchaseOrder_GetRequisitionsForPO]
+    @supplier_id INT,
+    @PageNumber  INT = 1,
+    @PageSize    INT = 20,
+    @TotalCount  INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Result set 1: Requisition headers
+    -- Total count for pagination
+    SELECT @TotalCount = COUNT(DISTINCT pr.purchase_requisition_id)
+    FROM dbo.purchase_requisition pr
+    INNER JOIN dbo.purchase_requisition_item pri
+        ON pri.requisition_id = pr.purchase_requisition_id
+       AND pri.is_deleted = 0
+    WHERE pr.is_deleted = 0
+      AND pr.supplier_id = @supplier_id;
+
+    -- Paginated requisition IDs into temp table
+    SELECT purchase_requisition_id, created_at
+    INTO #paginated
+    FROM (
+        SELECT DISTINCT pr.purchase_requisition_id, pr.created_at
+        FROM dbo.purchase_requisition pr
+        INNER JOIN dbo.purchase_requisition_item pri
+            ON pri.requisition_id = pr.purchase_requisition_id
+           AND pri.is_deleted = 0
+        WHERE pr.is_deleted = 0
+          AND pr.supplier_id = @supplier_id
+    ) AS base
+    ORDER BY base.created_at DESC
+    OFFSET (@PageNumber - 1) * @PageSize ROWS
+    FETCH NEXT @PageSize ROWS ONLY;
+
+    -- Requisition headers
     SELECT DISTINCT
         pr.purchase_requisition_id,
         pr.requisition_no,
+        pr.supplier_id,
+        s.name AS supplier_name,
         pr.remarks,
         pr.created_at
-    FROM   dbo.purchase_requisition pr
-    INNER JOIN dbo.purchase_requisition_item pri
-           ON pri.requisition_id = pr.purchase_requisition_id
-          AND pri.is_deleted = 0
-    WHERE  pr.is_deleted = 0
-    ORDER BY pr.created_at DESC;
+    FROM dbo.purchase_requisition pr
+    INNER JOIN #paginated pg ON pg.purchase_requisition_id = pr.purchase_requisition_id
+    LEFT JOIN dbo.supplier s ON s.supplier_id = pr.supplier_id;
 
-    -- Result set 2: All items of those requisitions
+    -- Items for paginated requisitions
     SELECT
         pri.purchase_requisition_item_id,
         pri.requisition_id,
         pri.product_id,
-        p.name          AS product_name,
-        p.purchase_price AS unit_price,      -- default price hint for the PO
-        u.short_name    AS unit_short_name,
+        p.name AS product_name,
+        p.purchase_price AS unit_price,
+        u.short_name AS unit_short_name,
         pri.quantity
-    FROM   dbo.purchase_requisition_item pri
-    INNER JOIN dbo.purchase_requisition pr
-           ON pr.purchase_requisition_id = pri.requisition_id
-          AND pr.is_deleted = 0
-    INNER JOIN dbo.product p
-           ON p.product_id = pri.product_id
-    LEFT  JOIN dbo.unit u
-           ON u.unit_id    = p.unit_id
-    WHERE  pri.is_deleted = 0
+    FROM dbo.purchase_requisition_item pri
+    INNER JOIN #paginated pg ON pg.purchase_requisition_id = pri.requisition_id
+    INNER JOIN dbo.product p ON p.product_id = pri.product_id
+    LEFT JOIN dbo.unit u ON u.unit_id = p.unit_id
+    WHERE pri.is_deleted = 0
     ORDER BY pri.requisition_id, pri.purchase_requisition_item_id;
+
+    DROP TABLE #paginated;
 END
 GO

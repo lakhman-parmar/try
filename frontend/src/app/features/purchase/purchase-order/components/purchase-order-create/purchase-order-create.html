@@ -18,6 +18,28 @@
     } @else {
       <div class="header-fields">
         <label class="form-field">
+          <span class="field-label">Supplier</span>
+          <mat-form-field appearance="outline" class="compact-autocomplete">
+            <input
+              matInput
+              placeholder="Search supplier"
+              [formControl]="supplierControl"
+              [matAutocomplete]="supplierAuto"
+              (input)="onSupplierInput($any($event.target).value)"
+            />
+            <mat-autocomplete
+              #supplierAuto="matAutocomplete"
+              [displayWith]="displaySupplier"
+              (optionSelected)="onSupplierSelected($event.option.value)"
+            >
+              @for (supplier of filteredSuppliers$ | async; track supplier.supplierId) {
+                <mat-option [value]="supplier">{{ supplier.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </label>
+
+        <label class="form-field">
           <span class="field-label">Tax %</span>
           <input
             class="field-control"
@@ -31,24 +53,13 @@
         </label>
       </div>
 
-      <label class="form-field">
-        <span class="field-label">Remarks</span>
-        <textarea
-          class="field-control textarea-control"
-          rows="3"
-          placeholder="Add remarks..."
-          [ngModel]="formRemarks()"
-          (ngModelChange)="formRemarks.set($event)"
-        ></textarea>
-      </label>
-
       <div class="requisition-panel">
         <div class="panel-header">
           <div>
             <h2>From Requisitions</h2>
             <p>Select open purchase requisitions to pre-fill items.</p>
           </div>
-          <button class="secondary-action" type="button" (click)="toggleReqPanel()">
+          <button class="secondary-action" type="button" (click)="toggleReqPanel()" [disabled]="!supplierId()">
             <span class="material-symbols-outlined">receipt_long</span>
             {{ showReqPanel() ? 'Close Panel' : 'Select Requisitions' }}
             @if (selectedReqIds().size > 0) {
@@ -58,43 +69,58 @@
         </div>
 
         @if (showReqPanel()) {
-          <div class="requisition-list">
-            @if (requisitions().length === 0) {
-              <div class="empty-requisitions">
-                <span class="material-symbols-outlined">inbox</span>
-                <span>No open requisitions available</span>
-              </div>
-            } @else {
-              @for (req of requisitions(); track req.purchaseRequisitionId) {
-                <div
-                  class="requisition-card"
-                  [class.selected]="isReqSelected(req.purchaseRequisitionId)"
-                  (click)="toggleRequisition(req)"
-                >
-                  <div class="requisition-card-header">
-                    <span class="material-symbols-outlined">
-                      {{
-                        isReqSelected(req.purchaseRequisitionId)
-                          ? 'check_circle'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                    <div class="requisition-info">
-                      <strong>{{ req.requisitionNo }}</strong>
-                      <span>{{ req.remarks || 'No remarks' }}</span>
-                    </div>
-                    <span class="requisition-count">{{ req.items.length }} items</span>
-                  </div>
-                  <div class="requisition-items">
-                    @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
-                      <span class="item-chip">{{ item.productName }}</span>
-                    }
-                    @if (req.items.length > 3) {
-                      <span class="item-chip more">+{{ req.items.length - 3 }} more</span>
-                    }
-                  </div>
+          <div class="req-body">
+            <div class="requisition-list" (scroll)="onReqScroll($event)">
+              @if (reqLoading() && requisitions().length === 0) {
+                <div class="empty-requisitions">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading requisitions...</span>
                 </div>
+              } @else if (requisitions().length === 0) {
+                <div class="empty-requisitions">
+                  <span class="material-symbols-outlined">inbox</span>
+                  <span>No open requisitions available</span>
+                </div>
+              } @else {
+                @for (req of requisitions(); track req.purchaseRequisitionId) {
+                  <div
+                    class="requisition-card"
+                    [class.selected]="isReqSelected(req.purchaseRequisitionId)"
+                    (click)="toggleRequisition(req)"
+                  >
+                    <div class="requisition-card-header">
+                      <span class="material-symbols-outlined">
+                        {{
+                          isReqSelected(req.purchaseRequisitionId)
+                            ? 'check_circle'
+                            : 'radio_button_unchecked'
+                        }}
+                      </span>
+                      <div class="requisition-info">
+                        <strong>{{ req.requisitionNo }}</strong>
+                        <span>{{ req.remarks || 'No remarks' }}</span>
+                      </div>
+                      <span class="requisition-count">{{ req.items.length }} items</span>
+                    </div>
+                    <div class="requisition-items">
+                      @for (item of req.items.slice(0, 3); track item.purchaseRequisitionItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (req.items.length > 3) {
+                        <span class="item-chip more">+{{ req.items.length - 3 }} more</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (reqLoading()) {
+                  <div class="req-loading-more">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading more...</span>
+                  </div>
+                }
               }
+            </div>
+            @if (requisitions().length > 0) {
               <div class="panel-footer">
                 <button class="primary-action" type="button" (click)="applyRequisitions()">
                   <span class="material-symbols-outlined">check</span>
@@ -108,7 +134,7 @@
 
       <div class="line-header">
         <h2>Items</h2>
-        <button class="secondary-action" type="button" (click)="addDirectLineItem()">
+        <button class="secondary-action" type="button" (click)="addDirectLineItem()" [disabled]="!supplierId()">
           <span class="material-symbols-outlined">add</span>
           Add Row
         </button>
@@ -127,6 +153,7 @@
                     [formControl]="productControls[i]"
                     [matAutocomplete]="productAuto"
                     (input)="onProductInput(i, $any($event.target).value)"
+                    [disabled]="!supplierId()"
                   />
                   <mat-autocomplete
                     #productAuto="matAutocomplete"
@@ -262,13 +289,24 @@
         }
       </div>
 
+      <label class="form-field">
+        <span class="field-label">Remarks</span>
+        <textarea
+          class="field-control textarea-control"
+          rows="3"
+          placeholder="Add remarks..."
+          [ngModel]="formRemarks()"
+          (ngModelChange)="formRemarks.set($event)"
+        ></textarea>
+      </label>
+
       <div class="form-actions">
         <span>{{ validLineCount() }} product{{ validLineCount() === 1 ? '' : 's' }} selected</span>
         <div>
           <button class="secondary-action" type="button" (click)="cancel()" [disabled]="saving()">
             Cancel
           </button>
-          <button class="primary-action" type="button" (click)="submit()" [disabled]="saving()">
+          <button class="primary-action" type="button" (click)="submit()" [disabled]="!canSave() || saving()">
             @if (saving()) {
               Saving...
             } @else {

@@ -46,6 +46,8 @@ export interface PurchaseOrderItemDetailDto {
 export interface RequisitionForPoDto {
   purchaseRequisitionId: number;
   requisitionNo: string;
+  supplierId?: number;
+  supplierName?: string;
   remarks?: string;
   createdAt?: string;
   items: RequisitionItemForPoDto[];
@@ -108,4 +110,9 @@ export interface ProductDto {
   purchasePrice?: number;
   stock?: number;
   unitShortName?: string;
+}
+
+export interface SupplierDto {
+  supplierId: number;
+  name: string;
 }
