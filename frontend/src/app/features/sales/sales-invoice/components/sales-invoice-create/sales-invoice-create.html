@@ -93,8 +93,17 @@
                       }}</span>
                       <div class="po-info">
                         <strong>{{ order.salesOrderNumber }}</strong>
+                        <span>{{ order.remarks || 'No remarks' }}</span>
                       </div>
                       <span class="po-count">{{ order.items.length }} items</span>
+                    </div>
+                    <div class="po-items">
+                      @for (item of order.items.slice(0, 3); track item.salesOrderItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (order.items.length > 3) {
+                        <span class="item-chip more">+{{ order.items.length - 3 }} more</span>
+                      }
                     </div>
                   </div>
                 }

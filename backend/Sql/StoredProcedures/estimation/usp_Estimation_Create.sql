@@ -34,8 +34,9 @@ BEGIN
         SET @new_id = SCOPE_IDENTITY();
 
         INSERT INTO dbo.estimation_item (estimation_id, product_id, quantity, unit_price, created_at, is_deleted)
-        SELECT @new_id, i.product_id, i.quantity, i.unit_price, GETDATE(), 0
-        FROM @items i;
+        SELECT @new_id, i.product_id, SUM(i.quantity), MAX(i.unit_price), GETDATE(), 0
+        FROM @items i
+        GROUP BY i.product_id;
 
         COMMIT TRANSACTION;
 

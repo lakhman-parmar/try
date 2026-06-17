@@ -94,8 +94,17 @@
                   }}</span>
                   <div class="po-info">
                     <strong>{{ invoice.invoiceNumber }}</strong>
+                    <span>{{ invoice.remarks || 'No remarks' }}</span>
                   </div>
                   <span class="po-count">{{ invoice.items.length }} items</span>
+                </div>
+                <div class="po-items">
+                  @for (item of invoice.items.slice(0, 3); track item.salesInvoiceItemId) {
+                    <span class="item-chip">{{ item.productName }}</span>
+                  }
+                  @if (invoice.items.length > 3) {
+                    <span class="item-chip more">+{{ invoice.items.length - 3 }} more</span>
+                  }
                 </div>
               </div>
             }

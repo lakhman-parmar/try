@@ -102,6 +102,14 @@
                       </div>
                       <span class="estimation-count">{{ est.items.length }} items</span>
                     </div>
+                    <div class="estimation-items">
+                      @for (item of est.items.slice(0, 3); track item.estimationItemId) {
+                        <span class="item-chip">{{ item.productName }}</span>
+                      }
+                      @if (est.items.length > 3) {
+                        <span class="item-chip more">+{{ est.items.length - 3 }} more</span>
+                      }
+                    </div>
                   </div>
                 }
                 @if (estimationLoading()) {

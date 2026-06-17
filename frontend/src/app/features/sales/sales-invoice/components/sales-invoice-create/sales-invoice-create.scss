@@ -4,6 +4,12 @@
   grid-template-columns: minmax(220px, 320px) minmax(140px, 200px);
 }
 
+.po-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .stock-warning {
   color: #be123c;
   font-weight: 700;
