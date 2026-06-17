@@ -4,5 +4,6 @@ namespace RapidDev.Application.Services.Interfaces.Common;
 
 public interface IProductService
 {
-    Task<IEnumerable<ProductDto>> GetAllAsync();
+    Task<IEnumerable<ProductDto>> GetAllAsync(int? supplierId = null);
+    Task<IEnumerable<SupplierDto>> GetSuppliersAsync();
 }

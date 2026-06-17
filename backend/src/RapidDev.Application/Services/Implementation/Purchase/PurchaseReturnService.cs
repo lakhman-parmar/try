@@ -12,8 +12,8 @@ public class PurchaseReturnService(IPurchaseReturnRepository _repository) : IPur
     public Task<PurchaseReturnDetailDto?> GetByIdAsync(int id)
         => _repository.GetByIdAsync(id);
 
-    public Task<IEnumerable<BillForReturnDto>> GetBillsForReturnAsync()
-        => _repository.GetBillsForReturnAsync();
+    public Task<PagedResult<BillForReturnDto>> GetBillsForReturnAsync(int pageNumber, int pageSize)
+        => _repository.GetBillsForReturnAsync(pageNumber, pageSize);
 
     public Task<int> CreateAsync(CreatePurchaseReturnDto dto)
         => _repository.CreateAsync(dto);

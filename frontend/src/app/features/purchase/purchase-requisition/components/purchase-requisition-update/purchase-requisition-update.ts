@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, finalize, forkJoin, map, startWith } from 'rxjs';
@@ -10,7 +10,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { PurchaseRequisitionService } from '../../services/purchase-requisition.service';
-import { ProductDto, RequisitionLineItem } from '../../models/purchase-requisition.model';
+import {
+  ProductDto,
+  RequisitionLineItem,
+  SupplierDto,
+} from '../../models/purchase-requisition.model';
 
 @Component({
   selector: 'app-purchase-requisition-update',
@@ -41,6 +45,10 @@ export class PurchaseRequisitionUpdate implements OnInit {
   saving = signal(false);
 
   products = signal<ProductDto[]>([]);
+  suppliers = signal<SupplierDto[]>([]);
+  supplierId = signal<number | null>(null);
+  supplierControl = new FormControl<SupplierDto | string>('', { nonNullable: true });
+  filteredSuppliers$!: Observable<SupplierDto[]>;
   formRemarks = signal('');
   lineItems = signal<RequisitionLineItem[]>([]);
   requisitionNo = signal('');
@@ -48,6 +56,10 @@ export class PurchaseRequisitionUpdate implements OnInit {
   productControls: FormControl<ProductDto | string>[] = [];
   filteredProductOptions: Observable<ProductDto[]>[] = [];
   displayedColumns = ['product', 'unit', 'quantity', 'actions'];
+  readonly validLineCount = computed(
+    () => this.lineItems().filter((item) => item.productId != null).length,
+  );
+  readonly canSave = computed(() => this.supplierId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -55,33 +67,72 @@ export class PurchaseRequisitionUpdate implements OnInit {
       return;
     }
     this.requisitionId = id;
+    this.filteredSuppliers$ = this.supplierControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterSuppliers(value)),
+    );
 
     this.loading.set(true);
     forkJoin({
-      products: this.svc.getProducts(),
+      suppliers: this.svc.getSuppliers(),
       detail: this.svc.getById(this.requisitionId),
     })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (res) => {
-          if (res.products.isSuccess) {
-            this.products.set(res.products.data);
-          }
+          if (res.suppliers.isSuccess) this.suppliers.set(res.suppliers.data);
           if (res.detail.isSuccess) {
             const data = res.detail.data;
             this.requisitionNo.set(data.requisitionNo);
             this.formRemarks.set(data.remarks ?? '');
-            const items = data.items.map((item) => ({
-              productId: item.productId,
-              productName: item.productName,
-              unitShortName: item.unitShortName ?? '',
-              quantity: item.quantity,
-            }));
-            this.lineItems.set(items);
-            this.resetProductControls(items);
+            this.supplierId.set(data.supplierId ?? null);
+            this.supplierControl.setValue(this.supplierById(data.supplierId ?? null) ?? '');
+            if (data.supplierId) {
+              this.svc.getProducts(data.supplierId).subscribe({
+                next: (productRes) => {
+                  if (productRes.isSuccess) this.products.set(productRes.data);
+                  const items = data.items.map((item) => ({
+                    productId: item.productId,
+                    productName: item.productName,
+                    unitShortName: item.unitShortName ?? '',
+                    quantity: item.quantity,
+                  }));
+                  this.lineItems.set(items);
+                  this.resetProductControls(items);
+                },
+              });
+            }
           }
         },
       });
+  }
+
+  displaySupplier(supplier: SupplierDto | string | null): string {
+    return typeof supplier === 'string' ? supplier : (supplier?.name ?? '');
+  }
+
+  onSupplierSelected(supplier: SupplierDto): void {
+    if (supplier.supplierId === this.supplierId()) return;
+    this.supplierId.set(supplier.supplierId);
+    this.products.set([]);
+    this.lineItems.set([{ productId: null, productName: '', unitShortName: '', quantity: 1 }]);
+    this.resetProductControls(this.lineItems());
+    this.svc.getProducts(supplier.supplierId).subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.products.set(res.data);
+          this.resetProductControls(this.lineItems());
+        }
+      },
+    });
+  }
+
+  onSupplierInput(value: string): void {
+    if (value.trim()) return;
+    this.supplierId.set(null);
+    this.products.set([]);
+    this.lineItems.set([{ productId: null, productName: '', unitShortName: '', quantity: 1 }]);
+    this.resetProductControls(this.lineItems());
   }
 
   addLineItem(): void {
@@ -193,6 +244,18 @@ export class PurchaseRequisitionUpdate implements OnInit {
     return this.products().filter((product) => product.name.toLowerCase().includes(filterValue));
   }
 
+  private filterSuppliers(value: SupplierDto | string | null): SupplierDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.suppliers().filter((supplier) => supplier.name.toLowerCase().includes(filterValue));
+  }
+
+  private supplierById(supplierId: number | null): SupplierDto | undefined {
+    return supplierId
+      ? this.suppliers().find((supplier) => supplier.supplierId === supplierId)
+      : undefined;
+  }
+
   private productById(productId: number | null): ProductDto | undefined {
     if (!productId) return undefined;
     return this.products().find((product) => product.productId === productId);
@@ -207,6 +270,7 @@ export class PurchaseRequisitionUpdate implements OnInit {
     this.saving.set(true);
     this.svc
       .update(this.requisitionId, {
+        supplierId: this.supplierId() ?? undefined,
         remarks: this.formRemarks() || undefined,
         items: validItems.map((item) => ({
           productId: item.productId!,

@@ -10,6 +10,7 @@ import {
   PurchaseOrderFilterDto,
   PurchaseOrderListItemDto,
   RequisitionForPoDto,
+  SupplierDto,
   UpdatePurchaseOrderDto,
 } from '../models/purchase-order.model';
 
@@ -40,14 +41,28 @@ export class PurchaseOrderService {
     );
   }
 
-  getRequisitionsForPo(): Observable<ApiResponse<RequisitionForPoDto[]>> {
-    return this.http.get<ApiResponse<RequisitionForPoDto[]>>(
+  getRequisitionsForPo(
+    supplierId: number,
+    pageNumber: number = 1,
+    pageSize: number = 20,
+  ): Observable<ApiResponse<PagedResult<RequisitionForPoDto>>> {
+    let params = new HttpParams()
+      .set('supplierId', supplierId)
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+    return this.http.get<ApiResponse<PagedResult<RequisitionForPoDto>>>(
       `${this.apiUrl}/purchase-orders/requisitions-for-po`,
+      { params },
     );
   }
 
-  getProducts(): Observable<ApiResponse<ProductDto[]>> {
-    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`);
+  getProducts(supplierId?: number): Observable<ApiResponse<ProductDto[]>> {
+    const params = supplierId ? new HttpParams().set('supplierId', supplierId) : undefined;
+    return this.http.get<ApiResponse<ProductDto[]>>(`${this.apiUrl}/products`, { params });
+  }
+
+  getSuppliers(): Observable<ApiResponse<SupplierDto[]>> {
+    return this.http.get<ApiResponse<SupplierDto[]>>(`${this.apiUrl}/products/suppliers`);
   }
 
   create(dto: CreatePurchaseOrderDto): Observable<ApiResponse<{ purchaseOrderId: number }>> {

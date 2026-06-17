@@ -60,12 +60,19 @@ public class PurchaseBillRepository(IConfiguration configuration) : IPurchaseBil
         return header;
     }
 
-    public async Task<IEnumerable<PurchaseOrderForBillDto>> GetOrdersForBillAsync()
+    public async Task<PagedResult<PurchaseOrderForBillDto>> GetOrdersForBillAsync(int supplierId, int pageNumber = 1, int pageSize = 20)
     {
         using IDbConnection conn = CreateConnection();
 
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@supplier_id", supplierId);
+        parameters.Add("@PageNumber",  pageNumber);
+        parameters.Add("@PageSize",    pageSize);
+        parameters.Add("@TotalCount",  dbType: DbType.Int32, direction: ParameterDirection.Output);
+
         using SqlMapper.GridReader multi = await conn.QueryMultipleAsync(
             "usp_PurchaseBill_GetOrdersForBill",
+            parameters,
             commandType: CommandType.StoredProcedure);
 
         List<PurchaseOrderForBillDto> headers = (await multi.ReadAsync<PurchaseOrderForBillDto>()).ToList();
@@ -81,7 +88,13 @@ public class PurchaseBillRepository(IConfiguration configuration) : IPurchaseBil
                 header.Items = items;
         }
 
-        return headers;
+        return new PagedResult<PurchaseOrderForBillDto>
+        {
+            Items      = headers,
+            TotalCount = parameters.Get<int>("@TotalCount"),
+            PageNumber = pageNumber,
+            PageSize   = pageSize
+        };
     }
 
     public async Task<int> CreateAsync(CreatePurchaseBillDto dto)
@@ -91,6 +104,7 @@ public class PurchaseBillRepository(IConfiguration configuration) : IPurchaseBil
         DataTable itemsTable = BuildItemsTvp(dto.Items);
 
         DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@supplier_id", dto.SupplierId);
         parameters.Add("@tax_percentage", dto.TaxPercentage);
         parameters.Add("@remarks",        dto.Remarks);
         parameters.Add("@items",          itemsTable.AsTableValuedParameter("dbo.udt_purchase_bill_item"));

@@ -40,13 +40,21 @@ BEGIN
         s.name              AS supplier_name,
         pr.total_amount,
         COUNT(pri.purchase_return_item_id) AS item_count,
-        pr.created_at
+        pr.created_at,
+        b.bill_number
     FROM   dbo.purchase_return pr
     LEFT  JOIN dbo.supplier s
            ON s.supplier_id = pr.supplier_id
     LEFT  JOIN dbo.purchase_return_item pri
            ON pri.purchase_return_id = pr.purchase_return_id
           AND pri.is_deleted         = 0
+    OUTER APPLY (
+        SELECT TOP 1 pb.bill_number
+        FROM   dbo.purchase_return_item pri2
+        INNER  JOIN dbo.purchase_bill pb ON pb.purchase_bill_id = pri2.purchase_bill_id
+        WHERE  pri2.purchase_return_id = pr.purchase_return_id
+          AND  pri2.is_deleted = 0
+    ) b
     WHERE  pr.is_deleted = 0
       AND  (@SupplierId IS NULL OR pr.supplier_id = @SupplierId)
       AND  (@Search IS NULL
@@ -60,7 +68,8 @@ BEGIN
         pr.supplier_id,
         s.name,
         pr.total_amount,
-        pr.created_at
+        pr.created_at,
+        b.bill_number
     ORDER BY pr.created_at DESC
     OFFSET  (@PageNumber - 1) * @PageSize ROWS
     FETCH NEXT @PageSize ROWS ONLY;

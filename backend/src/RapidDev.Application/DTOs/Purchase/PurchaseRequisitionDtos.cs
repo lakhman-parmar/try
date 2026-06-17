@@ -13,6 +13,8 @@ public class PurchaseRequisitionListItemDto
 {
     public int PurchaseRequisitionId { get; set; }
     public string RequisitionNo { get; set; } = null!;
+    public int? SupplierId { get; set; }
+    public string? SupplierName { get; set; }
     public string? Remarks { get; set; }
     public int ItemCount { get; set; }
     public DateTime? CreatedAt { get; set; }
@@ -31,6 +33,8 @@ public class PurchaseRequisitionDetailDto
 {
     public int PurchaseRequisitionId { get; set; }
     public string RequisitionNo { get; set; } = null!;
+    public int? SupplierId { get; set; }
+    public string? SupplierName { get; set; }
     public string? Remarks { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
@@ -48,6 +52,7 @@ public class PurchaseRequisitionItemDetailDto
 
 public class CreatePurchaseRequisitionDto
 {
+    public int? SupplierId { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseRequisitionItemDto> Items { get; set; } = Enumerable.Empty<CreatePurchaseRequisitionItemDto>();
 }
@@ -60,6 +65,7 @@ public class CreatePurchaseRequisitionItemDto
 
 public class UpdatePurchaseRequisitionDto
 {
+    public int? SupplierId { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseRequisitionItemDto> Items { get; set; } = Enumerable.Empty<CreatePurchaseRequisitionItemDto>();
 }

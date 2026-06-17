@@ -19,24 +19,25 @@ internal static class PurchaseValidation
     // Purchase Requisition
 
     public static List<string> Validate(CreatePurchaseRequisitionDto dto) =>
-        ValidateRequisition(dto.Remarks, dto.Items);
+        ValidateRequisition(dto.SupplierId, dto.Remarks, dto.Items);
 
     public static List<string> Validate(UpdatePurchaseRequisitionDto dto) =>
-        ValidateRequisition(dto.Remarks, dto.Items);
+        ValidateRequisition(dto.SupplierId, dto.Remarks, dto.Items);
 
     // Purchase Order
 
     public static List<string> Validate(CreatePurchaseOrderDto dto) =>
-        ValidatePurchaseOrder(dto.TaxPercentage, dto.Remarks, dto.Items);
+        ValidatePurchaseOrder(dto.SupplierId, dto.TaxPercentage, dto.Remarks, dto.Items);
 
     public static List<string> Validate(UpdatePurchaseOrderDto dto) =>
-        ValidatePurchaseOrder(dto.TaxPercentage, dto.Remarks, dto.Items);
+        ValidatePurchaseOrder(dto.SupplierId, dto.TaxPercentage, dto.Remarks, dto.Items);
 
     // Purchase Bill
 
     public static List<string> Validate(CreatePurchaseBillDto dto)
     {
         List<string> errors = ValidateTaxAndRemarks(dto.TaxPercentage, dto.Remarks);
+        ValidateSupplier(errors, dto.SupplierId);
         List<CreatePurchaseBillItemDto> items = dto.Items?.ToList() ?? new List<CreatePurchaseBillItemDto>();
         ValidateItemsExist(errors, items.Count);
 
@@ -90,10 +91,12 @@ internal static class PurchaseValidation
     // Private helpers
 
     private static List<string> ValidateRequisition(
+        int? supplierId,
         string? remarks,
         IEnumerable<CreatePurchaseRequisitionItemDto>? itemSource)
     {
         List<string> errors = new List<string>();
+        ValidateSupplier(errors, supplierId);
         if (!string.IsNullOrWhiteSpace(remarks) && remarks.Length > 1000)
             errors.Add("Remarks cannot exceed 1000 characters.");
 
@@ -109,11 +112,13 @@ internal static class PurchaseValidation
     }
 
     private static List<string> ValidatePurchaseOrder(
+        int? supplierId,
         decimal? taxPercentage,
         string? remarks,
         IEnumerable<CreatePurchaseOrderItemDto>? itemSource)
     {
         List<string> errors = ValidateTaxAndRemarks(taxPercentage, remarks);
+        ValidateSupplier(errors, supplierId);
         List<CreatePurchaseOrderItemDto> items = itemSource?.ToList() ?? new List<CreatePurchaseOrderItemDto>();
         ValidateItemsExist(errors, items.Count);
 
@@ -141,6 +146,11 @@ internal static class PurchaseValidation
         if (!string.IsNullOrWhiteSpace(remarks) && remarks.Length > 1000)
             errors.Add("Remarks cannot exceed 1000 characters.");
         return errors;
+    }
+
+    private static void ValidateSupplier(List<string> errors, int? supplierId)
+    {
+        if (supplierId is null or <= 0) errors.Add("Supplier is required.");
     }
 
     private static void ValidateItemsExist(List<string> errors, int itemCount)

@@ -54,12 +54,15 @@ public class PurchaseBillController(
             fileName);
     }
 
-    // GET /api/purchase-bills/orders-for-bill
+    // GET /api/purchase-bills/orders-for-bill?supplierId=&pageNumber=1&pageSize=20
     [HttpGet("orders-for-bill")]
-    public async Task<IActionResult> GetOrdersForBill()
+    public async Task<IActionResult> GetOrdersForBill([FromQuery] int supplierId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
     {
-        IEnumerable<PurchaseOrderForBillDto> result = await _service.GetOrdersForBillAsync();
-        return Ok(ApiResponse<IEnumerable<PurchaseOrderForBillDto>>.Success(result));
+        if (supplierId <= 0)
+            return BadRequest(ApiResponse<string>.Failure("Supplier is required."));
+
+        PagedResult<PurchaseOrderForBillDto> result = await _service.GetOrdersForBillAsync(supplierId, pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<PurchaseOrderForBillDto>>.Success(result));
     }
 
     // POST /api/purchase-bills

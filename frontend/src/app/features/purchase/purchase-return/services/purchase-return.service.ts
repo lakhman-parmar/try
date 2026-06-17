@@ -38,9 +38,16 @@ export class PurchaseReturnService {
         );
     }
 
-    getBillsForReturn(): Observable<ApiResponse<BillForReturnDto[]>> {
-        return this.http.get<ApiResponse<BillForReturnDto[]>>(
+    getBillsForReturn(
+        pageNumber: number,
+        pageSize: number,
+    ): Observable<ApiResponse<PagedResult<BillForReturnDto>>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber)
+            .set('pageSize', pageSize);
+        return this.http.get<ApiResponse<PagedResult<BillForReturnDto>>>(
             `${this.apiUrl}/purchase-returns/bills-for-return`,
+            { params },
         );
     }
 

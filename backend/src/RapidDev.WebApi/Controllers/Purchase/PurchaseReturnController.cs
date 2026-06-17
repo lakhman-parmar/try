@@ -34,12 +34,14 @@ public class PurchaseReturnController(IPurchaseReturnService _service) : Control
         return Ok(ApiResponse<PurchaseReturnDetailDto>.Success(returnDoc));
     }
 
-    // GET /api/purchase-returns/bills-for-return
+    // GET /api/purchase-returns/bills-for-return?pageNumber=1&pageSize=20
     [HttpGet("bills-for-return")]
-    public async Task<IActionResult> GetBillsForReturn()
+    public async Task<IActionResult> GetBillsForReturn(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        IEnumerable<BillForReturnDto> result = await _service.GetBillsForReturnAsync();
-        return Ok(ApiResponse<IEnumerable<BillForReturnDto>>.Success(result));
+        PagedResult<BillForReturnDto> result = await _service.GetBillsForReturnAsync(pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<BillForReturnDto>>.Success(result));
     }
 
     // POST /api/purchase-returns

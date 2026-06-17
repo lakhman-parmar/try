@@ -34,12 +34,15 @@ public class PurchaseOrderController(IPurchaseOrderService _service) : Controlle
         return Ok(ApiResponse<PurchaseOrderDetailDto>.Success(order));
     }
 
-    // GET /api/purchase-orders/requisitions-for-po
+    // GET /api/purchase-orders/requisitions-for-po?supplierId=&pageNumber=1&pageSize=20
     [HttpGet("requisitions-for-po")]
-    public async Task<IActionResult> GetRequisitionsForPo()
+    public async Task<IActionResult> GetRequisitionsForPo([FromQuery] int supplierId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
     {
-        IEnumerable<RequisitionForPoDto> result = await _service.GetRequisitionsForPoAsync();
-        return Ok(ApiResponse<IEnumerable<RequisitionForPoDto>>.Success(result));
+        if (supplierId <= 0)
+            return BadRequest(ApiResponse<string>.Failure("Supplier is required."));
+
+        PagedResult<RequisitionForPoDto> result = await _service.GetRequisitionsForPoAsync(supplierId, pageNumber, pageSize);
+        return Ok(ApiResponse<PagedResult<RequisitionForPoDto>>.Success(result));
     }
 
     // POST /api/purchase-orders

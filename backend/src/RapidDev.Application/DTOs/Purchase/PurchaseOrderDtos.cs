@@ -53,6 +53,8 @@ public class RequisitionForPoDto
 {
     public int PurchaseRequisitionId { get; set; }
     public string RequisitionNo { get; set; } = null!;
+    public int? SupplierId { get; set; }
+    public string? SupplierName { get; set; }
     public string? Remarks { get; set; }
     public DateTime? CreatedAt { get; set; }
     public IEnumerable<RequisitionItemForPoDto> Items { get; set; }
@@ -71,6 +73,7 @@ public class RequisitionItemForPoDto
 
 public class CreatePurchaseOrderDto
 {
+    public int? SupplierId { get; set; }
     public decimal? TaxPercentage { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseOrderItemDto> Items { get; set; }
@@ -89,6 +92,7 @@ public class CreatePurchaseOrderItemDto
 
 public class UpdatePurchaseOrderDto
 {
+    public int? SupplierId { get; set; }
     public decimal? TaxPercentage { get; set; }
     public string? Remarks { get; set; }
     public IEnumerable<CreatePurchaseOrderItemDto> Items { get; set; }

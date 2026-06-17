@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, finalize, map, startWith } from 'rxjs';
@@ -10,7 +10,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { PurchaseRequisitionService } from '../../services/purchase-requisition.service';
-import { ProductDto, RequisitionLineItem } from '../../models/purchase-requisition.model';
+import {
+  ProductDto,
+  RequisitionLineItem,
+  SupplierDto,
+} from '../../models/purchase-requisition.model';
 
 @Component({
   selector: 'app-purchase-requisition-create',
@@ -36,6 +40,10 @@ export class PurchaseRequisitionCreate implements OnInit {
 
   saving = signal(false);
 
+  suppliers = signal<SupplierDto[]>([]);
+  supplierId = signal<number | null>(null);
+  supplierControl = new FormControl<SupplierDto | string>('', { nonNullable: true });
+  filteredSuppliers$!: Observable<SupplierDto[]>;
   products = signal<ProductDto[]>([]);
   formRemarks = signal('');
   lineItems = signal<RequisitionLineItem[]>([
@@ -45,13 +53,28 @@ export class PurchaseRequisitionCreate implements OnInit {
   productControls: FormControl<ProductDto | string>[] = [];
   filteredProductOptions: Observable<ProductDto[]>[] = [];
   displayedColumns = ['product', 'unit', 'quantity', 'actions'];
+  readonly validLineCount = computed(
+    () => this.lineItems().filter((item) => item.productId != null).length,
+  );
+  readonly canSave = computed(() => this.supplierId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
-    this.loadProducts();
+    this.filteredSuppliers$ = this.supplierControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterSuppliers(value)),
+    );
+    this.svc.getSuppliers().subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.suppliers.set(res.data);
+          this.supplierControl.setValue(this.supplierControl.value);
+        }
+      },
+    });
   }
 
-  private loadProducts(): void {
-    this.svc.getProducts().subscribe({
+  private loadProducts(supplierId: number): void {
+    this.svc.getProducts(supplierId).subscribe({
       next: (res) => {
         if (res.isSuccess) {
           this.products.set(res.data);
@@ -59,6 +82,28 @@ export class PurchaseRequisitionCreate implements OnInit {
         }
       },
     });
+  }
+
+  displaySupplier(supplier: SupplierDto | string | null): string {
+    return typeof supplier === 'string' ? supplier : (supplier?.name ?? '');
+  }
+
+  onSupplierSelected(supplier: SupplierDto): void {
+    this.supplierId.set(supplier.supplierId);
+    this.resetForSupplier();
+    this.loadProducts(supplier.supplierId);
+  }
+
+  onSupplierInput(value: string): void {
+    if (value.trim()) return;
+    this.supplierId.set(null);
+    this.products.set([]);
+    this.resetForSupplier();
+  }
+
+  private resetForSupplier(): void {
+    this.lineItems.set([{ productId: null, productName: '', unitShortName: '', quantity: 1 }]);
+    this.resetProductControls(this.lineItems());
   }
 
   addLineItem(): void {
@@ -170,6 +215,12 @@ export class PurchaseRequisitionCreate implements OnInit {
     return this.products().filter((product) => product.name.toLowerCase().includes(filterValue));
   }
 
+  private filterSuppliers(value: SupplierDto | string | null): SupplierDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.suppliers().filter((supplier) => supplier.name.toLowerCase().includes(filterValue));
+  }
+
   private productById(productId: number | null): ProductDto | undefined {
     if (!productId) return undefined;
     return this.products().find((product) => product.productId === productId);
@@ -184,6 +235,7 @@ export class PurchaseRequisitionCreate implements OnInit {
     this.saving.set(true);
     this.svc
       .create({
+        supplierId: this.supplierId() ?? undefined,
         remarks: this.formRemarks() || undefined,
         items: validItems.map((item) => ({
           productId: item.productId!,

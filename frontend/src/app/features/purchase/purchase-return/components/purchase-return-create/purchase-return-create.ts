@@ -11,6 +11,7 @@ import {
   BillForReturnDto,
   BillItemForReturnDto,
   CreatePurchaseReturnDto,
+  PagedResult,
   PurchaseReturnLineItem,
 } from '../../models/purchase-return.model';
 
@@ -26,6 +27,13 @@ export class PurchaseReturnCreate implements OnInit {
   private readonly router = inject(Router);
 
   saving = signal(false);
+
+  // Infinite scroll for bills
+  billPage = signal(1);
+  billTotalPages = signal(1);
+  billLoading = signal(false);
+  private billPageSize = 20;
+
   loadingBills = signal(false);
   formRemarks = signal('');
   billsForReturn = signal<BillForReturnDto[]>([]);
@@ -53,19 +61,67 @@ export class PurchaseReturnCreate implements OnInit {
   readonly validLineCount = computed(() => this.lineItems().length);
 
   ngOnInit(): void {
+    this.loadBills();
+  }
+
+  private loadBills(): void {
     this.loadingBills.set(true);
     this.svc
-      .getBillsForReturn()
+      .getBillsForReturn(this.billPage(), this.billPageSize)
       .pipe(finalize(() => this.loadingBills.set(false)))
       .subscribe({
         next: (res) => {
-          if (res.isSuccess) this.billsForReturn.set(res.data);
+          if (res.isSuccess) {
+            this.billsForReturn.set(res.data.items);
+            this.billTotalPages.set(res.data.totalPages);
+            this.billPage.set(2);
+          }
         },
       });
   }
 
   toggleBillPanel(): void {
     this.showBillPanel.update((value) => !value);
+    if (this.showBillPanel()) {
+      this.billsForReturn.set([]);
+      this.billPage.set(1);
+      this.billTotalPages.set(1);
+      this.billLoading.set(true);
+      this.svc
+        .getBillsForReturn(1, this.billPageSize)
+        .subscribe({
+          next: (res) => {
+            if (res.isSuccess) {
+              this.billsForReturn.set(res.data.items);
+              this.billTotalPages.set(res.data.totalPages);
+              this.billPage.set(2);
+            }
+          },
+          complete: () => this.billLoading.set(false),
+        });
+    }
+  }
+
+  onBillScroll(event: Event): void {
+    if (this.billLoading()) return;
+    if (this.billPage() > this.billTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.billLoading.set(true);
+    this.svc
+      .getBillsForReturn(this.billPage(), this.billPageSize)
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.billsForReturn.update((prev) => [...prev, ...res.data.items]);
+            this.billPage.update((p) => p + 1);
+          }
+        },
+        complete: () => this.billLoading.set(false),
+      });
   }
 
   isBillSelected(id: number): boolean {

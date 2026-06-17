@@ -2,13 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { PurchaseBillService } from '../../services/purchase-bill.sevice';
 import { PurchaseBillDetailDto, RegeneratePurchaseBillDto } from '../../models/purchase-bill.model';
-import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
 
 @Component({
   selector: 'app-purchase-bill-regenerate',
@@ -32,7 +31,7 @@ export class PurchaseBillRegenerate implements OnInit {
 
   showConfirm = signal(false);
 
-  displayedColumns = ['product', 'unit', 'po', 'requisition', 'quantity', 'unitPrice', 'total'];
+  displayedColumns = ['po', 'product', 'unit', 'quantity', 'unitPrice', 'total'];
 
   readonly subTotal = computed(() => {
     const bill = this.sourceBill();
@@ -94,19 +93,11 @@ export class PurchaseBillRegenerate implements OnInit {
     this.saving.set(true);
     this.svc
       .regenerate(source.purchaseBillId, dto)
-      .pipe(
-        switchMap((regenRes) => {
-          if (!regenRes.isSuccess) {
-            throw new Error(regenRes.message ?? 'Failed to regenerate purchase bill.');
-          }
-          return this.svc.getById(regenRes.data.purchaseBillId);
-        }),
-        finalize(() => this.saving.set(false)),
-      )
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: async (detailRes) => {
-          if (detailRes.isSuccess) {
-            await downloadPurchaseBillPdf(detailRes.data);
+        next: (regenRes) => {
+          if (regenRes.isSuccess) {
+            this.svc.downloadPdf(regenRes.data.purchaseBillId);
             this.router.navigate(['/admin/purchase/bill']);
           }
         },

@@ -15,6 +15,7 @@ import {
   ProductDto,
   RequisitionForPoDto,
   RequisitionItemForPoDto,
+  SupplierDto,
 } from '../../models/purchase-order.model';
 
 @Component({
@@ -43,9 +44,19 @@ export class PurchaseOrderCreate implements OnInit {
   loadingReqs = signal(false);
   loadingProducts = signal(false);
 
+  // Infinite scroll for requisitions
+  reqPage = signal(1);
+  reqTotalPages = signal(1);
+  reqLoading = signal(false);
+  private reqPageSize = 20;
+
   // Data
   requisitions = signal<RequisitionForPoDto[]>([]);
   products = signal<ProductDto[]>([]);
+  suppliers = signal<SupplierDto[]>([]);
+  supplierId = signal<number | null>(null);
+  supplierControl = new FormControl<SupplierDto | string>('', { nonNullable: true });
+  filteredSuppliers$!: Observable<SupplierDto[]>;
 
   // Form state
   formRemarks = signal('');
@@ -77,13 +88,37 @@ export class PurchaseOrderCreate implements OnInit {
   readonly validLineCount = computed(
     () => this.lineItems().filter((item) => item.productId).length,
   );
+  readonly canSave = computed(() => this.supplierId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
+    this.filteredSuppliers$ = this.supplierControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterSuppliers(value)),
+    );
+    this.svc.getSuppliers().subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.suppliers.set(res.data);
+          this.supplierControl.setValue(this.supplierControl.value);
+        }
+      },
+    });
+  }
+
+  displaySupplier(supplier: SupplierDto | string | null): string {
+    return typeof supplier === 'string' ? supplier : (supplier?.name ?? '');
+  }
+
+  onSupplierSelected(supplier: SupplierDto): void {
+    this.supplierId.set(supplier.supplierId);
+    this.clearSupplierData();
     this.loadingProducts.set(true);
     this.loadingReqs.set(true);
+    this.reqPage.set(1);
+    this.reqTotalPages.set(1);
     forkJoin({
-      reqs: this.svc.getRequisitionsForPo(),
-      products: this.svc.getProducts(),
+      reqs: this.svc.getRequisitionsForPo(supplier.supplierId, 1, this.reqPageSize),
+      products: this.svc.getProducts(supplier.supplierId),
     })
       .pipe(
         finalize(() => {
@@ -93,17 +128,33 @@ export class PurchaseOrderCreate implements OnInit {
       )
       .subscribe({
         next: (res) => {
-          if (res.reqs.isSuccess) this.requisitions.set(res.reqs.data);
-          if (res.products.isSuccess) {
-            this.products.set(res.products.data);
-            if (this.lineItems().length === 0) {
-              this.addDirectLineItem();
-            } else {
-              this.resetProductControls(this.lineItems());
-            }
+          if (res.products.isSuccess) this.products.set(res.products.data);
+          if (res.reqs.isSuccess) {
+            this.requisitions.set(res.reqs.data.items);
+            this.reqTotalPages.set(res.reqs.data.totalPages);
+            this.reqPage.set(2);
           }
+          this.addDirectLineItem();
         },
       });
+  }
+
+  onSupplierInput(value: string): void {
+    if (value.trim()) return;
+    this.supplierId.set(null);
+    this.clearSupplierData();
+  }
+
+  private clearSupplierData(): void {
+    this.products.set([]);
+    this.requisitions.set([]);
+    this.lineItems.set([]);
+    this.selectedReqIds.set(new Set());
+    this.showReqPanel.set(false);
+    this.reqPage.set(1);
+    this.reqTotalPages.set(1);
+    this.reqLoading.set(false);
+    this.resetProductControls([]);
   }
 
   // Requisition panel
@@ -154,6 +205,31 @@ export class PurchaseOrderCreate implements OnInit {
 
   applyRequisitions(): void {
     this.showReqPanel.set(false);
+  }
+
+  onReqScroll(event: Event): void {
+    if (this.reqLoading()) return;
+    if (this.reqPage() > this.reqTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.reqLoading.set(true);
+    const supplierId = this.supplierId();
+    if (!supplierId) return;
+
+    this.svc
+      .getRequisitionsForPo(supplierId, this.reqPage(), this.reqPageSize)
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.requisitions.update((prev) => [...prev, ...res.data.items]);
+            this.reqPage.update((p) => p + 1);
+          }
+        },
+        complete: () => this.reqLoading.set(false),
+      });
   }
 
   // Direct line items
@@ -285,6 +361,12 @@ export class PurchaseOrderCreate implements OnInit {
     return this.products().filter((product) => product.name.toLowerCase().includes(filterValue));
   }
 
+  private filterSuppliers(value: SupplierDto | string | null): SupplierDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.suppliers().filter((supplier) => supplier.name.toLowerCase().includes(filterValue));
+  }
+
   private productById(productId: number | null): ProductDto | undefined {
     if (!productId) return undefined;
     return this.products().find((product) => product.productId === productId);
@@ -301,6 +383,7 @@ export class PurchaseOrderCreate implements OnInit {
 
     this.svc
       .create({
+        supplierId: this.supplierId() ?? undefined,
         remarks: this.formRemarks() || undefined,
         taxPercentage: this.formTaxPercentage() ?? undefined,
         items: validItems.map((item) => ({

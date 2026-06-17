@@ -120,10 +120,14 @@ GO
 CREATE TABLE [purchase_requisition] (
     purchase_requisition_id INT           IDENTITY(1,1) PRIMARY KEY,
     requisition_no          VARCHAR(50)   NOT NULL UNIQUE,
+    supplier_id             INT           NOT NULL,
     remarks                 VARCHAR(1000),
     created_at              DATETIME2     DEFAULT GETDATE(),
     modified_at             DATETIME2,
-    is_deleted              BIT           DEFAULT 0
+    is_deleted              BIT           DEFAULT 0,
+
+    CONSTRAINT FK_purchase_requisition_supplier FOREIGN KEY (supplier_id)
+        REFERENCES [supplier] (supplier_id)
 );
 GO
 

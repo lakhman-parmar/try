@@ -90,6 +90,12 @@
             <th mat-header-cell *matHeaderCellDef>Return Number</th>
             <td mat-cell *matCellDef="let row">{{ row.purchaseReturnNumber }}</td>
           </ng-container>
+          <ng-container matColumnDef="bill">
+            <th mat-header-cell *matHeaderCellDef>Bill</th>
+            <td mat-cell *matCellDef="let row">
+                {{ row.billNumber || '-' }}
+            </td>
+          </ng-container>
           <ng-container matColumnDef="supplier">
             <th mat-header-cell *matHeaderCellDef>Supplier</th>
             <td mat-cell *matCellDef="let row">{{ row.supplierName || '-' }}</td>
@@ -129,15 +135,6 @@
                           {{ item.unitShortName || '-' }}
                         </td></ng-container
                       >
-                      <ng-container matColumnDef="bill"
-                        ><th mat-header-cell *matHeaderCellDef>Bill</th>
-                        <td mat-cell *matCellDef="let item">
-                          <span class="source-chip"
-                            ><span class="material-symbols-outlined">receipt_long</span
-                            >{{ item.billNumber || '-' }}</span
-                          >
-                        </td></ng-container
-                      >
                       <ng-container matColumnDef="quantity"
                         ><th mat-header-cell *matHeaderCellDef>Returned Qty</th>
                         <td mat-cell *matCellDef="let item">{{ item.quantity }}</td></ng-container
@@ -163,7 +160,6 @@
                         *matHeaderRowDef="[
                           'product',
                           'unit',
-                          'bill',
                           'quantity',
                           'unitPrice',
                           'total',
@@ -173,7 +169,7 @@
                         mat-row
                         *matRowDef="
                           let row;
-                          columns: ['product', 'unit', 'bill', 'quantity', 'unitPrice', 'total']
+                          columns: ['product', 'unit', 'quantity', 'unitPrice', 'total']
                         "
                       ></tr>
                     </table>

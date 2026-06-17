@@ -46,6 +46,12 @@ export class PurchaseOrderDetail implements OnInit {
   loading = signal(false);
   saving = signal(false);
 
+  // Infinite scroll for requisitions
+  reqPage = signal(1);
+  reqTotalPages = signal(1);
+  reqLoading = signal(false);
+  private reqPageSize = 20;
+
   // Data
   order = signal<PurchaseOrderDetailDto | null>(null);
   requisitions = signal<RequisitionForPoDto[]>([]);
@@ -88,46 +94,55 @@ export class PurchaseOrderDetail implements OnInit {
     this.orderId = id;
 
     this.loading.set(true);
-    forkJoin({
-      order: this.svc.getById(this.orderId),
-      reqs: this.svc.getRequisitionsForPo(),
-      products: this.svc.getProducts(),
-    })
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (res) => {
-          if (res.reqs.isSuccess) this.requisitions.set(res.reqs.data);
-          if (res.products.isSuccess) this.products.set(res.products.data);
+    this.svc.getById(this.orderId).subscribe({
+      next: (orderRes) => {
+        if (!orderRes.isSuccess || !orderRes.data.supplierId) {
+          this.loading.set(false);
+          return;
+        }
 
-          if (res.order.isSuccess) {
-            const o = res.order.data;
-            this.order.set(o);
-            this.formRemarks.set(o.remarks ?? '');
-            this.formTaxPercentage.set(o.taxPercentage ?? null);
+        const o = orderRes.data;
+        this.order.set(o);
+        this.reqPage.set(1);
+        this.reqTotalPages.set(1);
+        forkJoin({
+          reqs: this.svc.getRequisitionsForPo(o.supplierId!, 1, this.reqPageSize),
+          products: this.svc.getProducts(o.supplierId!),
+        })
+          .pipe(finalize(() => this.loading.set(false)))
+          .subscribe({
+            next: (res) => {
+              if (res.reqs.isSuccess) {
+                this.requisitions.set(res.reqs.data.items);
+                this.reqTotalPages.set(res.reqs.data.totalPages);
+                this.reqPage.set(2);
+              }
+              if (res.products.isSuccess) this.products.set(res.products.data);
+              this.formRemarks.set(o.remarks ?? '');
+              this.formTaxPercentage.set(o.taxPercentage ?? null);
 
-            // Seed line items
-            const items: PoLineItem[] = o.items.map((i) => ({
-              productId: i.productId,
-              productName: i.productName,
-              unitShortName: i.unitShortName ?? '',
-              quantity: i.quantity,
-              unitPrice: i.unitPrice ?? undefined,
-              requisitionId: i.requisitionId ?? undefined,
-              requisitionNo: i.requisitionNo ?? undefined,
-              requisitionItemId: i.requisitionItemId ?? undefined,
-            }));
-            this.lineItems.set(items);
-
-            // Seed selected requisition IDs
-            const reqIds = new Set<number>(
-              items.filter((i) => i.requisitionId != null).map((i) => i.requisitionId!),
-            );
-            this.selectedReqIds.set(reqIds);
-
-            this.resetProductControls(items);
-          }
-        },
-      });
+              const items: PoLineItem[] = o.items.map((i) => ({
+                productId: i.productId,
+                productName: i.productName,
+                unitShortName: i.unitShortName ?? '',
+                quantity: i.quantity,
+                unitPrice: i.unitPrice ?? undefined,
+                requisitionId: i.requisitionId ?? undefined,
+                requisitionNo: i.requisitionNo ?? undefined,
+                requisitionItemId: i.requisitionItemId ?? undefined,
+              }));
+              this.lineItems.set(items);
+              this.selectedReqIds.set(
+                new Set(
+                  items.filter((i) => i.requisitionId != null).map((i) => i.requisitionId!),
+                ),
+              );
+              this.resetProductControls(items);
+            },
+          });
+      },
+      error: () => this.loading.set(false),
+    });
   }
 
   // Requisition panel
@@ -178,6 +193,31 @@ export class PurchaseOrderDetail implements OnInit {
 
   applyRequisitions(): void {
     this.showReqPanel.set(false);
+  }
+
+  onReqScroll(event: Event): void {
+    if (this.reqLoading()) return;
+    if (this.reqPage() > this.reqTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.reqLoading.set(true);
+    const supplierId = this.order()?.supplierId;
+    if (!supplierId) return;
+
+    this.svc
+      .getRequisitionsForPo(supplierId, this.reqPage(), this.reqPageSize)
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.requisitions.update((prev) => [...prev, ...res.data.items]);
+            this.reqPage.update((p) => p + 1);
+          }
+        },
+        complete: () => this.reqLoading.set(false),
+      });
   }
 
   // Direct line items
@@ -325,6 +365,7 @@ export class PurchaseOrderDetail implements OnInit {
 
     this.svc
       .update(this.orderId, {
+        supplierId: this.order()?.supplierId,
         remarks: this.formRemarks() || undefined,
         taxPercentage: this.formTaxPercentage() ?? undefined,
         items: validItems.map((item) => ({

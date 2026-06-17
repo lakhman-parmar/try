@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, finalize, forkJoin, map, startWith, switchMap } from 'rxjs';
+import { Observable, finalize, forkJoin, map, startWith } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,8 +16,9 @@ import {
   BillLineItem,
   ProductDto,
   CreatePurchaseBillDto,
+  SupplierDto,
 } from '../../models/purchase-bill.model';
-import { downloadPurchaseBillPdf } from '../../utils/purchase-bill-pdf.util';
+
 
 @Component({
   selector: 'app-purchase-bill-create',
@@ -45,6 +46,16 @@ export class PurchaseBillCreate implements OnInit {
 
   formTaxPercentage = signal<number | null>(null);
   formRemarks = signal('');
+  suppliers = signal<SupplierDto[]>([]);
+  supplierId = signal<number | null>(null);
+  supplierControl = new FormControl<SupplierDto | string>('', { nonNullable: true });
+  filteredSuppliers$!: Observable<SupplierDto[]>;
+
+  // Infinite scroll for purchase orders
+  poPage = signal(1);
+  poTotalPages = signal(1);
+  poLoading = signal(false);
+  private poPageSize = 20;
 
   // Orders for bill (PO selection)
   ordersForBill = signal<PurchaseOrderForBillDto[]>([]);
@@ -81,13 +92,37 @@ export class PurchaseBillCreate implements OnInit {
   readonly validLineCount = computed(
     () => this.lineItems().filter((item) => item.productId).length,
   );
+  readonly canSave = computed(() => this.supplierId() != null && this.validLineCount() > 0);
 
   ngOnInit(): void {
+    this.filteredSuppliers$ = this.supplierControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterSuppliers(value)),
+    );
+    this.svc.getSuppliers().subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.suppliers.set(res.data);
+          this.supplierControl.setValue(this.supplierControl.value);
+        }
+      },
+    });
+  }
+
+  displaySupplier(supplier: SupplierDto | string | null): string {
+    return typeof supplier === 'string' ? supplier : (supplier?.name ?? '');
+  }
+
+  onSupplierSelected(supplier: SupplierDto): void {
+    this.supplierId.set(supplier.supplierId);
+    this.clearSupplierData();
     this.loadingProducts.set(true);
     this.loadingOrders.set(true);
+    this.poPage.set(1);
+    this.poTotalPages.set(1);
     forkJoin({
-      pos: this.svc.getOrdersForBill(),
-      products: this.svc.getProducts(),
+      pos: this.svc.getOrdersForBill(supplier.supplierId, 1, this.poPageSize),
+      products: this.svc.getProducts(supplier.supplierId),
     })
       .pipe(
         finalize(() => {
@@ -97,17 +132,33 @@ export class PurchaseBillCreate implements OnInit {
       )
       .subscribe({
         next: (res) => {
-          if (res.pos.isSuccess) this.ordersForBill.set(res.pos.data);
-          if (res.products.isSuccess) {
-            this.products.set(res.products.data);
-            if (this.lineItems().length === 0) {
-              this.addDirectLineItem();
-            } else {
-              this.resetProductControls(this.lineItems());
-            }
+          if (res.pos.isSuccess) {
+            this.ordersForBill.set(res.pos.data.items);
+            this.poTotalPages.set(res.pos.data.totalPages);
+            this.poPage.set(2);
           }
+          if (res.products.isSuccess) this.products.set(res.products.data);
+          this.addDirectLineItem();
         },
       });
+  }
+
+  onSupplierInput(value: string): void {
+    if (value.trim()) return;
+    this.supplierId.set(null);
+    this.clearSupplierData();
+  }
+
+  private clearSupplierData(): void {
+    this.products.set([]);
+    this.ordersForBill.set([]);
+    this.lineItems.set([]);
+    this.selectedPoIds.set(new Set());
+    this.showPoPanel.set(false);
+    this.poPage.set(1);
+    this.poTotalPages.set(1);
+    this.poLoading.set(false);
+    this.resetProductControls([]);
   }
 
   // PO selection panel
@@ -171,6 +222,31 @@ export class PurchaseBillCreate implements OnInit {
 
   applyPoSelection(): void {
     this.showPoPanel.set(false);
+  }
+
+  onPoScroll(event: Event): void {
+    if (this.poLoading()) return;
+    if (this.poPage() > this.poTotalPages()) return;
+
+    const el = event.target as HTMLElement;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (!atBottom) return;
+
+    this.poLoading.set(true);
+    const supplierId = this.supplierId();
+    if (!supplierId) return;
+
+    this.svc
+      .getOrdersForBill(supplierId, this.poPage(), this.poPageSize)
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) {
+            this.ordersForBill.update((prev) => [...prev, ...res.data.items]);
+            this.poPage.update((p) => p + 1);
+          }
+        },
+        complete: () => this.poLoading.set(false),
+      });
   }
 
   // Direct line items
@@ -302,6 +378,12 @@ export class PurchaseBillCreate implements OnInit {
     return this.products().filter((product) => product.name.toLowerCase().includes(filterValue));
   }
 
+  private filterSuppliers(value: SupplierDto | string | null): SupplierDto[] {
+    const search = typeof value === 'string' ? value : (value?.name ?? '');
+    const filterValue = search.toLowerCase();
+    return this.suppliers().filter((supplier) => supplier.name.toLowerCase().includes(filterValue));
+  }
+
   private productById(productId: number | null): ProductDto | undefined {
     if (!productId) return undefined;
     return this.products().find((product) => product.productId === productId);
@@ -320,6 +402,7 @@ export class PurchaseBillCreate implements OnInit {
     this.showConfirmModal.set(false);
     const validItems = this.lineItems().filter((i) => i.productId !== null);
     const dto: CreatePurchaseBillDto = {
+      supplierId: this.supplierId() ?? undefined,
       taxPercentage: this.formTaxPercentage() ?? undefined,
       remarks: this.formRemarks() || undefined,
       items: validItems.map((item) => ({
@@ -333,19 +416,11 @@ export class PurchaseBillCreate implements OnInit {
     this.saving.set(true);
     this.svc
       .create(dto)
-      .pipe(
-        switchMap((createRes) => {
-          if (!createRes.isSuccess) {
-            throw new Error(createRes.message ?? 'Failed to generate purchase bill.');
-          }
-          return this.svc.getById(createRes.data.purchaseBillId);
-        }),
-        finalize(() => this.saving.set(false)),
-      )
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: async (detailRes) => {
-          if (detailRes.isSuccess) {
-            await downloadPurchaseBillPdf(detailRes.data);
+        next: (createRes) => {
+          if (createRes.isSuccess) {
+            this.svc.downloadPdf(createRes.data.purchaseBillId);
             this.router.navigate(['/admin/purchase/bill']);
           }
         },

@@ -23,6 +23,7 @@ public class PurchaseReturnListItemDto
     public decimal? TotalAmount { get; set; }
     public int ItemCount { get; set; }
     public DateTime? CreatedAt { get; set; }
+    public string? BillNumber { get; set; }
 }
 
 // ── Detail response ───────────────────────────────────────────────────────────
