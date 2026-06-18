@@ -1,4 +1,4 @@
-﻿namespace RapidDev.Domain.Models;
+namespace RapidDev.Domain.Models;
 
 public class Product
 {
@@ -7,7 +7,6 @@ public class Product
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public decimal? SellingPrice { get; set; }
-    public decimal? PurchasePrice { get; set; }
     public decimal? Stock { get; set; }
     public int? UnitId { get; set; }
     public DateTime? CreatedAt { get; set; }

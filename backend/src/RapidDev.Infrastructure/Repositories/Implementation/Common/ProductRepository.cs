@@ -43,4 +43,50 @@ public class ProductRepository(IConfiguration configuration) : IProductRepositor
             commandType: CommandType.StoredProcedure
         );
     }
+
+    public async Task<IEnumerable<SupplierProductDto>> GetSuppliersByProductAsync(int productId)
+    {
+        using IDbConnection conn = CreateConnection();
+
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@product_id", productId);
+
+        return await conn.QueryAsync<SupplierProductDto>(
+            "usp_SupplierProduct_GetByProduct",
+            parameters,
+            commandType: CommandType.StoredProcedure
+        );
+    }
+
+    public async Task<int> UpsertSupplierProductAsync(UpsertSupplierProductDto dto)
+    {
+        using IDbConnection conn = CreateConnection();
+
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@product_id", dto.ProductId);
+        parameters.Add("@supplier_id", dto.SupplierId);
+        parameters.Add("@purchase_price", dto.PurchasePrice);
+
+        return await conn.QuerySingleAsync<int>(
+            "usp_SupplierProduct_Upsert",
+            parameters,
+            commandType: CommandType.StoredProcedure
+        );
+    }
+
+    public async Task<bool> DeleteSupplierProductAsync(int supplierProductId)
+    {
+        using IDbConnection conn = CreateConnection();
+
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@supplier_product_id", supplierProductId);
+
+        int rowsAffected = await conn.QuerySingleAsync<int>(
+            "usp_SupplierProduct_Delete",
+            parameters,
+            commandType: CommandType.StoredProcedure
+        );
+
+        return rowsAffected > 0;
+    }
 }

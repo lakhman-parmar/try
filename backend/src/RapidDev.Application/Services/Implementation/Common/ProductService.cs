@@ -15,4 +15,19 @@ public class ProductService(IProductRepository _productRepository) : IProductSer
     {
         return await _productRepository.GetSuppliersAsync();
     }
+
+    public async Task<IEnumerable<SupplierProductDto>> GetSuppliersByProductAsync(int productId)
+    {
+        return await _productRepository.GetSuppliersByProductAsync(productId);
+    }
+
+    public async Task<int> UpsertSupplierProductAsync(UpsertSupplierProductDto dto)
+    {
+        return await _productRepository.UpsertSupplierProductAsync(dto);
+    }
+
+    public async Task<bool> DeleteSupplierProductAsync(int supplierProductId)
+    {
+        return await _productRepository.DeleteSupplierProductAsync(supplierProductId);
+    }
 }

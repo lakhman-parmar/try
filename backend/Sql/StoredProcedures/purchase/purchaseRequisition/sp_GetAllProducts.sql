@@ -15,7 +15,21 @@ BEGIN
         p.name AS Name,
         p.description AS Description,
         p.selling_price AS SellingPrice,
-        p.purchase_price AS PurchasePrice,
+        CASE 
+            WHEN @supplier_id IS NOT NULL THEN (
+                SELECT TOP 1 sp.purchase_price 
+                FROM dbo.supplier_product sp 
+                WHERE sp.product_id = p.product_id 
+                  AND sp.supplier_id = @supplier_id 
+                  AND sp.is_deleted = 0
+            )
+            ELSE (
+                SELECT MIN(sp.purchase_price) 
+                FROM dbo.supplier_product sp 
+                WHERE sp.product_id = p.product_id 
+                  AND sp.is_deleted = 0
+            )
+        END AS PurchasePrice,
         p.stock AS Stock,
         u.short_name AS UnitShortName
     FROM dbo.product p

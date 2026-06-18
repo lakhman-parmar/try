@@ -10,7 +10,7 @@ BEGIN
         p.name,
         p.description,
         p.selling_price,
-        p.purchase_price,
+        (SELECT MIN(sp.purchase_price) FROM dbo.supplier_product sp WHERE sp.product_id = p.product_id AND sp.is_deleted = 0) AS purchase_price,
         p.stock,
         u.short_name AS unit_short_name
     FROM   [product] p

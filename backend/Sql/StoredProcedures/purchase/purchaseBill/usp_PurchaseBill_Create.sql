@@ -52,9 +52,13 @@ BEGIN
             @seq_prefix + RIGHT('0000' + CAST(@next_seq AS NVARCHAR), 4);
         DECLARE @subtotal DECIMAL(18, 4);
 
-        SELECT @subtotal = SUM(i.Quantity * ISNULL(i.UnitPrice, p.purchase_price))
+        SELECT @subtotal = SUM(i.Quantity * ISNULL(i.UnitPrice, sp.purchase_price))
         FROM @items i
-        INNER JOIN dbo.product p ON p.product_id = i.ProductId;
+        INNER JOIN dbo.product p ON p.product_id = i.ProductId
+        LEFT JOIN dbo.supplier_product sp 
+            ON sp.product_id = i.ProductId 
+           AND sp.supplier_id = @supplier_id 
+           AND sp.is_deleted = 0;
 
         DECLARE @total_amount DECIMAL(18, 4) =
             @subtotal + ISNULL(@subtotal * @tax_percentage / 100, 0);
@@ -76,11 +80,15 @@ BEGIN
             i.PurchaseOrderId,
             i.PurchaseOrderItemId,
             i.Quantity,
-            ISNULL(i.UnitPrice, p.purchase_price),
+            ISNULL(i.UnitPrice, sp.purchase_price),
             GETDATE(),
             0
         FROM @items i
-        INNER JOIN dbo.product p ON p.product_id = i.ProductId;
+        INNER JOIN dbo.product p ON p.product_id = i.ProductId
+        LEFT JOIN dbo.supplier_product sp 
+            ON sp.product_id = i.ProductId 
+           AND sp.supplier_id = @supplier_id 
+           AND sp.is_deleted = 0;
 
         UPDATE p
         SET p.stock = p.stock + i.Quantity,
@@ -95,11 +103,15 @@ BEGIN
             1,
             @new_id,
             i.Quantity,
-            ISNULL(i.UnitPrice, p.purchase_price),
+            ISNULL(i.UnitPrice, sp.purchase_price),
             'Purchase Bill: ' + @bill_number,
             GETDATE()
         FROM @items i
-        INNER JOIN dbo.product p ON p.product_id = i.ProductId;
+        INNER JOIN dbo.product p ON p.product_id = i.ProductId
+        LEFT JOIN dbo.supplier_product sp 
+            ON sp.product_id = i.ProductId 
+           AND sp.supplier_id = @supplier_id 
+           AND sp.is_deleted = 0;
 
         COMMIT TRANSACTION;
         SELECT @new_id AS new_id;

@@ -29,4 +29,29 @@ public class ProductController(IProductService _productService) : ControllerBase
         IEnumerable<SupplierDto> suppliers = await _productService.GetSuppliersAsync();
         return Ok(ApiResponse<IEnumerable<SupplierDto>>.Success(suppliers));
     }
+
+    [HttpGet("{productId}/suppliers")]
+    public async Task<IActionResult> GetProductSuppliers(int productId)
+    {
+        IEnumerable<SupplierProductDto> mappings = await _productService.GetSuppliersByProductAsync(productId);
+        return Ok(ApiResponse<IEnumerable<SupplierProductDto>>.Success(mappings, "Product suppliers retrieved successfully."));
+    }
+
+    [HttpPost("suppliers")]
+    public async Task<IActionResult> UpsertProductSupplier([FromBody] UpsertSupplierProductDto dto)
+    {
+        int mappingId = await _productService.UpsertSupplierProductAsync(dto);
+        return Ok(ApiResponse<int>.Success(mappingId, "Product supplier mapping updated successfully."));
+    }
+
+    [HttpDelete("suppliers/{supplierProductId}")]
+    public async Task<IActionResult> DeleteProductSupplier(int supplierProductId)
+    {
+        bool result = await _productService.DeleteSupplierProductAsync(supplierProductId);
+        if (result)
+        {
+            return Ok(ApiResponse<bool>.Success(true, "Product supplier mapping deleted successfully."));
+        }
+        return BadRequest(ApiResponse<bool>.Failure("Failed to delete product supplier mapping."));
+    }
 }

@@ -63,7 +63,6 @@ CREATE TABLE [product] (
     name            NVARCHAR(500)   NOT NULL,
     description     VARCHAR(1000),
     selling_price   DECIMAL(10,2),
-    purchase_price  DECIMAL(10,2),
     stock           DECIMAL(18,3),
     unit_id         INT,
     created_at      DATETIME2       DEFAULT GETDATE(),
@@ -79,6 +78,7 @@ CREATE TABLE [supplier_product] (
     supplier_product_id INT       IDENTITY(1,1) PRIMARY KEY,
     product_id          INT,
     supplier_id         INT,
+    purchase_price      DECIMAL(10,2),
     created_at          DATETIME2 DEFAULT GETDATE(),
     modified_at         DATETIME2,
     is_deleted          BIT       DEFAULT 0,
@@ -86,7 +86,8 @@ CREATE TABLE [supplier_product] (
     CONSTRAINT FK_supplier_product_product  FOREIGN KEY (product_id)
         REFERENCES [product] (product_id),
     CONSTRAINT FK_supplier_product_supplier FOREIGN KEY (supplier_id)
-        REFERENCES [supplier] (supplier_id)
+        REFERENCES [supplier] (supplier_id),
+    CONSTRAINT UQ_supplier_product UNIQUE (product_id, supplier_id)
 );
 GO
 

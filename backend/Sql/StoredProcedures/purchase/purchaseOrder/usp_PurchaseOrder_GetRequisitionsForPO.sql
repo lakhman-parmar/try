@@ -56,12 +56,16 @@ BEGIN
         pri.requisition_id,
         pri.product_id,
         p.name AS product_name,
-        p.purchase_price AS unit_price,
+        sp.purchase_price AS unit_price,
         u.short_name AS unit_short_name,
         pri.quantity
     FROM dbo.purchase_requisition_item pri
     INNER JOIN #paginated pg ON pg.purchase_requisition_id = pri.requisition_id
     INNER JOIN dbo.product p ON p.product_id = pri.product_id
+    LEFT JOIN dbo.supplier_product sp 
+        ON sp.product_id = p.product_id 
+       AND sp.supplier_id = @supplier_id 
+       AND sp.is_deleted = 0
     LEFT JOIN dbo.unit u ON u.unit_id = p.unit_id
     WHERE pri.is_deleted = 0
     ORDER BY pri.requisition_id, pri.purchase_requisition_item_id;
