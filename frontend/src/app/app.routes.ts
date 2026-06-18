@@ -18,6 +18,7 @@ import { UserProfile } from './features/user-profile/components/user-profile';
 import { Stock } from './features/stock/stock';
 import { PurchaseReturn } from './features/purchase/purchase-return/purchase-return';
 import { PurchaseReturnCreate } from './features/purchase/purchase-return/components/purchase-return-create/purchase-return-create';
+import { Product } from './features/product/product';
 
 export const routes: Routes = [
   {
@@ -152,6 +153,10 @@ export const routes: Routes = [
       {
         path: 'stock',
         component: Stock,
+      },
+      {
+        path: 'products',
+        component: Product,
       },
     ],
   },

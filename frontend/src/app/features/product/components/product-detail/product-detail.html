@@ -1,0 +1,147 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined modal-title-icon">inventory_2</span>
+        <div>
+          <h2 class="modal-title">{{ productName() || 'Product Detail' }}</h2>
+          @if (detail()) {
+            <span class="modal-subtitle">ID #{{ detail()!.productId }}</span>
+          }
+        </div>
+      </div>
+      <button class="icon-action" type="button" title="Close" (click)="close.emit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      @if (loading()) {
+        <div class="loading-state">
+          <mat-spinner diameter="28"></mat-spinner>
+          <span>Loading...</span>
+        </div>
+      } @else if (detail()) {
+        <!-- Summary cards -->
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="summary-label">Selling Price</span>
+            <span class="summary-value accent">{{ formatCurrency(detail()!.sellingPrice) }}</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">Current Stock</span>
+            <span class="summary-value"
+              >{{ detail()!.stock ?? 0 | number: '1.0-3' }} {{ detail()!.unitShortName }}</span
+            >
+          </div>
+          @if (detail()!.description) {
+            <div class="summary-card full-col description-card">
+              <span class="summary-label">Description</span>
+              <span class="summary-desc">{{ detail()!.description }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Supplier Prices -->
+        <div class="section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <span class="material-symbols-outlined">local_shipping</span>
+              Supplier Purchase Prices
+            </h3>
+            <button
+              class="secondary-action small-action"
+              type="button"
+              (click)="addingNew.set(!addingNew())"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Add Supplier
+            </button>
+          </div>
+
+          @if (addingNew()) {
+            <div class="add-supplier-row">
+              <select
+                class="field-control"
+                [ngModel]="newSupplierId()"
+                (ngModelChange)="newSupplierId.set($event ? +$event : null)"
+              >
+                <option [value]="null">— Select supplier —</option>
+                @for (s of availableSuppliers; track s.supplierId) {
+                  <option [value]="s.supplierId">{{ s.name }}</option>
+                }
+              </select>
+              <input
+                class="field-control price-input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Purchase price (₹)"
+                [ngModel]="newPurchasePrice()"
+                (ngModelChange)="newPurchasePrice.set($event ? +$event : null)"
+              />
+              <button
+                class="primary-action small-action"
+                type="button"
+                [disabled]="!newSupplierId() || newPurchasePrice() == null || savingNew()"
+                (click)="addSupplier()"
+              >
+                {{ savingNew() ? 'Saving...' : 'Add' }}
+              </button>
+              <button class="icon-action" type="button" (click)="addingNew.set(false)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          }
+
+          @if (detail()!.suppliers.length === 0 && !addingNew()) {
+            <div class="empty-suppliers">
+              <span class="material-symbols-outlined">local_shipping</span>
+              <span>No suppliers linked. Click "Add Supplier" to set purchase prices.</span>
+            </div>
+          } @else {
+            <div class="supplier-list">
+              @for (mapping of detail()!.suppliers; track mapping.supplierProductId) {
+                <div class="supplier-row">
+                  <span class="supplier-name">{{ mapping.supplierName }}</span>
+                  <div class="supplier-price-edit">
+                    <input
+                      class="field-control price-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      [ngModel]="getPrice(mapping)"
+                      (ngModelChange)="setPrice(mapping, +$event)"
+                    />
+                    <button
+                      class="save-btn"
+                      type="button"
+                      title="Save price"
+                      [disabled]="savingMap()[mapping.supplierProductId]"
+                      (click)="saveSupplierPrice(mapping)"
+                    >
+                      @if (savingMap()[mapping.supplierProductId]) {
+                        <mat-spinner diameter="14"></mat-spinner>
+                      } @else {
+                        <span class="material-symbols-outlined">check</span>
+                      }
+                    </button>
+                    <button
+                      class="icon-action danger"
+                      type="button"
+                      title="Remove supplier"
+                      [disabled]="deletingMap()[mapping.supplierProductId]"
+                      (click)="removeSupplier(mapping)"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

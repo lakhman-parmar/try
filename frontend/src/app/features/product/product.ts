@@ -1,0 +1,152 @@
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { debounceTime, finalize, Subject } from 'rxjs';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { ProductService } from './services/product.service';
+import { ProductFormModal } from './components/product-form/product-form';
+import { ProductDetailModal } from './components/product-detail/product-detail';
+import { PagedResult, ProductListItemDto } from './models/product.model';
+
+@Component({
+  selector: 'app-product',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatTableModule,
+    ProductFormModal,
+    ProductDetailModal,
+  ],
+  templateUrl: './product.html',
+  styleUrl: './product.scss',
+})
+export class Product implements OnInit {
+  private readonly svc = inject(ProductService);
+
+  displayedColumns = ['name', 'unit', 'sellingPrice', 'stock', 'actions'];
+  pageSize = 20;
+
+  loading = signal(false);
+  pagedResult = signal<PagedResult<ProductListItemDto> | null>(null);
+  searchTerm = signal('');
+  currentPage = signal(1);
+
+  readonly items = computed(() => this.pagedResult()?.items ?? []);
+  readonly totalCount = computed(() => this.pagedResult()?.totalCount ?? 0);
+  readonly totalPages = computed(() => this.pagedResult()?.totalPages ?? 1);
+  readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
+  readonly hasFilters = computed(() => !!this.searchTerm());
+
+  // Form modal state
+  formOpen = signal(false);
+  editProductId = signal<number | null>(null);
+
+  // Detail modal state
+  detailProductId = signal<number | null>(null);
+  detailProductName = signal('');
+
+  private searchSubject = new Subject<void>();
+
+  ngOnInit(): void {
+    this.loadList();
+    this.searchSubject.pipe(debounceTime(350)).subscribe(() => this.applyFilters());
+  }
+
+  private loadList(): void {
+    this.loading.set(true);
+    this.svc
+      .getAll({
+        search: this.searchTerm() || undefined,
+        pageNumber: this.currentPage(),
+        pageSize: this.pageSize,
+      })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess) this.pagedResult.set(res.data);
+        },
+      });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.currentPage.set(1);
+    this.searchSubject.next();
+  }
+
+  applyFilters(): void {
+    this.currentPage.set(1);
+    this.loadList();
+  }
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.currentPage.set(1);
+    this.loadList();
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
+    this.loadList();
+  }
+
+  openCreate(): void {
+    this.editProductId.set(null);
+    this.formOpen.set(true);
+  }
+
+  openEdit(id: number, event: Event): void {
+    event.stopPropagation();
+    this.editProductId.set(id);
+    this.formOpen.set(true);
+  }
+
+  openDetail(item: ProductListItemDto): void {
+    this.detailProductId.set(item.productId);
+    this.detailProductName.set(item.name);
+  }
+
+  closeForm(refreshNeeded: boolean): void {
+    this.formOpen.set(false);
+    this.editProductId.set(null);
+    if (refreshNeeded) this.loadList();
+  }
+
+  closeDetail(): void {
+    this.detailProductId.set(null);
+    this.detailProductName.set('');
+    this.loadList(); // refresh in case price was updated
+  }
+
+  deleteProduct(id: number, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Delete this product? This cannot be undone.')) return;
+    this.svc.delete(id).subscribe({
+      next: (res) => {
+        if (res.isSuccess) this.loadList();
+      },
+    });
+  }
+
+  minOf(a: number, b: number): number {
+    return Math.min(a, b);
+  }
+
+  formatCurrency(val?: number | null): string {
+    if (val == null) return '—';
+    return (
+      '₹\u00A0' +
+      val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    );
+  }
+
+  formatStock(val?: number | null): string {
+    if (val == null) return '—';
+    return val.toLocaleString('en-IN', { maximumFractionDigits: 3 });
+  }
+}

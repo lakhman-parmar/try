@@ -70,6 +70,12 @@ export class Sidebar {
       icon: 'inventory_2',
       key: 'stock',
     },
+    {
+      label: 'Products',
+      route: '/admin/products',
+      icon: 'category',
+      key: 'products',
+    },
   ];
 
   @HostListener('document:keydown.escape')
