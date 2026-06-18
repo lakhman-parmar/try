@@ -302,6 +302,30 @@
   }
 }
 
+.select-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+
+  .field-control {
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #64748b;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .field-control {
   appearance: none;
   background: #fff;

@@ -61,16 +61,19 @@
 
           @if (addingNew()) {
             <div class="add-supplier-row">
-              <select
-                class="field-control"
-                [ngModel]="newSupplierId()"
-                (ngModelChange)="newSupplierId.set($event ? +$event : null)"
-              >
-                <option [value]="null">— Select supplier —</option>
-                @for (s of availableSuppliers; track s.supplierId) {
-                  <option [value]="s.supplierId">{{ s.name }}</option>
-                }
-              </select>
+              <div class="select-wrapper">
+                <select
+                  class="field-control"
+                  [ngModel]="newSupplierId()"
+                  (ngModelChange)="newSupplierId.set($event ? +$event : null)"
+                >
+                  <option [value]="null">— Select supplier —</option>
+                  @for (s of availableSuppliers; track s.supplierId) {
+                    <option [value]="s.supplierId">{{ s.name }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
               <input
                 class="field-control price-input"
                 type="number"

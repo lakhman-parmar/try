@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RapidDev.Application.DTOs.Common;
 
 public class SupplierProductDto
@@ -15,5 +17,7 @@ public class UpsertSupplierProductDto
 {
     public int ProductId { get; set; }
     public int SupplierId { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Purchase price cannot be negative.")]
     public decimal PurchasePrice { get; set; }
 }

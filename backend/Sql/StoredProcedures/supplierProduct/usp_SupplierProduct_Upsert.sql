@@ -14,6 +14,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    IF @purchase_price < 0
+    BEGIN
+        THROW 50002, 'Purchase price cannot be negative.', 1;
+    END
+
     BEGIN TRANSACTION;
     BEGIN TRY
         DECLARE @supplier_product_id INT;

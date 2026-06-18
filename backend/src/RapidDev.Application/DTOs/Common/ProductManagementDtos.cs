@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace RapidDev.Application.DTOs.Common;
 
 public class ProductFilterDto
@@ -39,8 +41,12 @@ public class ProductDetailDto
 
 public class CreateProductDto
 {
+    [Required(ErrorMessage = "Product name is required.")]
+    [StringLength(500, ErrorMessage = "Product name cannot exceed 500 characters.")]
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Selling price cannot be negative.")]
     public decimal? SellingPrice { get; set; }
     public int? UnitId { get; set; }
     public string? ImageUrl { get; set; }
@@ -48,8 +54,12 @@ public class CreateProductDto
 
 public class UpdateProductDto
 {
+    [Required(ErrorMessage = "Product name is required.")]
+    [StringLength(500, ErrorMessage = "Product name cannot exceed 500 characters.")]
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Selling price cannot be negative.")]
     public decimal? SellingPrice { get; set; }
     public int? UnitId { get; set; }
     public string? ImageUrl { get; set; }

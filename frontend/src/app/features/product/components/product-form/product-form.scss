@@ -117,23 +117,50 @@
     border-color: #0284c7;
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.14);
   }
+
+  &.invalid-control {
+    border-color: #ef4444;
+    &:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+    }
+  }
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 11px;
+  margin-top: -2px;
+  font-weight: 500;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+
+  .field-control {
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #64748b;
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .textarea-control {
   height: auto;
   padding: 10px 12px;
   resize: vertical;
-}
-
-.error-banner {
-  align-items: center;
-  background: #fff1f2;
-  border-radius: 8px;
-  color: #be123c;
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  padding: 10px 14px;
 }
 
 .modal-footer {

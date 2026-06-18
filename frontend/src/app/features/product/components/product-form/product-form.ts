@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, OnInit, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, finalize } from 'rxjs';
 import { ProductService } from '../../services/product.service';
@@ -15,12 +15,13 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, MatProgressSpinnerModule],
   templateUrl: './product-form.html',
   styleUrl: './product-form.scss',
 })
 export class ProductFormModal implements OnInit {
   private readonly svc = inject(ProductService);
+  private readonly fb = inject(FormBuilder);
 
   productId = input<number | null>(null);
   closed = output<boolean>(); // true = saved, false = cancelled
@@ -29,23 +30,25 @@ export class ProductFormModal implements OnInit {
   loading = signal(false);
   saving = signal(false);
   units = signal<UnitDto[]>([]);
-  error = signal('');
 
-  // Form fields
-  name = signal('');
-  description = signal('');
-  sellingPrice = signal<number | null>(null);
-  unitId = signal<number | null>(null);
+  productForm!: FormGroup;
 
   get title(): string {
     return this.isEdit() ? 'Edit Product' : 'New Product';
   }
 
   get canSave(): boolean {
-    return this.name().trim().length > 0;
+    return this.productForm && this.productForm.valid;
   }
 
   ngOnInit(): void {
+    this.productForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(500)]],
+      description: [''],
+      sellingPrice: [null, [Validators.required, Validators.min(0)]],
+      unitId: [null, Validators.required],
+    });
+
     this.svc.getUnits().subscribe({
       next: (r: ApiResponse<UnitDto[]>) => {
         if (r.isSuccess) this.units.set(r.data);
@@ -62,10 +65,12 @@ export class ProductFormModal implements OnInit {
         .subscribe({
           next: (r) => {
             if (r.isSuccess && r.data) {
-              this.name.set(r.data.name);
-              this.description.set(r.data.description ?? '');
-              this.sellingPrice.set(r.data.sellingPrice ?? null);
-              this.unitId.set(r.data.unitId ?? null);
+              this.productForm.patchValue({
+                name: r.data.name,
+                description: r.data.description ?? '',
+                sellingPrice: r.data.sellingPrice ?? null,
+                unitId: r.data.unitId ?? null,
+              });
             }
           },
         });
@@ -75,13 +80,13 @@ export class ProductFormModal implements OnInit {
   save(): void {
     if (!this.canSave || this.saving()) return;
     this.saving.set(true);
-    this.error.set('');
 
+    const formVal = this.productForm.value;
     const dto: CreateProductDto | UpdateProductDto = {
-      name: this.name().trim(),
-      description: this.description().trim() || undefined,
-      sellingPrice: this.sellingPrice() ?? undefined,
-      unitId: this.unitId() ?? undefined,
+      name: formVal.name.trim(),
+      description: formVal.description?.trim() || undefined,
+      sellingPrice: formVal.sellingPrice ?? undefined,
+      unitId: formVal.unitId ?? undefined,
     };
 
     const obs$: Observable<ApiResponse<number | boolean>> = this.isEdit()
@@ -92,11 +97,8 @@ export class ProductFormModal implements OnInit {
       next: (r: ApiResponse<number | boolean>) => {
         if (r.isSuccess) {
           this.closed.emit(true);
-        } else {
-          this.error.set(r.message || 'Failed to save product.');
         }
       },
-      error: () => this.error.set('An unexpected error occurred.'),
     });
   }
 
